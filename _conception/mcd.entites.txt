@@ -1,0 +1,51 @@
+Entities
+
+---
+
+User (
+  _id_user
+  email
+  firstname
+  lastname
+  password
+  role             // user ou admin
+  creation_date
+  update_date
+)
+
+Category (
+  _id_category
+  title
+  description
+  creation_date
+  update_date
+)
+
+Activity (
+  _id_activity
+  title
+  description
+  price
+  _id_category     // FK → Category
+  creation_date
+  update_date
+)
+
+ActivitySession (
+  _id_session
+  session_date     // date/heure de l’activité
+  nb_available     // places disponibles pour cette session
+  _id_activity     // FK → Activity
+  creation_date
+  update_date
+)
+
+Reservation (
+  _id_reservation
+  nb_tickets
+  status           // active, annulée
+  _id_user         // FK → User
+  _id_session      // FK → ActivitySession
+  creation_date
+  update_date
+)
