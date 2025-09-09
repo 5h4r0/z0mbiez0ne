@@ -158,7 +158,7 @@
 
 ---
 
-## 👨‍💼 Répartition des rôles (à définir)
+## 👨‍💼 Répartition des rôles
 
 | Nom         | Rôle               | Responsabilités                          |
 | ----------- | ------------------ | ---------------------------------------- |
