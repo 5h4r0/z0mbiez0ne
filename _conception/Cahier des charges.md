@@ -45,22 +45,22 @@
 ## 👥 User Stories du MVP
 
 ### Utilisateur
-| En tant qu' | je dois pouvoir                                                                 | afin de                                                    |
-|-------------|---------------------------------------------------------------------------------|------------------------------------------------------------|
-| utilisateur | lister toutes les catégories **Category** d'activités                           | consulter des activités par catégorie                      |
-| utilisateur | lister toutes les activités **Activity**                                        | choisir une activité et consulter les sessions disponibles |
-| utilisateur | consulter le détail d’une activité **Activity**                                 | voir description, prix et sessions associées               |
-| utilisateur | consulter la liste des sessions **ActivitySession** d’une activité **Activity** | choisir une date/heure précise                             |
-| utilisateur | *option : accéder à un formulaire de recherche*                                 | trouver des activités par mots-clés                        |
-| utilisateur | créer un compte **User** avec un rôle **Role** "member"                         | créer l’espace membre pour commander                       |
-| utilisateur | me connecter                                                                    | accéder à mon espace membre                                |
-| utilisateur | me déconnecter                                                                  | sécuriser ma session                                       |
-| utilisateur | réinitialiser mon mot de passe                                                  | sécurisation ou oubli du mdp                               |
-| utilisateur | supprimer mon compte **User**                                                   | effacer mes données personnelles                           |
-| utilisateur | créer une commande (**Cart**)                                                   | préparer ma commande                                       |
-| utilisateur | ajouter/modifier/supprimer une ligne **Order**                                  | réserver des places sur une session                        |
-| utilisateur | confirmer ou annuler mon **Cart**                                               | finaliser ou abandonner ma commande                        |
-| utilisateur | consulter mes **Cart** passés et en cours                                       | voir l’historique et le détail de mes commandes            |
+| En tant qu' | je dois pouvoir                                                                 | afin de                                                          |
+|-------------|---------------------------------------------------------------------------------|------------------------------------------------------------------|
+| utilisateur | lister toutes les catégories **Category** d'activités                           | consulter des activités par catégorie                            |
+| utilisateur | lister toutes les activités **Activity**                                        | choisir une activité et consulter les sessions disponibles       |
+| utilisateur | consulter le détail d’une activité **Activity**                                 | voir description, prix et sessions associées                     |
+| utilisateur | consulter la liste des sessions **ActivitySession** d’une activité **Activity** | choisir une date/heure précise                                   |
+| utilisateur | *option : accéder à un formulaire de recherche*                                 | trouver des activités par mots-clés                              |
+| utilisateur | créer un compte **User** avec un rôle **Role** "member"                         | créer l’espace membre pour commander                             |
+| utilisateur | me connecter                                                                    | accéder à mon espace membre                                      |
+| utilisateur | me déconnecter                                                                  | sécuriser ma session                                             |
+| utilisateur | réinitialiser mon mot de passe                                                  | sécurisation ou oubli du mdp                                     |
+| utilisateur | supprimer mon compte **User**                                                   | effacer mes données personnelles                                 |
+| utilisateur | créer une commande **Cart**                                                     | préparer ma commande                                             |
+| utilisateur | ajouter/modifier/supprimer une ligne **Order**                                  | réserver ou supprimer des réservations de places sur une session |
+| utilisateur | confirmer ou annuler ma commande **Cart**                                       | finaliser ou abandonner ma commande                              |
+| utilisateur | consulter mes commandes **Cart** passés et en cours                             | voir l’historique et le détail de mes commandes                  |
 
 ### Administrateur
 | En tant qu'    | je dois pouvoir                       | afin de                                                         |
