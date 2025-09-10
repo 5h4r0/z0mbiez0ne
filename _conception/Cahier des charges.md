@@ -7,7 +7,7 @@
 **Nom du projet :** ZombieLand  
 **Type :** Site web dynamique  
 **Client :** ZombieLand, parc d’attractions à thème post-apocalyptique  
-**Objectif :** Offrir une vitrine immersive et interactive du parc ZombieLand tout en intégrant un système de **commande** de billets (Carts/Orders) basé sur des **sessions d’activités** et une interface de gestion autonome pour l'administrateur.
+**Objectif :** Offrir une vitrine immersive et interactive du parc ZombieLand tout en intégrant un système de **commande** de billets basé sur des **sessions d’activités** et une interface de gestion autonome pour l'administrateur.
 
 ---
 
@@ -22,7 +22,7 @@
 
 ---
 
-## 🎯 Définition des besoins et objectifs
+## 📋 Définition des besoins et objectifs
 
 ### Besoins (problèmes à résoudre)
 - Manque de visibilité du parc auprès du public ciblé.
@@ -32,9 +32,9 @@
 ### Objectifs du MVP (solutions de base apportées)
 - Création d’un site web immersif avec un design adapté au thème horrifique.
 - Affichage détaillé des catégories, activités, sessions (date/heure, capacité, statut, places disponibles).
-- Système de commande (**Cart**) avec lignes (**Order**) ciblant des sessions **ActivitySession**.
-- Espace client : affichage détaillé des commandes **Cart** (historique, annulation, détail des lignes **Order**).
-- Espace administration : back-office sécurisé pour gestion du site (**Category, Activity, ActivitySession, User, Order, Price, Image**).
+- Système de commande de sessions d'activité.
+- Espace client : affichage détaillé des commandes (historique avec dates des sessions, annulation de commande).
+- Espace administration : back-office sécurisé pour gestion du site (CRUD des **catégories**, **activités** et leurs **sessions**, **comptes utilisateur**, **commandes** - *et **pages** si temps suffisant*).
 - Site mobile et responsive.
 - Accessibilité handicap.
 - Respect des bonnes pratiques SEO.
@@ -42,25 +42,25 @@
 
 ---
 
-## 👥 User Stories du MVP
+## 📜 User Stories du MVP
 
 ### Utilisateur
-| En tant qu' | je dois pouvoir                                                                 | afin de                                                          |
-|-------------|---------------------------------------------------------------------------------|------------------------------------------------------------------|
-| utilisateur | lister toutes les catégories **Category** d'activités                           | consulter des activités par catégorie                            |
-| utilisateur | lister toutes les activités **Activity**                                        | choisir une activité et consulter les sessions disponibles       |
-| utilisateur | consulter le détail d’une activité **Activity**                                 | voir description, prix et sessions associées                     |
-| utilisateur | consulter la liste des sessions **ActivitySession** d’une activité **Activity** | choisir une date/heure précise                                   |
-| utilisateur | *option : accéder à un formulaire de recherche*                                 | trouver des activités par mots-clés                              |
-| utilisateur | créer un compte **User** avec un rôle **Role** "member"                         | créer l’espace membre pour commander                             |
-| utilisateur | me connecter                                                                    | accéder à mon espace membre                                      |
-| utilisateur | me déconnecter                                                                  | sécuriser ma session                                             |
-| utilisateur | réinitialiser mon mot de passe                                                  | sécurisation ou oubli du mdp                                     |
-| utilisateur | supprimer mon compte **User**                                                   | effacer mes données personnelles                                 |
-| utilisateur | créer une commande **Cart**                                                     | préparer ma commande                                             |
-| utilisateur | ajouter/modifier/supprimer une ligne **Order**                                  | réserver ou supprimer des réservations de places sur une session |
-| utilisateur | confirmer ou annuler ma commande **Cart**                                       | finaliser ou abandonner ma commande                              |
-| utilisateur | consulter mes commandes **Cart** passés et en cours                             | voir l’historique et le détail de mes commandes                  |
+| En tant qu'   | je dois pouvoir                                                                 | afin de                                                          |
+|---------------|---------------------------------------------------------------------------------|------------------------------------------------------------------|
+| utilisateur   | lister toutes les catégories **Category** d'activités                           | consulter des activités par catégorie                            |
+| utilisateur   | lister toutes les activités **Activity**                                        | choisir une activité et consulter les sessions disponibles       |
+| utilisateur   | consulter le détail d’une activité **Activity**                                 | voir description, prix et sessions associées                     |
+| utilisateur   | consulter la liste des sessions **ActivitySession** d’une activité **Activity** | choisir une date/heure précise                                   |
+| *utilisateur* | *requêter avec un formulaire de recherche (si temps suffisant)*                 | *trouver des activités par mots-clés*                            |
+| utilisateur   | créer un compte **User** avec un rôle **Role** "member"                         | créer l’espace membre pour commander                             |
+| utilisateur   | me connecter                                                                    | accéder à mon espace membre                                      |
+| utilisateur   | me déconnecter                                                                  | sécuriser ma session                                             |
+| utilisateur   | réinitialiser mon mot de passe                                                  | sécurisation ou oubli du mdp                                     |
+| utilisateur   | supprimer mon compte **User**                                                   | effacer mes données personnelles                                 |
+| utilisateur   | créer une commande **Cart**                                                     | préparer ma commande                                             |
+| utilisateur   | ajouter/modifier/supprimer une ligne **Order**                                  | réserver ou supprimer des réservations de places sur une session |
+| utilisateur   | confirmer ou annuler ma commande **Cart**                                       | finaliser ou abandonner ma commande                              |
+| utilisateur   | consulter mes commandes **Cart** passés et en cours                             | voir l’historique et le détail de mes commandes                  |
 
 ### Administrateur
 | En tant qu'    | je dois pouvoir                       | afin de                                                         |
@@ -79,7 +79,7 @@
 ### 🚀 Fonctionnalités principales (incluses dans le MVP - "Minimum Viable Product")
 *L’objectif du MVP est de livrer une **première version fonctionnelle et testable** du projet. Toutes les fonctionnalités secondaires non essentielles seront reportées.*
 
-- Affichage des catégories **Category**, activités **Activity**, Sessions **ActivitySession** (détails, filtres par catégorie, *recherche (option)*).
+- Affichage des catégories **Category**, activités **Activity**, Sessions **ActivitySession** (détails, filtres par catégorie, *formulaire de recherche en option*).
 - Commande de billets via **Cart** et des sessions **Order** (date, nombre de places, prix unitaire).
 - Cycle de vie d’une commande **Cart** : Pending/Confirmed → Cancelled/Refunded.
 - Système d’authentification (inscription, connexion, gestion profil **User** (2 rôles **Role** : member, admin).
@@ -102,7 +102,7 @@
 
 ---
 
-## ✅ Contraintes à respecter - MVP
+## 🚧 Contraintes à respecter - MVP
 
 * Authentification sécurisée  
 * Tests d'intégration, fonctionnels, unitaires, de charge  
@@ -116,7 +116,7 @@
 
 ---
 
-## 🏗️ Architecture du projet
+## 📐 Architecture du projet
 
 ### Architecture envisagée :
 - **Back-End** : **Server Side Rendering** — moteur de template **EJS** + types pour **TypeScript**, **SCSS**.  
@@ -130,7 +130,7 @@
 
 ---
 
-## 🔧 Technologies utilisées (et justification)
+## 🤖 Technologies utilisées (et justification)
 
 | Technologie | Rôle | Justification |
 |-------------|------|---------------|
@@ -145,7 +145,7 @@
 
 ---
 
-## ⚠️ Analyse des risques
+## 🚨 Analyse des risques
 
 | Risque                         | Impact | Mesure préventive                                |
 | ------------------------------ | ------ | ------------------------------------------------ |
@@ -157,7 +157,7 @@
 
 ---
 
-## 👨‍💼 Répartition des rôles
+## 🎭 Répartition des rôles
 
 | Nom         | Rôle               | Responsabilités                          |
 | ----------- | ------------------ | ---------------------------------------- |
@@ -185,5 +185,5 @@
 
 * **Sprint 1** : Arborescence, routes principales, maquettes, base SCSS  
 * **Sprint 2** : Modèles + contrôleurs **Categories/Activities/Sessions**, listes/détails côté front  
-* **Sprint 3** : Auth (register/login), **Orders/OrderLines** (panier, modification ligne), pages profil  
+* **Sprint 3** : Auth (register/login), **Cart/Orders** (commandes), pages utilisateur  
 * **Sprint 4** : Admin CRUD (categories/activities/sessions/users/orders), tests & hardening, SEO/Accessibilité
