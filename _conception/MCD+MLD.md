@@ -80,7 +80,7 @@ Cart (0,N) ---- (1,1) Order
 - Chaque **Order** appartient à un seul **Cart**.  
 
 CIBLER  
-OrderLine (1,1) ---- (0,N) ActivitySession  
+Order (1,1) ---- (0,N) ActivitySession  
 - Chaque **Order** cible une **ActivitySession**.  
 - Une **ActivitySession** peut apparaître dans plusieurs **Order** (sur plusieurs utilisateurs).  
 
