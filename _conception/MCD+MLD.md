@@ -11,36 +11,49 @@ Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD
 ### Entités
 
 #### User
-- UserEmail  
+- UserCode  
+- Role {member, admin} 
+- Email  
 - Firstname  
 - Lastname  
-- Password  
-- Role {user, admin}  
+- PasswordHash  
+ 
+#### Role
+- RoleCode
+- Name  
 
 #### Category
+- CategoryCode  
 - Title  
 - Description  
 - Image  
 
 #### Activity
+- ActivityCode  
 - Title  
 - Description  
 - Price  
 - Image  
 
 #### ActivitySession
+- SessionCode  
 - SessionDate  
 - Capacity  
+- CapacityLeft  
 - Status {Scheduled, Cancelled, Completed}  
 
 #### Order
-- Status {Draft, Pending, Confirmed, Cancelled, Refunded}  
-- TotalPrice  
-- PaymentMethod  
-
-#### OrderLine
-- TicketsNumber  
+- OrderCode    
+- TicketsQty 
 - UnitPrice  
+
+#### Cart
+- CartCode  
+- TotalPrice  
+- Taxes  
+- PaymentMethod  
+- PaymentDate  
+- Status {Pending, Confirmed, Cancelled, Refunded}  
 
 ---
 
@@ -57,40 +70,52 @@ Activity (0,N) ---- (1,1) ActivitySession
 - Chaque **ActivitySession** est liée à une et une seule **Activity**.  
 
 PASSER  
-User (0,N) ---- (1,1) Order  
-- Un **User** peut passer zéro ou plusieurs **Orders**.  
-- Chaque **Order** appartient à un seul **User**.  
+User (0,N) ---- (1,1) Cart  
+- Un **User** peut passer zéro ou plusieurs commandes **Cart**.  
+- Chaque **Cart** appartient à un seul **User**.  
 
-COMPRENDRE  
-Order (0,N) ---- (1,1) OrderLine  
-- Un **Order** contient une ou plusieurs **OrderLines**.  
-- Chaque **OrderLine** appartient à un seul **Order**.  
+POSSÈDE  
+Cart (0,N) ---- (1,1) Order  
+- Un **Cart** contient zéro ou plusieurs **Order**.  
+- Chaque **Order** appartient à un seul **Cart**.  
 
 CIBLER  
 OrderLine (1,1) ---- (0,N) ActivitySession  
-- Chaque **OrderLine** cible une **ActivitySession**.  
-- Une **ActivitySession** peut apparaître dans plusieurs **OrderLines** (réservée par plusieurs utilisateurs).  
+- Chaque **Order** cible une **ActivitySession**.  
+- Une **ActivitySession** peut apparaître dans plusieurs **Order** (sur plusieurs utilisateurs).  
+
+CARACTÉRISE
+Role (0,N) --- (1,1) User
+- Un **Role** caractérise zéro ou plusieurs **User**.
+- Chaque **User** n'est caractérisé que par un seul **Role**.
 
 ---
+
 
 ## 🧩 Modèle Logique de Données (MLD)
 
 ### User
 - UserId (PK)  
+- RoleId (FK → Role.RoleId)  
 - Email (UNIQUE)  
 - Firstname  
 - Lastname  
 - PasswordHash  
-- Role {user, admin}  
 - CreatedAt  
 - UpdatedAt  
 - DeletedAt (NULL si actif)  
 
 **NOTE** :  
-- Si aucun Order → hard delete possible  
-- Si Orders Draft/Pending → hard delete possible (supprimer User + Orders + Lines)  
-- Si Orders Confirmed/Refunded → soft delete + anonymisation obligatoire (garder historique)  
-- Si Orders Cancelled → soft delete (Order conservé comme annulé)  
+- Si aucun Cart → User hard delete possible.  
+- Si Cart Pending → User hard delete possible (delete User + Cart + Orders).  
+- Si Cart Confirmed/Refunded → User soft delete possible + anonymisation obligatoire (garder historique).  
+- Si Cart Cancelled → User soft delete possible (Carts conservés comme annulé).  
+
+---
+
+### Role
+- RoleId (PK)
+- Name {member, admin}
 
 ---
 
@@ -103,22 +128,22 @@ OrderLine (1,1) ---- (0,N) ActivitySession
 - UpdatedAt  
 - DeletedAt (NULL si actif)  
 
-**NOTE** : Soft delete autorisé, historique conservé.  
+**NOTE** : Category soft delete autorisé, historique conservé.  
 
 ---
 
 ### Activity
 - ActivityId (PK)  
+- CategoryId (FK → Category.CategoryId)  
 - Title  
 - Description  
 - Price  
 - Image  
-- CategoryId (FK → Category.CategoryId)  
 - CreatedAt  
 - UpdatedAt  
 - DeletedAt (NULL si actif)  
 
-**NOTE** : Soft delete autorisé, historique conservé.  
+**NOTE** : Activity soft delete autorisé, historique conservé.  
 
 ---
 
@@ -127,42 +152,43 @@ OrderLine (1,1) ---- (0,N) ActivitySession
 - ActivityId (FK → Activity.ActivityId)  
 - SessionDate  
 - Capacity  
+- CapacityLeft  
 - Status {Scheduled, Cancelled, Completed}  
-- CreatedAt  
-- UpdatedAt  
-- CancelDate (NULL si pas annulée)  
+- CreatedAt
+- UpdatedAt
+- DeletedAt (NULL si pas annulée)  
 
-**NOTE** : Suppression = statut Cancelled (pas de hard delete).  
+**NOTE** : ActivitySession Cancelled : Statut cancelled (pas de hard delete).  
 
 ---
 
 ### Order
 - OrderId (PK)  
-- UserId (FK → User.UserId)  
-- Status {Draft, Pending, Confirmed, Cancelled, Refunded}  
-- TotalPrice  
-- PaymentMethod  
-- PaymentDate (NULL si pas payé)  
-- CancelDate (NULL si pas annulé)  
-- CreatedAt  
-- UpdatedAt  
-
-**NOTE** :  
-- Draft = panier, peut être supprimé si User hard delete  
-- Pending = réservation non payée, peut être supprimée si User hard delete  
-- Confirmed/Refunded = historique obligatoire → Order conservé même si User supprimé  
-- Cancelled = conservé comme trace d’annulation  
-
----
-
-### OrderLine
-- LineId (PK)  
-- OrderId (FK → Order.OrderId)  
+- CartId (FK → Cart.CartId)  
 - SessionId (FK → ActivitySession.SessionId)  
-- TicketsNumber  
+- TicketsQty  
 - UnitPrice  
 - CreatedAt  
 - UpdatedAt  
-- UNIQUE (OrderId, SessionId)  
+- UNIQUE (CartId, SessionId)  
 
-**NOTE** : pas de DeletedAt, dépend du statut d’Order.  
+**NOTE** : pas de DeletedAt, dépend du statut de Cart.  
+
+---
+
+### Cart
+- CartId (PK)  
+- UserId (FK → User.UserId)  
+- TotalPrice  
+- Tax  
+- PaymentMethod  
+- PaymentDate (NULL si pas payé)  
+- Status {Pending, Confirmed, Cancelled, Refunded}  
+- CreatedAt  
+- UpdatedAt  
+- DeletedAt (NULL si pas annulé)  
+
+**NOTE** :  
+- Cart Pending = réservation non payée, peut être supprimée si User hard delete.  
+- Cart Confirmed/Refunded = historique obligatoire → Cart conservé même si User supprimé.  
+- Cart Deleted = conservé comme trace d’annulation.  
