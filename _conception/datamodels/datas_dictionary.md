@@ -1,4 +1,4 @@
-# 📖 Dictionnaire des Données (PostgreSQL)
+# 📖 Dictionnaire des Données
 
 *Ajout des champs avec TZ si Time Zone : TYPESTAMPTZ DEFAULT NOW()
 Limiter la taille du texte : `firstname` : `VARCHAR(50)`*

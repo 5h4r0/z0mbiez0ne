@@ -42,8 +42,7 @@
 - ActivityId (PK)  
 - CategoryId (FK → Category.CategoryId)  
 - Title  
-- Description  
-- Price  
+- Description    
 - Image  
 - CreatedAt  
 - UpdatedAt  
@@ -57,7 +56,8 @@
 - SessionId (PK)  
 - ActivityId (FK → Activity.ActivityId)  
 - SessionDate  
-- Capacity   
+- Capacity  
+- UnitPrice
 - Status {Scheduled, Cancelled, Completed}  
 - CreatedAt
 - UpdatedAt
@@ -72,7 +72,7 @@
 - CartId (FK → Cart.CartId)  
 - SessionId (FK → ActivitySession.SessionId)  
 - TicketsQty  
-- UnitPrice  
+- Amount  
 - CreatedAt  
 - UpdatedAt  
 - UNIQUE (CartId, SessionId)  
@@ -84,8 +84,8 @@
 ### Cart
 - CartId (PK)  
 - UserId (FK → User.UserId)  
-- TotalPrice  
-- Tax  
+- Taxes  
+- TotalAmount  
 - PaymentMethod  
 - PaymentDate (NULL si pas payé)  
 - Status {Pending, Confirmed, Cancelled, Refunded}  

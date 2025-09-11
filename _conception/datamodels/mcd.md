@@ -32,23 +32,23 @@ Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD
 - ActivityCode  
 - Title  
 - Description  
-- Price  
 - Image  
 
 #### ActivitySession
 - SessionCode  
 - SessionDate  
-- Capacity    
+- Capacity  
+- UnitPrice  
 - Status {Scheduled, Cancelled, Completed}  
 
 #### Order
 - OrderCode    
 - TicketsQty 
-- UnitPrice  
+- Amount  
 
 #### Cart
 - CartCode  
-- TotalPrice  
+- TotalAmount  
 - Taxes  
 - PaymentMethod  
 - PaymentDate  
