@@ -59,7 +59,7 @@ CREATE TABLE activity_session (
     activity_id INTEGER NOT NULL REFERENCES activity(id),
     session_date TIMESTAMP NOT NULL,
     capacity INTEGER NOT NULL,
-    price NUMERIC(3,2) NOT NULL,
+    unit_price NUMERIC(3,2) NOT NULL,
     status VARCHAR(10) NOT NULL CHECK (status IN ('Scheduled', 'Cancelled', 'Completed')),
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now(),

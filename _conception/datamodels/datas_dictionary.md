@@ -64,7 +64,7 @@ Limiter la taille du texte : `firstname` : `VARCHAR(50)`*
 | activity_id  | INTEGER      | FK → activity(id), NOT NULL                                       | Activité associée     |
 | session_date | TIMESTAMP    | NOT NULL                                                          | Date/heure            |
 | capacity     | INTEGER      | NOT NULL                                                          | Capacité totale       |
-| price        | NUMERIC(3,2) | NOT NULL                                                          | Prix                  |
+| unit_price   | NUMERIC(3,2) | NOT NULL                                                          | Prix                  |
 | status       | VARCHAR(10)  | CHECK (status IN ('Scheduled','Cancelled','Completed')), NOT NULL | Statut                |
 | created_at   | TIMESTAMP    | DEFAULT now(), NOT NULL                                           | Date de création      |
 | updated_at   | TIMESTAMP    | DEFAULT now(), NOT NULL                                           | Dernière modification |
