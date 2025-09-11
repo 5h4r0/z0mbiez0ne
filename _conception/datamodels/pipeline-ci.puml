@@ -1,0 +1,94 @@
+@startuml Pipeline d'intégration continue
+start
+
+repeat
+  partition IDE {
+    :Mise à jour de la branche principale;
+    note right
+      On synchronise la branche locale
+      avec `master` pour éviter les conflits.
+    end note
+
+    :Création d'une branche dédiée;
+    note right
+      Nouvelle branche = isolement d'une fonctionnalité
+      ou d'une correction spécifique.
+    end note
+
+    repeat
+      :Développement et ajout de tests;
+      note right
+        On code la nouvelle fonctionnalité
+        et on écrit les tests associés.
+      end note
+
+      :Commit (commande Git);
+      note right
+        Sauvegarde des changements avec un message clair.
+      end note
+
+      :Lancement automatique du pre-commit (Husky);
+      note right
+        Husky exécute les hooks : linter, formateur, etc.
+        avant d’autoriser le commit.
+      end note
+
+    repeat while (Erreur du linter ?) is (oui) not (non)
+
+      :Commit enregistré;
+      :Push;
+      note right
+        Le code validé est envoyé sur GitHub
+        dans la branche dédiée.
+      end note
+  }
+
+  partition GitHub {
+    :Ouverture d'une Pull Request;
+    note right
+      On propose de fusionner la branche de travail
+      vers `main` (code review, validation).
+    end note
+
+    partition GitHub Actions {
+      repeat
+        :Déclenchement du workflow CI;
+        note right
+          Chaque push ou PR déclenche automatiquement
+          les workflows définis (CI/CD).
+        end note
+
+        :Setup Node.js et installation des dépendances;
+        :Exécution des tests unitaires;
+        note right
+          Les tests vérifient que la nouvelle fonctionnalité
+          ne casse rien et respecte la qualité attendue.
+        end note
+
+        if (Tests OK ?) then (oui)
+          :Workflow réussi;
+          note right
+            Tout est validé : la PR peut être fusionnée.
+          end note
+        else (non)
+          :Corriger le code dans l'IDE;
+          note right
+            Retour à l’IDE pour corriger erreurs ou tests KO,
+            puis recommencer le cycle.
+          end note
+        endif
+
+      repeat while (Tests OK ?) is (non)
+    }
+
+    :Merge de la Pull Request vers main;
+    note right
+      La fonctionnalité validée est intégrée
+      dans la branche principale.
+    end note
+  }
+
+repeat while (Nouvelles fonctionnalités à développer ?) is (oui)
+
+stop
+@enduml

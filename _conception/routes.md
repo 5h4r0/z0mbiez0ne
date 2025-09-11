@@ -21,14 +21,16 @@
 
 ## 🚧 Routes d'authentification & vues compte utilisateur
 
-| Route            | Description                          |
-|------------------|--------------------------------------|
-| /register        | Créer un compte                      |
-| /login           | Connection au compte                 |
-| /user            | Page profil                          |
-| /user/orders     | Liste des commandes                  |
-| /user/orders/id/ | Détail de commande                   |
-| /user/cart       | Panier d'achat, annulation de panier |
+| Route            | Description                                          |
+|------------------|------------------------------------------------------|
+| /register        | Créer un compte                                      |
+| /login           | Connection au compte                                 |
+| /cart            | Panier d'achat en pending, annulation de panier      |
+| /checkout        | Paiement de la commande                              |
+| /user            | Page profil                                          |
+| /user/orders     | Liste des commandes                                  |
+| /user/orders/id/ | Détail de commande                                   |
+| /user/cart       | Historique commandes, annulation d'un panier pending |
 
 ---
 
@@ -62,5 +64,5 @@
 
 | Route            | Description                                                |
 |------------------|------------------------------------------------------------|
-| /admin/user      | Liste des comptes utilisateur                              |
+| /admin/users     | Liste des comptes utilisateur                              |
 | /admin/users/id/ | Comsultation, édition, suppression d'un compte utilisateur |

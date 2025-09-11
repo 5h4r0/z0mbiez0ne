@@ -45,32 +45,32 @@
 ## 📜 User Stories du MVP
 
 ### Utilisateur
-| En tant qu'   | je dois pouvoir                                                                 | afin de                                                          |
-|---------------|---------------------------------------------------------------------------------|------------------------------------------------------------------|
-| utilisateur   | lister toutes les catégories **Category** d'activités                           | consulter des activités par catégorie                            |
-| utilisateur   | lister toutes les activités **Activity**                                        | choisir une activité et consulter les sessions disponibles       |
-| utilisateur   | consulter le détail d’une activité **Activity**                                 | voir description, prix et sessions associées                     |
-| utilisateur   | consulter la liste des sessions **ActivitySession** d’une activité **Activity** | choisir une date/heure précise                                   |
-| *utilisateur* | *requêter avec un formulaire de recherche (si temps suffisant)*                 | *trouver des activités par mots-clés*                            |
-| utilisateur   | créer un compte **User** avec un rôle **Role** "member"                         | créer l’espace membre pour commander                             |
-| utilisateur   | me connecter                                                                    | accéder à mon espace membre                                      |
-| utilisateur   | me déconnecter                                                                  | sécuriser ma session                                             |
-| utilisateur   | réinitialiser mon mot de passe                                                  | sécurisation ou oubli du mdp                                     |
-| utilisateur   | supprimer mon compte **User**                                                   | effacer mes données personnelles                                 |
-| utilisateur   | créer une commande **Cart**                                                     | préparer ma commande                                             |
-| utilisateur   | ajouter/modifier/supprimer une ligne **Order**                                  | réserver ou supprimer des réservations de places sur une session |
-| utilisateur   | confirmer ou annuler ma commande **Cart**                                       | finaliser ou abandonner ma commande                              |
-| utilisateur   | consulter mes commandes **Cart** passés et en cours                             | voir l’historique et le détail de mes commandes                  |
+| En tant qu'   | je dois pouvoir                                                                    | afin de                                                          |
+|---------------|------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| utilisateur   | lister toutes les catégories **Categories** d'activités                            | consulter des activités par catégorie                            |
+| utilisateur   | lister toutes les activités **Activities**                                         | choisir une activité et consulter les sessions disponibles       |
+| utilisateur   | consulter le détail d’une activité **Activities**                                  | voir description, prix et sessions associées                     |
+| utilisateur   | consulter la liste des sessions **ActivitySessions** d’une activité **Activities** | choisir une date/heure précise                                   |
+| *utilisateur* | *requêter avec un formulaire de recherche (si temps suffisant)*                    | *trouver des activités par mots-clés*                            |
+| utilisateur   | créer un compte **Users** avec un rôle **Roles** "member"                          | créer l’espace membre pour commander                             |
+| utilisateur   | me connecter                                                                       | accéder à mon espace membre                                      |
+| utilisateur   | me déconnecter                                                                     | sécuriser ma session                                             |
+| utilisateur   | réinitialiser mon mot de passe                                                     | sécurisation ou oubli du mdp                                     |
+| utilisateur   | supprimer mon compte **Users**                                                     | effacer mes données personnelles                                 |
+| utilisateur   | créer une commande **Carts**                                                       | préparer ma commande                                             |
+| utilisateur   | ajouter/modifier/supprimer une ligne **Orders**                                    | réserver ou supprimer des réservations de places sur une session |
+| utilisateur   | confirmer ou annuler ma commande **Carts**                                         | finaliser ou abandonner ma commande                              |
+| utilisateur   | consulter mes commandes **Carts** passés et en cours                               | voir l’historique et le détail de mes commandes                  |
 
 ### Administrateur
-| En tant qu'    | je dois pouvoir                       | afin de                                                         |
-|----------------|---------------------------------------|-----------------------------------------------------------------|
-| administrateur | me connecter / me déconnecter         | sécuriser l’accès au backoffice                                 |
-| administrateur | CRUD des catégories **Category**      | accéder au détail, créer, modifier ou supprimer une catégorie   |
-| administrateur | CRUD des activités **Activity**       | accéder au détail, créer, modifier ou supprimer une activité    |
-| administrateur | CRUD des sessions **ActivitySession** | accéder au détail, créer, modifier ou supprimer une session     |
-| administrateur | RUD des utilisateurs **User**         | accéder au détail, modifier ou supprimer un compte              |
-| administrateur | RUD des commandes **Cart**            | accéder au détail, modifier le statut ou supprimer une commande |
+| En tant qu'    | je dois pouvoir                        | afin de                                                         |
+|----------------|----------------------------------------|-----------------------------------------------------------------|
+| administrateur | me connecter / me déconnecter          | sécuriser l’accès au backoffice                                 |
+| administrateur | CRUD des catégories **Categories**     | accéder au détail, créer, modifier ou supprimer une catégorie   |
+| administrateur | CRUD des activités **Activities**      | accéder au détail, créer, modifier ou supprimer une activité    |
+| administrateur | CRUD des sessions **ActivitySessions** | accéder au détail, créer, modifier ou supprimer une session     |
+| administrateur | RUD des utilisateurs **Users**         | accéder au détail, modifier ou supprimer un compte              |
+| administrateur | RUD des commandes **Carts**            | accéder au détail, modifier le statut ou supprimer une commande |
 
 ---
 
@@ -79,12 +79,12 @@
 ### 🚀 Fonctionnalités principales (incluses dans le MVP - "Minimum Viable Product")
 *L’objectif du MVP est de livrer une **première version fonctionnelle et testable** du projet. Toutes les fonctionnalités secondaires non essentielles seront reportées.*
 
-- Affichage des catégories **Category**, activités **Activity**, Sessions **ActivitySession** (détails, filtres par catégorie, *formulaire de recherche en option*).
-- Commande de billets via **Cart** et des sessions **Order** (date, nombre de places, prix unitaire).
-- Cycle de vie d’une commande **Cart** : Pending/Confirmed → Cancelled/Refunded.
-- Système d’authentification (inscription, connexion, gestion profil **User** (2 rôles **Role** : member, admin).
-- Visualisation et gestion des commandes **Cart** (historique, annulation).
-- Espace d’administration : gestion des commande **Cart**, utilisateurs **User**, activités **Activity**, catégories **Category**, Sessions **ActivitySession**.
+- Affichage des catégories **Categories**, activités **Activities**, Sessions **ActivitySessions** (détails, filtres par catégorie, *formulaire de recherche en option*).
+- Commande de billets via **Cart** et des sessions **Orders** (date, nombre de places, prix unitaire).
+- Cycle de vie d’une commande **Carts** : Pending/Confirmed → Cancelled/Refunded.
+- Système d’authentification (inscription, connexion, gestion profil **Users** (2 rôles **Roles** : member, admin).
+- Visualisation et gestion des commandes **Carts** (historique, annulation).
+- Espace d’administration : gestion des commande **Carts**, utilisateurs **Users**, activités **Activities**, catégories **Categories**, Sessions **ActivitySessions**.
 
 ### Fonctionnalités secondaires (hors MVP - évolutions potentielles)
 - Système de messagerie interne.

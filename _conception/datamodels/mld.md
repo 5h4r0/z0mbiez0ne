@@ -1,6 +1,12 @@
 ## 🧩 Modèle Logique de Données (MLD)
 
-### User
+### Roles
+- RoleId (PK)
+- Name {member, admin}
+
+---
+
+### Users
 - UserId (PK)  
 - RoleId (FK → Role.RoleId)  
 - Email (UNIQUE)  
@@ -19,13 +25,7 @@
 
 ---
 
-### Role
-- RoleId (PK)
-- Name {member, admin}
-
----
-
-### Category
+### Categories
 - CategoryId (PK)  
 - Title  
 - Description  
@@ -38,7 +38,7 @@
 
 ---
 
-### Activity
+### Activities
 - ActivityId (PK)  
 - CategoryId (FK → Category.CategoryId)  
 - Title  
@@ -52,7 +52,7 @@
 
 ---
 
-### ActivitySession
+### ActivitySessions
 - SessionId (PK)  
 - ActivityId (FK → Activity.ActivityId)  
 - SessionDate  
@@ -67,7 +67,7 @@
 
 ---
 
-### Order
+### Orders
 - OrderId (PK)  
 - CartId (FK → Cart.CartId)  
 - SessionId (FK → ActivitySession.SessionId)  
@@ -81,7 +81,7 @@
 
 ---
 
-### Cart
+### Carts
 - CartId (PK)  
 - UserId (FK → User.UserId)  
 - Taxes  

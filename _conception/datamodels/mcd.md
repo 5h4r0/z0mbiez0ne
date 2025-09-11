@@ -10,7 +10,11 @@ Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD
 
 ### Entités
 
-#### User
+#### Roles
+- RoleCode
+- Name  
+
+#### Users
 - UserCode  
 - Role {member, admin} 
 - Email  
@@ -18,35 +22,35 @@ Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD
 - Lastname  
 - PasswordHash  
  
-#### Role
+#### Roles
 - RoleCode
 - Name  
 
-#### Category
+#### Categories
 - CategoryCode  
 - Title  
 - Description  
 - Image  
 
-#### Activity
+#### Activities
 - ActivityCode  
 - Title  
 - Description  
 - Image  
 
-#### ActivitySession
+#### ActivitySessions
 - SessionCode  
 - SessionDate  
 - Capacity  
 - UnitPrice  
 - Status {Scheduled, Cancelled, Completed}  
 
-#### Order
+#### Orders
 - OrderCode    
 - TicketsQty 
 - Amount  
 
-#### Cart
+#### Carts
 - CartCode  
 - TotalAmount  
 - Taxes  
@@ -60,30 +64,30 @@ Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD
 
 OWN  
 Activity (1,1) ---- (0,N) Category  
-- Une **Activity** doit appartenir à une **Category**.  
-- Une **Category** peut contenir zéro, une ou plusieurs **Activities** (catégorie vide autorisée).  
+- Une **Activities** doit appartenir à une **Categories**.  
+- Une **Categories** peut contenir zéro, une ou plusieurs **Activities** (catégorie vide autorisée).  
 
 PLANIFIER  
 Activity (0,N) ---- (1,1) ActivitySession  
-- Une **Activity** peut avoir zéro ou plusieurs **ActivitySessions**.  
-- Chaque **ActivitySession** est liée à une et une seule **Activity**.  
+- Une **Activities** peut avoir zéro ou plusieurs **ActivitySessions**.  
+- Chaque **ActivitySessions** est liée à une et une seule **Activities**.  
 
 PASSER  
 User (0,N) ---- (1,1) Cart  
-- Un **User** peut passer zéro ou plusieurs commandes **Cart**.  
-- Chaque **Cart** appartient à un seul **User**.  
+- Un **Users** peut passer zéro ou plusieurs commandes **Carts**.  
+- Chaque **Carts** appartient à un seul **Users**.  
 
 POSSÈDE  
 Cart (0,N) ---- (1,1) Order  
-- Un **Cart** contient zéro ou plusieurs **Order**.  
-- Chaque **Order** appartient à un seul **Cart**.  
+- Un **Carts** contient zéro ou plusieurs **Orders**.  
+- Chaque **Orders** appartient à un seul **Carts**.  
 
 CIBLER  
 Order (1,1) ---- (0,N) ActivitySession  
-- Chaque **Order** cible une **ActivitySession**.  
-- Une **ActivitySession** peut apparaître dans plusieurs **Order** (sur plusieurs utilisateurs).  
+- Chaque **Orders** cible une **ActivitySessions**.  
+- Une **ActivitySessions** peut apparaître dans plusieurs **Orders** (sur plusieurs utilisateurs).  
 
 CARACTÉRISE
 Role (0,N) --- (1,1) User
-- Un **Role** caractérise zéro ou plusieurs **User**.
-- Chaque **User** n'est caractérisé que par un seul **Role**.
+- Un **Roles** caractérise zéro ou plusieurs **Users**.
+- Chaque **Users** n'est caractérisé que par un seul **Roles**.
