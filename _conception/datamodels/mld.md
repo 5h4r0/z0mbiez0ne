@@ -29,7 +29,7 @@
 - CategoryId (PK)  
 - Title  
 - Description  
-- Image  
+- ImageFilename  
 - CreatedAt  
 - UpdatedAt  
 - DeletedAt (NULL si actif)  
@@ -43,7 +43,7 @@
 - CategoryId (FK → Category.CategoryId)  
 - Title  
 - Description    
-- Image  
+- ImageFilename  
 - CreatedAt  
 - UpdatedAt  
 - DeletedAt (NULL si actif)  
