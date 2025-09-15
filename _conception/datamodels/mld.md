@@ -1,14 +1,13 @@
 ## 🧩 Modèle Logique de Données (MLD)
 
-### Roles
-- RoleId (PK)
-- Name {member, admin}
+Ce document décrit le modèle logique (**MLD**) de données du projet.  
+- Le **MLD** ajoute les clés primaires/étrangères, les champs techniques et les règles de gestion (suppression, anonymisation).
 
 ---
 
 ### Users
-- UserId (PK)  
-- RoleId (FK → Role.RoleId)  
+- UsersId (PK)  
+- RolesId (FK → Roles.RolesId)  
 - Email (UNIQUE)  
 - Firstname  
 - Lastname  
@@ -18,29 +17,21 @@
 - DeletedAt (NULL si actif)  
 
 **NOTE** :  
-- Si aucun Cart → User hard delete possible.  
-- Si Cart Pending → User hard delete possible (delete User + Cart + Orders).  
-- Si Cart Confirmed/Refunded → User soft delete possible + anonymisation obligatoire (garder historique).  
-- Si Cart Cancelled → User soft delete possible (Carts conservés comme annulé).  
+- Si aucun Orders → Users hard delete possible.  
+- Si Orders Pending → Users hard delete possible (delete Users + Orders + OrdersLines).  
+- Si Orders Confirmed/Refunded → Users soft delete possible + anonymisation obligatoire (Orders observés comme Refunded, historique conservé).  
+- Si Orders Cancelled → Users soft delete possible (Orders conservés comme annulé).  
 
 ---
 
-### Categories
-- CategoryId (PK)  
-- Title  
-- Description  
-- ImageFilename  
-- CreatedAt  
-- UpdatedAt  
-- DeletedAt (NULL si actif)  
-
-**NOTE** : Category soft delete autorisé, historique conservé.  
+### Roles
+- RolesId (PK)
+- Name {member, admin}
 
 ---
 
 ### Activities
-- ActivityId (PK)  
-- CategoryId (FK → Category.CategoryId)  
+- ActivitiesId (PK)  
 - Title  
 - Description    
 - ImageFilename  
@@ -48,14 +39,32 @@
 - UpdatedAt  
 - DeletedAt (NULL si actif)  
 
-**NOTE** : Activity soft delete autorisé, historique conservé.  
+**NOTE** : Activities soft delete autorisé, historique conservé.  
+---
+
+### Categories
+- CategoriesId (PK)  
+- Title  
+- Description  
+- ImageFilename  
+- CreatedAt  
+- UpdatedAt  
+- DeletedAt (NULL si actif)  
+
+**NOTE** : Categories soft delete autorisé, historique conservé.  
 
 ---
 
-### ActivitySessions
-- SessionId (PK)  
-- ActivityId (FK → Activity.ActivityId)  
-- SessionDate  
+### ActivitiesCategories
+- ActivitiesId (FK → Activities.ActivitiesId)  
+- CategoriesId (FK → Categories.CategoriesId)  
+
+---
+
+### Sessions
+- SessionsId (PK)  
+- ActivitiesId (FK → Activities.ActivitiesId)  
+- Date  
 - Capacity  
 - UnitPrice
 - Status {Scheduled, Cancelled, Completed}  
@@ -63,14 +72,14 @@
 - UpdatedAt
 - DeletedAt (NULL si pas annulée)  
 
-**NOTE** : ActivitySession Cancelled : Statut cancelled (pas de hard delete).  
+**NOTE** : Sessions Cancelled : Statut cancelled (pas de hard delete).  
 
 ---
 
-### Orders
-- OrderId (PK)  
-- CartId (FK → Cart.CartId)  
-- SessionId (FK → ActivitySession.SessionId)  
+### OrdersLines
+- OrdersLinesId (PK)  
+- OrdersId (FK → Orders.OrdersId)  
+- SessionsId (FK → Sessions.SessionsId)  
 - TicketsQty  
 - Amount  
 - CreatedAt  
@@ -81,9 +90,9 @@
 
 ---
 
-### Carts
-- CartId (PK)  
-- UserId (FK → User.UserId)  
+### Orders
+- OrdersId (PK)  
+- UsersId (FK → Users.UsersId)  
 - Taxes  
 - TotalAmount  
 - PaymentMethod  
@@ -94,6 +103,6 @@
 - DeletedAt (NULL si pas annulé)  
 
 **NOTE** :  
-- Cart Pending = réservation non payée, peut être supprimée si User hard delete.  
-- Cart Confirmed/Refunded = historique obligatoire → Cart conservé même si User supprimé.  
-- Cart Deleted = conservé comme trace d’annulation.  
+- Orders Pending = réservation non payée, peut être supprimée si User hard delete.  
+- Orders Confirmed/Refunded = historique obligatoire → Cart conservé même si User supprimé.  
+- Orders Deleted = conservé comme trace d’annulation.  

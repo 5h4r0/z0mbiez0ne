@@ -132,29 +132,29 @@
 
 ## 🤖 Technologies utilisées (et justification)
 
-| Technologie | Rôle | Justification |
-|-------------|------|---------------|
-| **Node.js + Express** | Serveur Side <!--Back-end API--> | Léger, rapide, bien intégré au stack JS. |
-| **PostgreSQL** | BDD relationnelle | Robuste, idéale pour activités/sessions/orders. |
-| **EJS + TypeScript + SCSS** | Front SSR | Simplicité MVC, typage TS, styles modulaires. |
-| **Docker** | Conteneurisation | Environnements reproductibles, portabilité. |
-| **Git + GitHub** | Versionning | Suivi du projet et collaboration. |
-| **CI/CD (GitHub Actions)** | Déploiement | Automatisation des builds/tests (bonus). |
-| **Jest** | Tests | Couverture unitaire/fonctionnelle. |
-| *Stripe API* | *Paiement* | *Intégration ultérieure (hors MVP).* |
-| *Autres outils si besoin* |
+| Technologie                 | Rôle                             | Justification                                   |
+|-----------------------------|----------------------------------|-------------------------------------------------|
+| **Node.js + Express**       | Serveur Side <!--Back-end API--> | Léger, rapide, bien intégré au stack JS.        |
+| **PostgreSQL**              | BDD relationnelle                | Robuste, idéale pour activités/sessions/orders. |
+| **EJS + TypeScript + SCSS** | Front SSR                        | Simplicité MVC, typage TS, styles modulaires.   |
+| **Docker**                  | Conteneurisation                 | Environnements reproductibles, portabilité.     |
+| **Git + GitHub**            | Versionning                      | Suivi du projet et collaboration.               |
+| **CI/CD (GitHub Actions)**  | Déploiement                      | Automatisation des builds/tests (bonus).        |
+| **Jest**                    | Tests                            | Couverture unitaire/fonctionnelle.              |
+| *Stripe API*                | *Paiement*                       | *Intégration ultérieure (hors MVP).*            |
+| *Autres outils si besoin*   |                                  |                                                 |
 
 ---
 
 ## 🚨 Analyse des risques
 
-| Risque                         | Impact | Mesure préventive                                |
-| ------------------------------ | ------ | ------------------------------------------------ |
-| Délais de développement        | Élevé  | Planification agile avec sprints courts          |
-| Bugs critiques sur commande    | Élevé  | Recette + tests unitaires/fonctionnels           |
+| Risque                        | Impact | Mesure préventive                                |
+|-------------------------------|--------|--------------------------------------------------|
+| Délais de développement       | Élevé  | Planification agile avec sprints courts          |
+| Bugs critiques sur commande   | Élevé  | Recette + tests unitaires/fonctionnels           |
 | Faille de sécurité (XSS, SQL) | Élevé  | Validation des données + middlewares de sécurité |
-| Manque de coordination équipe  | Moyen  | Réunions régulières + outils de suivi            |
-| Problème de déploiement        | Moyen  | Documentation + tests env. locaux/Docker         |
+| Manque de coordination équipe | Moyen  | Réunions régulières + outils de suivi            |
+| Problème de déploiement       | Moyen  | Documentation + tests env. locaux/Docker         |
 
 ---
 

@@ -1,8 +1,7 @@
-# 📘 Modèle Conceptuel et Logique de Données (MCD & MLD)
+# 📘 Modèle Conceptuel de données (MCD)
 
-Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD**) de données du projet.  
+Ce document décrit le modèle conceptuel (**MCD**) de données du projet.  
 - Le **MCD** présente uniquement les entités et associations métier.  
-- Le **MLD** ajoute les clés primaires/étrangères, les champs techniques et les règles de gestion (suppression, anonymisation).  
 
 ---
 
@@ -10,12 +9,8 @@ Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD
 
 ### Entités
 
-#### Roles
-- RoleCode
-- Name  
-
 #### Users
-- UserCode  
+- UsersCode  
 - Role {member, admin} 
 - Email  
 - Firstname  
@@ -23,35 +18,39 @@ Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD
 - PasswordHash  
  
 #### Roles
-- RoleCode
+- RolesCode
 - Name  
 
-#### Categories
-- CategoryCode  
-- Title  
-- Description  
-- Image  
-
 #### Activities
-- ActivityCode  
+- ActivitiesCode  
 - Title  
 - Description  
-- Image  
+- ImageFilename  
 
-#### ActivitySessions
-- SessionCode  
-- SessionDate  
+#### Categories
+- CategoriesCode  
+- Title  
+- Description  
+- ImageFilename  
+
+#### ActivitiesCategories
+- ActivitiesCode  
+- CategoriesCode
+
+#### Sessions
+- SessionsCode  
+- Date  
 - Capacity  
 - UnitPrice  
 - Status {Scheduled, Cancelled, Completed}  
 
-#### Orders
-- OrderCode    
+#### OrdersLines
+- OrdersLinesCode    
 - TicketsQty 
 - Amount  
 
-#### Carts
-- CartCode  
+#### Orders
+- OrdersCode  
 - TotalAmount  
 - Taxes  
 - PaymentMethod  
@@ -63,29 +62,29 @@ Ce document décrit le modèle conceptuel (**MCD**) et le modèle logique (**MLD
 ### Associations & Cardinalités
 
 OWN  
-Activity (1,1) ---- (0,N) Category  
-- Une **Activities** doit appartenir à une **Categories**.  
-- Une **Categories** peut contenir zéro, une ou plusieurs **Activities** (catégorie vide autorisée).  
+Activities (1,N) ---- (0,N) Categories  
+- Une **Activities** peut appartenir à plusieurs **Categories**.  
+- Une **Categories** peut contenir zéro, une, ou plusieurs **Activities** (catégorie vide autorisée).  
 
 PLANIFIER  
 Activity (0,N) ---- (1,1) ActivitySession  
-- Une **Activities** peut avoir zéro ou plusieurs **ActivitySessions**.  
-- Chaque **ActivitySessions** est liée à une et une seule **Activities**.  
+- Une **Activities** peut avoir zéro ou plusieurs **Sessions**.  
+- Chaque **Sessions** est liée à une et une seule **Activities**.  
 
 PASSER  
-User (0,N) ---- (1,1) Cart  
-- Un **Users** peut passer zéro ou plusieurs commandes **Carts**.  
-- Chaque **Carts** appartient à un seul **Users**.  
+User (0,N) ---- (1,1) Orders  
+- Un **Users** peut passer zéro ou plusieurs commandes **Orders**.  
+- Chaque **Orders** appartient à un seul **Users**.  
 
 POSSÈDE  
 Cart (0,N) ---- (1,1) Order  
-- Un **Carts** contient zéro ou plusieurs **Orders**.  
-- Chaque **Orders** appartient à un seul **Carts**.  
+- Un **Orders** contient zéro ou plusieurs **OrdersLines**.  
+- Chaque **OrdersLines** appartient à un seul **Orders**.  
 
 CIBLER  
 Order (1,1) ---- (0,N) ActivitySession  
-- Chaque **Orders** cible une **ActivitySessions**.  
-- Une **ActivitySessions** peut apparaître dans plusieurs **Orders** (sur plusieurs utilisateurs).  
+- Chaque **OrdersLines** cible une **Sessions**.  
+- Une **Sessions** peut apparaître dans plusieurs **OrdersLines** (sur plusieurs utilisateurs).  
 
 CARACTÉRISE
 Role (0,N) --- (1,1) User
