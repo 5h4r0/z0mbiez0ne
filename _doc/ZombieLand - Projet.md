@@ -15,10 +15,10 @@
 
 ### Besoins Fonctionnels (Minimum Viable Product - MVP)
 
-- **Liste des activités :** affichage détaillé, recherche, filtre (par catégorie)
-- **Système de réservation :** réservation en ligne du nombre de billets d’entrée pour le parc souhaités à une date donnée.
+- **Liste des activités :** affichage détaillé, filtre (par catégorie), recherche si possible.
+- **Système de réservation :** réservation en ligne du nombre de billets d’entrée souhaités pour le parc à une date donnée.
 - **Système d’authentification** : connexion, inscription, gestion du profil utilisateur.
-- **Liste des réservations** : affichage détaillé des réservations effectuées par l’utilisateur. Annulation d’une réservation jusqu’à 10 jours avant la date du début.
+- **Liste des réservations** : (espace client) affichage détaillé des réservations effectuées par l’utilisateur, panier en cours. Annulation d’une réservation jusqu’à 10 jours avant la date du début.
 - **Back-office (administration)** : gestion des réservations, des membres, des activités, des catégories, des prix.
 
 ### Propositions d’évolutions possibles
@@ -33,8 +33,8 @@
 - **Réservations pour les repas** : possibilité de réserver un repas dans un restaurant du parc.
 - **Boutique en ligne** : vente de produits dérivés du parc (t-shirts, goodies, etc.).
 - **Mémorial des visiteurs** : un espace dédié permettant aux visiteurs de partager leurs souvenirs, photos, commentaires et évaluations après leur visite du parc.
-- **support multilingue** : au moins anglais et français pour nos chers touristes.
-- Intégration d'une API pour le paiement sécurisé, comme [Stripe](https://stripe.com/fr).
+- **Support multilingue** : au moins anglais et français pour nos chers touristes.
+- **Paiement** Intégration d'une API pour le paiement sécurisé, comme [Stripe](https://stripe.com/fr).
 
 ### Contraintes Techniques (notamment liées au TP)
 

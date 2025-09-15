@@ -98,7 +98,7 @@
 - Boutique e-commerce de produits dérivés.
 - Mémorial des visiteurs (souvenirs, photos, commentaires, évaluations).
 - Support multilingue (FR/EN).
-- **Paiement sécurisé CB via API Stripe**.
+- Paiement sécurisé CB via API Stripe.
 
 ---
 
@@ -142,6 +142,7 @@
 | **CI/CD (GitHub Actions)** | Déploiement | Automatisation des builds/tests (bonus). |
 | **Jest** | Tests | Couverture unitaire/fonctionnelle. |
 | *Stripe API* | *Paiement* | *Intégration ultérieure (hors MVP).* |
+| *Autres outils si besoin* |
 
 ---
 
@@ -151,7 +152,7 @@
 | ------------------------------ | ------ | ------------------------------------------------ |
 | Délais de développement        | Élevé  | Planification agile avec sprints courts          |
 | Bugs critiques sur commande    | Élevé  | Recette + tests unitaires/fonctionnels           |
-| Faille de sécurité (XSS, SQLi) | Élevé  | Validation des données + middlewares de sécurité |
+| Faille de sécurité (XSS, SQL) | Élevé  | Validation des données + middlewares de sécurité |
 | Manque de coordination équipe  | Moyen  | Réunions régulières + outils de suivi            |
 | Problème de déploiement        | Moyen  | Documentation + tests env. locaux/Docker         |
 
@@ -185,5 +186,5 @@
 
 * **Sprint 1** : Arborescence, routes principales, maquettes, base SCSS  
 * **Sprint 2** : Modèles + contrôleurs **Categories/Activities/Sessions**, listes/détails côté front  
-* **Sprint 3** : Auth (register/login), **Cart/Orders** (commandes), pages utilisateur  
+* **Sprint 3** : Auth (register/login), **Carts/Orders** (commandes), pages utilisateur  
 * **Sprint 4** : Admin CRUD (categories/activities/sessions/users/orders), tests & hardening, SEO/Accessibilité
