@@ -58,7 +58,7 @@
 | Route              | Description                                       |
 |--------------------|---------------------------------------------------|
 | /admin/orders/     | Liste des commandes                               |
-| /admin/orders/:id/ | Comsultation, édition, suppression d'une commande |
+| /admin/orders/:id/ | Consultation, édition, suppression d'une commande |
 
 ---
 
