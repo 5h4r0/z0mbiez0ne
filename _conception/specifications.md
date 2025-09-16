@@ -123,10 +123,11 @@
 - **Front-End** : Généré en Back-End avec EJS.
 <!-- - **Front-End** : **API REST** avec **Node.js** et **Express**.   -->
 - **Base de Données** : **PostgreSQL**.  
-- **Authentification** : **JWT** (hash mots de passe via bcrypt/argon2).  
+- **Authentification** : **JWT** (hash mots de passe via bcrypt).  
 - **Tests fonctionnels** : **Jest**.  
 - **Conteneurisation** : **Docker**.  
 - **Versioning** : **GitHub**.
+- **Hébergement** : À voir, peut-être **ionos**.
 
 ---
 
