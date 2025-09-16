@@ -67,4 +67,4 @@
 | Route             | Description                                                |
 |-------------------|------------------------------------------------------------|
 | /admin/users      | Liste des comptes utilisateur                              |
-| /admin/users/:id/ | Comsultation, édition, suppression d'un compte utilisateur |
+| /admin/users/:id/ | Consultation, édition, suppression d'un compte utilisateur |
