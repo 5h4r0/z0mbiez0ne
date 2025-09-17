@@ -2,23 +2,27 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "homepage": "https://github.com/O-clock-Athenes/ZombieLandSolo-CDA#readme",
-  "bugs": {
-    "url": "https://github.com/O-clock-Athenes/ZombieLandSolo-CDA/issues"
+  "main": "app.ts",
+  "scripts": {
+    "test": "npm test"
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/O-clock-Athenes/ZombieLandSolo-CDA.git"
   },
-  "license": "ISC",
   "author": "SR",
-  "type": "module",
-  "main": "app.js",
-  "scripts": {
-    "test": "npm test"
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/O-clock-Athenes/ZombieLandSolo-CDA/issues"
   },
+  "homepage": "https://github.com/O-clock-Athenes/ZombieLandSolo-CDA#readme",
   "dependencies": {
     "express": "^5.1.0",
+    "postgres": "^3.4.7",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.16.2",
     "prisma": "^6.16.2"
   }
 }
