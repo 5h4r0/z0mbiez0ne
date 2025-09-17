@@ -1,29 +1,32 @@
 {
   "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.ts",
   "type": "module",
+  "version": "1.0.0",
+  "main": "dist/app.js",
   "scripts": {
-    "test": "npm test"
+    "test": "npm test",
+    "dev": "tsx --watch --env-file=.env ./src/index.ts",
+    "build": "tsc",
+    "start": "node --env-file=.env ./dist/index.js",
+    "clean": "rm -rf dist",
+
+    "db:migrate:deploy": "prisma migrate deploy --schema=./src/models/schema.prisma",
+    "db:migrate:dev": "prisma migrate dev --schema=./src/models/schema.prisma --name auto",
+    "db:migrate:reset": "prisma migrate reset --force --schema=./src/models/schema.prisma",
+    "db:generate": "prisma generate --schema=./src/models/schema.prisma",
+    "db:studio": "prisma studio --schema=./src/models/schema.prisma",
+    "db:seed": "tsx --env-file=.env ./src/models/seeding.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/O-clock-Athenes/ZombieLandSolo-CDA.git"
-  },
-  "author": "SR",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/O-clock-Athenes/ZombieLandSolo-CDA/issues"
-  },
-  "homepage": "https://github.com/O-clock-Athenes/ZombieLandSolo-CDA#readme",
   "dependencies": {
     "express": "^5.1.0",
     "postgres": "^3.4.7",
     "typescript": "^5.9.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.4",
     "@prisma/client": "^6.16.2",
-    "prisma": "^6.16.2"
+    "@types/express": "^5.0.3",
+    "prisma": "^6.16.2",
+    "tsx": "^4.20.5"
   }
 }
