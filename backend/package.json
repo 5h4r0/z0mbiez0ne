@@ -9,18 +9,19 @@
     "build": "tsc",
     "start": "node --env-file=.env ./dist/index.js",
     "clean": "rm -rf dist",
-
-    "db:create": "prisma migrate dev --schema=./src/models/schema.prisma --name init",
-    "db:init": "prisma migrate dev --schema=./src/models/schema.prisma --name init --create-only",
-
-    "db:deploy": "prisma migrate deploy --schema=./src/models/schema.prisma",
-    "db:migrate": "prisma migrate dev --schema=./src/models/schema.prisma --name auto",
-    "db:reset": "prisma migrate reset --force --schema=./src/models/schema.prisma",
+    "db:sql": "dotenv -e .env -- sh -c 'psql \"$DATABASE_URL\" -f ../conception/datamodels/postgres_schema.psql'",
+    "db:pull": "prisma db pull --schema=./src/models/schema.prisma",
+    "db:format": "prisma format --schema=./src/models/schema.prisma",
     "db:generate": "prisma generate --schema=./src/models/schema.prisma",
+    "db:seed": "tsx --env-file=.env ./src/models/seeding.ts",
     "db:studio": "prisma studio --schema=./src/models/schema.prisma",
-    "db:seed": "tsx --env-file=.env ./src/models/seeding.ts"
+    "db:create": "prisma migrate dev --schema=./src/models/schema.prisma --name init",
+    "db:migrate": "prisma migrate dev --schema=./src/models/schema.prisma",
+    "db:reset": "prisma migrate reset --force --schema=./src/models/schema.prisma",
+    "db:deploy": "prisma migrate deploy --schema=./src/models/schema.prisma"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "express": "^5.1.0",
     "postgres": "^3.4.7",
     "typescript": "^5.9.2"
@@ -30,6 +31,7 @@
     "@faker-js/faker": "^10.0.0",
     "@prisma/client": "^6.16.2",
     "@types/express": "^5.0.3",
+    "dotenv-cli": "^10.0.0",
     "prisma": "^6.16.2",
     "tsx": "^4.20.5"
   }
