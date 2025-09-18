@@ -1,0 +1,108 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model roles {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(20)
+
+  users users[]
+}
+
+model users {
+  id           Int       @id @default(autoincrement())
+  roles_id     Int
+  email        String    @unique @db.VarChar(320)
+  firstname    String    @db.VarChar(50)
+  lastname     String    @db.VarChar(50)
+  password_hash String   @db.VarChar(100)
+  created_at   DateTime  @default(now()) @db.Timestamp(6)
+  updated_at   DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at   DateTime? @db.Timestamp(6)
+
+  roles  roles  @relation(fields: [roles_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders orders[]
+}
+
+model categories {
+  id             Int       @id @default(autoincrement())
+  title          String    @db.VarChar(100)
+  description    String?   @db.VarChar(2000)
+  image_filename String?   @db.VarChar(50)
+  created_at     DateTime  @default(now()) @db.Timestamp(6)
+  updated_at     DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at     DateTime? @db.Timestamp(6)
+
+  activities_categories activities_categories[]
+}
+
+model activities {
+  id             Int       @id @default(autoincrement())
+  title          String    @db.VarChar(255)
+  description    String?   @db.VarChar(2000)
+  image_filename String?   @db.VarChar(50)
+  created_at     DateTime  @default(now()) @db.Timestamp(6)
+  updated_at     DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at     DateTime? @db.Timestamp(6)
+
+  activities_categories activities_categories[]
+}
+
+model activities_categories {
+  activities_id Int
+  categories_id Int
+
+  activities activities @relation(fields: [activities_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  categories categories @relation(fields: [categories_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([activities_id, categories_id])
+}
+
+model sessions {
+  id         Int       @id @default(autoincrement())
+  date       DateTime  @db.Timestamp(6)
+  capacity   Int
+  unit_price Decimal   @db.Decimal(3, 2)
+  status     String    @db.VarChar(10)
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at DateTime? @db.Timestamp(6)
+
+  orders_lines orders_lines[]
+}
+
+model orders {
+  id             Int            @id @default(autoincrement())
+  users_id       Int
+  taxes          Decimal        @default(0) @db.Decimal(3, 2)
+  total_amount   Decimal        @db.Decimal(4, 2)
+  payment_method String?        @db.VarChar(30)
+  payment_date   DateTime?      @db.Timestamp(6)
+  status         String         @db.VarChar(10)
+  created_at     DateTime       @default(now()) @db.Timestamp(6)
+  updated_at     DateTime       @default(now()) @db.Timestamp(6)
+  deleted_at     DateTime?      @db.Timestamp(6)
+
+  users        users          @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders_lines orders_lines[]
+}
+
+model orders_lines {
+  id          Int       @id @default(autoincrement())
+  orders_id   Int
+  sessions_id Int
+  tickets_qty Int
+  amount      Decimal   @db.Decimal(3, 2)
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  updated_at  DateTime  @default(now()) @db.Timestamp(6)
+
+  orders   orders   @relation(fields: [orders_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sessions sessions @relation(fields: [sessions_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([orders_id, sessions_id], map: "orders_sessions")
+}

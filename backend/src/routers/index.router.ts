@@ -6,7 +6,7 @@ import { Router } from "express";
 export const router = Router();
 
 router.get("/", (req, res) => {
-  res.send("API is running 🚀");
+  res.json({ status: "API is running 🚀" });
 });
 
 // router.use("/activities", activitiesRouter);
