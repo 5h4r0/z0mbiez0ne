@@ -45,7 +45,7 @@ DATABASE_URL="postgresql://zombiezone:zombiezone@localhost:5432/zombiezone?schem
 PORT=3000
 ```
 
-⚠️ Adapter `user:password@host:port/dbname` selon la configuration PostgreSQL.  
+*⚠️ Adapter `user:password@host:port/dbname` selon la configuration PostgreSQL*
 
 ---
 
@@ -70,8 +70,8 @@ npm run db:create
 ```bash
 npm run db:init
 ```
-- ** Si schema.prisma OK (ne pas partir du chier SQL)
-  → pas besoin de `db:init`, Prisma crée la base et suit les migrations directement.  
+- *Si schema.prisma OK (ne pas partir du chier SQL)*
+*→ `db:init` est inutle, Prisma crée la base et suit les migrations directement*
 
 
 ---
