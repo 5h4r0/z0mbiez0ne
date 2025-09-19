@@ -47,14 +47,14 @@ async function main() {
       firstname: ADMIN_FIRSTNAME,
       lastname: ADMIN_LASTNAME,
       password_hash: passwordHash,
-      roles_id: 2, // admin
+      role_id: 2, // admin
     },
     create: {
       email: ADMIN_EMAIL,
       firstname: ADMIN_FIRSTNAME,
       lastname: ADMIN_LASTNAME,
       password_hash: passwordHash,
-      roles_id: 2, // admin
+      role_id: 2, // admin
     },
   });
 
@@ -68,7 +68,7 @@ async function main() {
       firstname: faker.person.firstName(),
       lastname: faker.person.lastName(),
       password_hash: faker.internet.password(),
-      roles_id: 1, // member
+      role_id: 1, // member
     })),
     skipDuplicates: true,
   });
@@ -152,10 +152,10 @@ async function main() {
   const allCategories = await prisma.categories.findMany({ select: { id: true } });
 
   const ACTIVITY_CATEGORY_LINKS = allActivities.flatMap((activity) => {
-    const chosenCats = faker.helpers.arrayElements(allCategories, getRandomInt(1, 2));
-    return chosenCats.map((cat) => ({
-      activities_id: activity.id,
-      categories_id: cat.id,
+    const chosenCategorie = faker.helpers.arrayElements(allCategories, getRandomInt(1, 2));
+    return chosenCategorie.map((categorie) => ({
+      activity_id: activity.id,
+      category_id: categorie.id,
     }));
   });
 
@@ -166,12 +166,12 @@ async function main() {
 
   /**
    * 7) Sessions liées aux activités
-   *    - nécessite un champ activities_id dans le modèle sessions
+   *    - nécessite un champ activity_id dans le modèle sessions
    *    - prix entiers → stockés comme xx.00
    */
   await prisma.sessions.createMany({
     data: Array.from({ length: 10 }).map(() => ({
-      activities_id: faker.helpers.arrayElement(allActivities).id,
+      activity_id: faker.helpers.arrayElement(allActivities).id,
       date: faker.date.soon({ days: 30 }),
       capacity: getRandomInt(10, 50),
       unit_price: new Prisma.Decimal(getRandomInt(20, 50)), // OK si @db.Decimal(5,2)
@@ -185,14 +185,14 @@ async function main() {
    *    - taxes : Decimal(3,2) → plage 0.00–9.99
    *    - total_amount : Decimal(4,2) → plage 20.00–99.99
    */
-  const memberUsers = await prisma.users.findMany({
-    where: { roles_id: 1 },
+  const memberUser = await prisma.users.findMany({
+    where: { role_id: 1 },
     select: { id: true },
   });
 
   await prisma.orders.createMany({
     data: Array.from({ length: 5 }).map(() => ({
-      users_id: faker.helpers.arrayElement(memberUsers).id,
+      user_id: faker.helpers.arrayElement(memberUser).id,
       taxes: decimalFromCents(getRandomInt(0, 999)), // 0.00 → 9.99
       total_amount: new Prisma.Decimal(getRandomInt(20, 99)), // 20.00 → 99.00
       payment_method: faker.helpers.arrayElement(["Card", "Paypal", "Wire transfer"]),
@@ -203,7 +203,7 @@ async function main() {
 
   /**
    * 9) Orders_lines
-   *    - clé composite unique (orders_id, sessions_id)
+   *    - clé composite unique (order_id, session_id)
    *    - amount : Decimal(3,2) → 1.00–9.99 (seed simple)
    */
   const allOrders = await prisma.orders.findMany({ select: { id: true } });
@@ -214,8 +214,8 @@ async function main() {
       const order = faker.helpers.arrayElement(allOrders);
       const session = faker.helpers.arrayElement(allSessions);
       return {
-        orders_id: order.id,
-        sessions_id: session.id,
+        order_id: order.id,
+        session_id: session.id,
         tickets_qty: getRandomInt(1, 5),
         amount: decimalFromCents(getRandomInt(100, 999)), // 1.00 → 9.99
       };

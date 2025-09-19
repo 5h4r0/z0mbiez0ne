@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node --env-file=.env ./dist/index.js",
     "clean": "rm -rf dist",
-    "db:sql": "dotenv -e .env -- sh -c 'psql \"$DATABASE_URL\" -f ../conception/datamodels/postgres_schema.psql'",
+    "db:sql": "dotenv -e .env -- sh -c 'psql \"$DATABASE_URL\" -f ./src/models/postgres_schema.psql'",
     "db:pull": "prisma db pull --schema=./src/models/schema.prisma",
     "db:format": "prisma format --schema=./src/models/schema.prisma",
     "db:generate": "prisma generate --schema=./src/models/schema.prisma",

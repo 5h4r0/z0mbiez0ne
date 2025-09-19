@@ -4,10 +4,14 @@
 
 ```bash
 git clone git@github.com:5h4r0/ZombieLandSolo-CDA.git
-cd ZombieLand/backend
+cd backend
 npm install
-npm run db:create:sql
-npm run db:init
+# Option A: partir du SQL existant
+npm run db:sql
+npm run db:pull
+npm run db:format
+# Option B: partir du schema.prisma (crée la DB + migration init)
+npm run db:create
 npm run dev
 ```
 
@@ -17,16 +21,15 @@ npm run dev
 
 ```
 backend/
-├── prisma/                    # Contient les migrations générées par Prisma
-│   └── migrations/            
 ├── src/
 │   ├── index.ts               # Point d'entrée du serveur
 │   ├── models/                # Logique liée aux données
 │   │   ├── schema.prisma      # Schéma Prisma (source de vérité DB)
+│   │   ├── migrations/        # Migrations générées par Prisma
 │   │   └── seeding.ts         # Script de seed pour la DB
-│   ├── routes/                # Routes de l’API
-│   ├── controllers/           # Logique métier
-│   └── middlewares/           # Middlewares Express/Nest/etc.
+│   ├── routers/               # Routes de l’API (Express)
+│   ├── controllers/           # Logique métier (optionnel)
+│   └── middlewares/           # Middlewares (optionnel)
 ├── package.json
 ├── tsconfig.json
 └── .env                       # Variables d'environnement (DATABASE_URL, etc.)
@@ -35,17 +38,21 @@ backend/
 
 ---
 
-## ⚙️ Exemple de `.env` minimal
+## ⚙️ Fichier de variables d'environnement `.env`
 
 ```
 # Connexion PostgreSQL
-DATABASE_URL="postgresql://zombiezone:zombiezone@localhost:5432/zombiezone?schema=public"
+DATABASE_URL="postgresql://zombiezone:zombiezone@localhost:5432/zombiezone"
 
-# Exemple de port d’application
+# Port d’application
 PORT=3000
-```
 
-*⚠️ Adapter `user:password@host:port/dbname` selon la configuration PostgreSQL*
+ADMIN_EMAIL=prenom@domaine.fr
+ADMIN_FIRSTNAME=Prénom
+ADMIN_LASTNAME=Nom
+ADMIN_PASSWORD=
+BCRYPT_SALT_ROUNDS=10
+```
 
 ---
 
@@ -56,23 +63,34 @@ PORT=3000
 npm install
 ```
 
-2. Créer la base à partir du SQL (une seule fois)  
+2. Créer la base à partir du SQL, injecter dans schema.prisma, formater si nécessaire  
 ```bash
-npm run db:create:sql
+npm run db:sql
+npm run db:pull
+npm run db:format
 ```
 
-  - *Ou depuis shema.prisma*
+  - *Ou depuis schema.prisma valide*
 ```bash
 npm run db:create
 ```
 
-3. Enregistrer l’état initial des migrations Prisma  
+3. Générer/mettre à jour le client Prisma (optionnel mais conseillé)  
 ```bash
-npm run db:init
+npm run db:generate
 ```
-- *Si schema.prisma OK (ne pas partir du chier SQL)*
-*→ `db:init` est inutle, Prisma crée la base et suit les migrations directement*
 
+4. Migration : si `schema.prisma` modifié  
+```bash
+npm run db:migrate
+# ou pour nommer explicitement :
+# npm run db:migrate -- --name <nom>
+```
+
+5. Reset (dev) : réinitialise la DB et rejoue le seed  
+```bash
+npm run db:reset
+```
 
 ---
 
@@ -122,20 +140,22 @@ npm run db:deploy
 
 | Commande                | Description                                                        |
 |-------------------------|--------------------------------------------------------------------|
-| `npm run dev`           | Lance le serveur en dev avec hot reload                            |
-| `npm run db:create:sql` | Applique le fichier SQL d’initialisation (une seule fois au début) |
-| `npm run db:init`       | Crée la migration initiale Prisma sans toucher à la DB             |
-| `npm run db:migrate`    | Crée/applique une migration en dev                                 |
-| `npm run db:reset`      | Reset complet de la DB (drop, migrate, seed)                       |
-| `npm run db:deploy`     | Applique les migrations en production                              |
-| `npm run db:generate`   | Génère le client Prisma                                            |
-| `npm run db:seed`       | Lance le script de seed                                            |
-| `npm run db:studio`     | Ouvre Prisma Studio (UI web pour la DB)                            |
+| `npm run dev`         | Lance le serveur en dev avec hot reload                          |
+| `npm run db:sql`      | Applique le fichier SQL d’initialisation                          |
+| `npm run db:pull`     | Récupère le schéma depuis la DB dans schema.prisma               |
+| `npm run db:format`   | Formate le fichier schema.prisma                                  |
+| `npm run db:create`   | Crée/applique la migration initiale à partir du schema.prisma     |
+| `npm run db:migrate`  | Crée/applique une migration en dev                                |
+| `npm run db:reset`    | Reset complet de la DB (drop, migrate, seed)                      |
+| `npm run db:deploy`   | Applique les migrations en production                             |
+| `npm run db:generate` | Génère le client Prisma                                           |
+| `npm run db:seed`     | Lance le script de seed                                           |
+| `npm run db:studio`   | Ouvre Prisma Studio (UI web pour la DB)                           |
 
 
 ---
 
-## note : commit types
+## Note : commit types
 
 *Avant de mettre vos branches de fonctionnalités sur la branche de dev, faites un merge de dev sur votre branche. Vous pourrez régler les potentiels conflits sur votre branche à vous avant de faire votre pull request. Ce qui fait que votre pull request passera à coup sûr.*
 
@@ -146,7 +166,7 @@ npm run db:deploy
 | `fix`       | Bug Fixes                | A bug Fix                                                                                                   |  🐛   |
 | `wip`       | WIP                      | Work in progress                                                                                            |  🚧   |
 | `docs`      | Documentation            | Documentation only changes                                                                                  |  📚   |
-| `style`     | Styles                   | Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)      |  💎   |
+| `style`     | Styles                   | Changes that do not affect the meaning of the code (whitespace, formatting, missing semicolons, etc)        |  💎   |
 | `refactor`  | Code Refactoring         | A code change that neither fixes a bug nor adds a feature                                                   |  📦   |
 | `perf`      | Performance Improvements | A code change that improves performance                                                                     |  🚀   |
 | `test`      | Tests                    | Adding missing tests or correcting existing tests                                                           |  🚨   |
