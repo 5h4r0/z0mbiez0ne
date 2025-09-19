@@ -38,6 +38,7 @@
 
 ### Routes d'édition activités, sessions, catégories, pages
 
+
 | Route                  | Description          |
 |------------------------|----------------------|
 | /admin/categories/     | Liste des catégories |

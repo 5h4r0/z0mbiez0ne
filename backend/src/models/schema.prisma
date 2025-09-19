@@ -15,7 +15,7 @@ model roles {
 
 model users {
   id            Int       @id @default(autoincrement())
-  roles_id      Int
+  role_id       Int
   email         String    @unique @db.VarChar(320)
   firstname     String    @db.VarChar(50)
   lastname      String    @db.VarChar(50)
@@ -24,7 +24,7 @@ model users {
   updated_at    DateTime  @default(now()) @updatedAt @db.Timestamp(6)
   deleted_at    DateTime? @db.Timestamp(6)
   orders        orders[]
-  roles         roles     @relation(fields: [roles_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  roles         roles     @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model categories {
@@ -51,33 +51,33 @@ model activities {
 }
 
 model activities_categories {
-  activities_id Int
-  categories_id Int
-  activities    activities @relation(fields: [activities_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  categories    categories @relation(fields: [categories_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  activity_id Int
+  category_id Int
+  activities  activities @relation(fields: [activity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  categories  categories @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([activities_id, categories_id])
+  @@id([activity_id, category_id])
 }
 
 model sessions {
-  id            Int            @id @default(autoincrement())
-  activities_id Int
-  date          DateTime       @db.Timestamp(6)
-  capacity      Int
-  unit_price    Decimal        @db.Decimal(5, 2)
-  status        String         @db.VarChar(10)
-  created_at    DateTime       @default(now()) @db.Timestamp(6)
-  updated_at    DateTime       @default(now()) @updatedAt @db.Timestamp(6)
-  deleted_at    DateTime?      @db.Timestamp(6)
-  orders_lines  orders_lines[]
-  activities    activities     @relation(fields: [activities_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id           Int            @id @default(autoincrement())
+  activity_id  Int
+  date         DateTime       @db.Timestamp(6)
+  capacity     Int
+  unit_price   Decimal        @db.Decimal(5, 2)
+  status       String         @db.VarChar(10)
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  updated_at   DateTime       @default(now()) @updatedAt @db.Timestamp(6)
+  deleted_at   DateTime?      @db.Timestamp(6)
+  orders_lines orders_lines[]
+  activities   activities     @relation(fields: [activity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@index([activities_id], map: "idx_sessions_activities_id")
+  @@index([activity_id], map: "idx_session_activity_id")
 }
 
 model orders {
   id             Int            @id @default(autoincrement())
-  users_id       Int
+  user_id        Int
   taxes          Decimal        @default(0) @db.Decimal(4, 2)
   total_amount   Decimal        @db.Decimal(5, 2)
   payment_method String?        @db.VarChar(30)
@@ -86,20 +86,20 @@ model orders {
   created_at     DateTime       @default(now()) @db.Timestamp(6)
   updated_at     DateTime       @default(now()) @updatedAt @db.Timestamp(6)
   deleted_at     DateTime?      @db.Timestamp(6)
-  users          users          @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users          users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   orders_lines   orders_lines[]
 }
 
 model orders_lines {
   id          Int      @id @default(autoincrement())
-  orders_id   Int
-  sessions_id Int
+  order_id    Int
+  session_id  Int
   tickets_qty Int
   amount      Decimal  @db.Decimal(4, 2)
   created_at  DateTime @default(now()) @db.Timestamp(6)
   updated_at  DateTime @default(now()) @updatedAt @db.Timestamp(6)
-  orders      orders   @relation(fields: [orders_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  sessions    sessions @relation(fields: [sessions_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders      orders   @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sessions    sessions @relation(fields: [session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@unique([orders_id, sessions_id], map: "orders_sessions")
+  @@unique([order_id, session_id], map: "order_session")
 }
