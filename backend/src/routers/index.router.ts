@@ -1,14 +1,40 @@
+// import path from "node:path";
 import { Router } from "express";
-// import { router as activitiesRouter } from "./activities.router.js";
-// import { router as categoriesRouter } from "./categories.router.js";
+
+import { router as activitiesRouter } from "./activities.router.js";
+import { router as categoriesRouter } from "./categories.router.js";
 // import { router as sessionsRouter } from "./sessions.router.js";
 
 export const router = Router();
 
+router.use(activitiesRouter);
+router.use(categoriesRouter);
+
+// router.use("sessionsRouter);
+
+
+
+
+
+
+// /api/ root
 router.get("/", (req, res) => {
-  res.json({ status: "API is running 🚀" });
+  res.json({ status: "Nothing here... but the API is running 🚀" });
 });
 
-// router.use("/activities", activitiesRouter);
-// router.use("/categories", categoriesRouter);
-// router.use("/sessions", sessionsRouter);
+
+
+
+
+// // Documentation swagger
+// const spec = swaggerJsdoc({
+//   definition: {
+//     info: {
+//       title: 'the Z0mbie Z0ne',
+//       version: '1.0.0',
+//     },
+//     basePath: "/backend"
+//   },
+//   apis: [path.join(import.meta.dirname, '*.router.ts')]
+// });
+// router.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
