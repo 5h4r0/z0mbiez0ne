@@ -1,6 +1,7 @@
 import express from "express";
 import { router as apiRouter } from "./routers/index.router.js";
 
+// Créer une app Express
 export const app = express();
 
 app.use((req, res, next) => {
@@ -8,8 +9,26 @@ app.use((req, res, next) => {
   next();
 });
 
-// mount API on /api
+// mount API router on /api
 app.use("/api", apiRouter);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// homepage
+app.get("/", (req, res) => {
+  res.send("Welcome | homepage 👋");
+});
 
 // health check
 app.get("/health", (req, res) => {
@@ -18,11 +37,4 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// homepage
-app.get("/", (req, res) => {
-  res.send("Welcome | homepage 👋");
-});
-
-
 
