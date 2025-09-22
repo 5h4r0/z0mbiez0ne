@@ -28,7 +28,6 @@ export async function getActivityById(req: Request, res: Response) {
   }
 }
 
-
 export async function createActivity(req: Request, res: Response) {
   const { title, description, activities_categories } = req.body;
 
@@ -50,23 +49,6 @@ export async function createActivity(req: Request, res: Response) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
-
-// activities_categories.create
-
-
-
-// export async function createActivity(req: Request, res: Response) {
-//   const { title, description, categoryId } = req.body;
-//   try {
-//     const newActivity = await prisma.activities.create({
-//       data: { title, description, activityId }
-//     });
-//     res.status(201).json(newActivity);
-//   } catch (error) {
-//     console.error("Error creating activity:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// }
 
 export async function updateActivity(req: Request, res: Response) {
   const { id } = req.params;

@@ -1,0 +1,16 @@
+stateDiagram-v2
+  [*] --> Order_created: Select an activity session to buy after browsing
+  Order_created --> Login
+  Order_created --> Register_account
+  Login --> Logged_in: Successful login
+  Register_account --> Logged_in: Successful login
+  Logged_in --> Checkout: Order pending
+  Checkout --> Waiting_payment: Proceed to payment
+  Waiting_payment --> Payment_success
+  Waiting_payment --> Payment_fail
+  Payment_fail --> Waiting_payment: Retry payment
+  Payment_fail --> Cancelled: Cancel order
+  Payment_success --> Order_Confirmed
+  Order_Confirmed --> Donwnload_tickets
+  Order_Confirmed --> Donwnload_invoice
+  Order_Confirmed --> Order_Refunded: If requested
