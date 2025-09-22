@@ -10,6 +10,7 @@
 import { prisma } from "./index.js";
 import { faker } from "@faker-js/faker";
 import { Prisma } from "@prisma/client";
+import { makeSlug } from "../utils/slugify.js";
 import bcrypt from "bcryptjs";
 
 /** Utilitaire : entier aléatoire inclusif [min, max] */
@@ -28,17 +29,13 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "hastur";
 const BCRYPT_SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS ?? 10);
 
 async function main() {
-  /**
-   * 1) Rôles fixes (idempotent)
-   */
+  /** Rôles fixes */
   await prisma.roles.createMany({
     data: [{ name: "member" }, { name: "admin" }],
     skipDuplicates: true,
   });
 
-  /**
-   * 2) Admin fixe (upsert + bcrypt)
-   */
+  /** Admin fixe (upsert + bcrypt) */
   const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, BCRYPT_SALT_ROUNDS);
 
   await prisma.users.upsert({
@@ -58,10 +55,7 @@ async function main() {
     },
   });
 
-  /**
-   * 3) 10 users Faker (members)
-   *    - emails uniques → skipDuplicates utile
-   */
+  /** 10 users Faker (members) - emails uniques → skipDuplicates utile */
   await prisma.users.createMany({
     data: Array.from({ length: 10 }).map(() => ({
       email: faker.internet.email(),
@@ -73,9 +67,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  /**
-   * 4) Catégories
-   */
+  /** Catégories */
   const CATEGORIES = [
     "Attractions à Sensations",
     "Spectacles Horrifiques",
@@ -90,17 +82,19 @@ async function main() {
   ];
 
   await prisma.categories.createMany({
-    data: Array.from({ length: 5 }).map(() => ({
-      title: faker.helpers.arrayElement(CATEGORIES),
-      description: faker.lorem.sentences(2),
-      image_filename: `img-category-${getRandomInt(1, 999)}.jpg`,
-    })),
+    data: Array.from({ length: 5 }).map(() => {
+      const title = faker.helpers.arrayElement(CATEGORIES);
+      return {
+        title,
+        description: faker.lorem.sentences(2),
+        image_filename: `img-category-${getRandomInt(1, 999)}.jpg`,
+        slug: makeSlug(title)
+      }
+    }),
     skipDuplicates: true, // optionnel mais sans risque
   });
 
-  /**
-   * 5) Activités
-   */
+  /** Activités */
   const ACTIVITIES = [
     "Train Fantôme",
     "Maison Hantée",
@@ -135,24 +129,32 @@ async function main() {
   ];
 
   await prisma.activities.createMany({
-    data: Array.from({ length: 10 }).map(() => ({
-      title: faker.helpers.arrayElement(ACTIVITIES),
-      description: faker.lorem.sentences(2),
-      image_filename: `img-activity-${getRandomInt(1, 999)}.jpg`,
-    })),
+    data: Array.from({ length: 10 }).map(() => {
+      const title = faker.helpers.arrayElement(ACTIVITIES);
+      return {
+        title,
+        description: faker.lorem.sentences(2),
+        image_filename: `img-activity-${getRandomInt(1, 999)}.jpg`,
+        slug: makeSlug(title)
+      }
+    }),
     skipDuplicates: true, // optionnel
   });
 
-  /**
-   * 6) Jointure activités ↔ catégories
-   *    - chaque activité reçoit 1–2 catégories
-   *    - flatMap pour produire un tableau plat
-   */
-  const allActivities = await prisma.activities.findMany({ select: { id: true } });
-  const allCategories = await prisma.categories.findMany({ select: { id: true } });
+  /** Jointure activités ↔ catégories: chaque activité reçoit 1, 2 ou 3 catégories, flatMap produit un tableau plat */
+  const allActivities = await prisma.activities.findMany({
+    select: {
+      id: true
+    }
+  });
+  const allCategories = await prisma.categories.findMany({
+    select: {
+      id: true
+    }
+  });
 
   const ACTIVITY_CATEGORY_LINKS = allActivities.flatMap((activity) => {
-    const chosenCategorie = faker.helpers.arrayElements(allCategories, getRandomInt(1, 2));
+    const chosenCategorie = faker.helpers.arrayElements(allCategories, getRandomInt(1, 3));
     return chosenCategorie.map((categorie) => ({
       activity_id: activity.id,
       category_id: categorie.id,
@@ -164,11 +166,7 @@ async function main() {
     skipDuplicates: true, // protège la clé composite
   });
 
-  /**
-   * 7) Sessions liées aux activités
-   *    - nécessite un champ activity_id dans le modèle sessions
-   *    - prix entiers → stockés comme xx.00
-   */
+  /** Sessions liées aux activités : nécessite un champ activity_id dans le modèle sessions, prix entiers → stockés comme xx.00 */
   await prisma.sessions.createMany({
     data: Array.from({ length: 10 }).map(() => ({
       activity_id: faker.helpers.arrayElement(allActivities).id,
@@ -179,12 +177,7 @@ async function main() {
     })),
   });
 
-  /**
-   * 8) Orders
-   *    - liés à des users members (exclusion explicite de l'admin)
-   *    - taxes : Decimal(3,2) → plage 0.00–9.99
-   *    - total_amount : Decimal(4,2) → plage 20.00–99.99
-   */
+  /** Orders : liés à des users members (exclusion explicite de l'admin), taxes : Decimal(3,2) → plage 0.00–9.99, total_amount : Decimal(4,2) → plage 20.00–99.99 */
   const memberUser = await prisma.users.findMany({
     where: { role_id: 1 },
     select: { id: true },
@@ -201,11 +194,7 @@ async function main() {
     })),
   });
 
-  /**
-   * 9) Orders_lines
-   *    - clé composite unique (order_id, session_id)
-   *    - amount : Decimal(3,2) → 1.00–9.99 (seed simple)
-   */
+  /** Orders_lines : clé composite unique (order_id, session_id), amount : Decimal(3,2) → 1.00–9.99 (seed simple) */
   const allOrders = await prisma.orders.findMany({ select: { id: true } });
   const allSessions = await prisma.sessions.findMany({ select: { id: true } });
 
