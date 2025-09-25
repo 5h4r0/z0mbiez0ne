@@ -1,6 +1,6 @@
-# 🧩 Workflow projet ZombieLand
+# Workflow projet ZombieLand
 
-## ⚡️ Exemple rapide (nouveau dev)
+## Exemple rapide (nouveau dev)
 
 ```bash
 git clone git@github.com:5h4r0/ZombieLandSolo-CDA.git
@@ -10,115 +10,118 @@ npm install
 npm run db:sql
 npm run db:pull
 npm run db:format
-# Option B: partir du schema.prisma (crée la DB + migration init)
-npm run db:create
+# Option B: partir du schema.prisma (init DB + migration dev)
+npm run db:dev
 npm run dev
+
 ```
 
 ---
 
-## 📂 Arborescence recommandée
+## Arborescence
 
 ```
 backend/
 ├── src/
-│   ├── index.ts               # Point d'entrée du serveur
-│   ├── models/                # Logique liée aux données
-│   │   ├── schema.prisma      # Schéma Prisma (source de vérité DB)
-│   │   ├── migrations/        # Migrations générées par Prisma
-│   │   └── seeding.ts         # Script de seed pour la DB
-│   ├── routers/               # Routes de l’API (Express)
-│   ├── controllers/           # Logique métier (optionnel)
-│   └── middlewares/           # Middlewares (optionnel)
+│   ├── index.ts                 # Point d'entrée du serveur
+│   ├── config/                  # Configuration de l'application
+│   │   ├── config.ts            # Variables et options centralisées
+│   │   └── cors.ts              # Configuration CORS basée sur config.ts
+│   ├── models/                  # Schéma et scripts liés à la base de données
+│   │   ├── schema.prisma        # Schéma Prisma (source de vérité de la DB)
+│   │   ├── migrations/          # Migrations générées par Prisma
+│   │   ├── seeding.ts           # Script de seed
+│   │   └── postgres_schema.psql # Script SQL d'initialisation (optionnel)
+│   ├── routers/                 # Routes de l’API (Express)
+│   │   ├── index.router.ts      # Point d'entrée des routes
+│   │   ├── activities.router.ts
+│   │   └── categories.router.ts
+│   ├── controllers/             # Logique métier
+│   │   ├── activities.controller.ts
+│   │   └── categories.controller.ts
+│   └── utils/                   # Fonctions utilitaires (slugify, random, etc.)
 ├── package.json
 ├── tsconfig.json
-└── .env                       # Variables d'environnement (DATABASE_URL, etc.)
-```
+├── .env                         # Variables d'environnement
+└── .env.example                 # Exemple de configuration d'environnement
 
+```
 
 ---
 
-## ⚙️ Fichier de variables d'environnement `.env`
+## Fichier de variables d'environnement `.env`
 
 ```
-# Connexion PostgreSQL
+# --- Database ---
 DATABASE_URL="postgresql://zombiezone:zombiezone@localhost:5432/zombiezone"
 
-# Port d’application
+# --- Server ---
 PORT=3000
+NODE_ENV=development
 
-ADMIN_EMAIL=prenom@domaine.fr
-ADMIN_FIRSTNAME=Prénom
-ADMIN_LASTNAME=Nom
+# --- Admin ---
+ADMIN_EMAIL=
+ADMIN_FIRSTNAME=
+ADMIN_LASTNAME=
 ADMIN_PASSWORD=
-BCRYPT_SALT_ROUNDS=10
-```
 
+# --- Security ---
+BCRYPT_SALT_ROUNDS=10
+
+# --- CORS ---
+# En prod : domaine officiel (https://zombiezone.com)
+# En dev : http://localhost:5173 pour React/Vite
+CORS_ORIGIN_PROD=https://zombiezone.com
+CORS_ORIGIN_PROD_ALT=http://zombiezone.com
+CORS_ORIGIN_DEV=http://localhost:5173
+
+```
 ---
 
-## ⚙️ Setup initial
+## Setup initial
 
 1. Installer les dépendances  
-```bash
 npm install
-```
 
 2. Créer la base à partir du SQL, injecter dans schema.prisma, formater si nécessaire  
-```bash
 npm run db:sql
 npm run db:pull
 npm run db:format
-```
 
-  - *Ou depuis schema.prisma valide*
-```bash
-npm run db:create
-```
+  - *Ou depuis schema.prisma valide*  
+npm run db:dev
 
 3. Générer/mettre à jour le client Prisma (optionnel mais conseillé)  
-```bash
-npm run db:generate
-```
+npm run db:gen
 
 4. Migration : si `schema.prisma` modifié  
-```bash
-npm run db:migrate
+npm run db:dev
 # ou pour nommer explicitement :
-# npm run db:migrate -- --name <nom>
-```
+# npm run db:dev -- --name <nom>
 
 5. Reset (dev) : réinitialise la DB et rejoue le seed  
-```bash
 npm run db:reset
-```
 
 ---
 
-## 🚀 Développement
+## Développement
 
 - Lancer le serveur :  
-```bash
 npm run dev
-```
 
 - Appliquer une migration après modification de `schema.prisma` :  
-```bash
-npm run db:migrate
-```
+npm run db:dev
 
 - Remplir la base avec des données de test :  
-```bash
 npm run db:seed
-```
 
 - Explorer la base via Prisma Studio :  
-```bash
 npm run db:studio
-```
+
 
 ---
 
-## 🔄 Reset complet (local uniquement)
+## Reset complet (local uniquement)
 
 Supprime toutes les tables, rejoue toutes les migrations et relance le seed :  
 ```bash
@@ -127,7 +130,7 @@ npm run db:reset
 
 ---
 
-## 📦 Production
+## Production
 
 - Appliquer toutes les migrations :  
 ```bash
@@ -136,22 +139,27 @@ npm run db:deploy
 
 ---
 
-## 📜 Scripts disponibles
+## Scripts disponibles
 
-| Commande                | Description                                                        |
-|-------------------------|--------------------------------------------------------------------|
-| `npm run dev`         | Lance le serveur en dev avec hot reload                          |
-| `npm run db:sql`      | Applique le fichier SQL d’initialisation                          |
-| `npm run db:pull`     | Récupère le schéma depuis la DB dans schema.prisma               |
-| `npm run db:format`   | Formate le fichier schema.prisma                                  |
-| `npm run db:create`   | Crée/applique la migration initiale à partir du schema.prisma     |
-| `npm run db:migrate`  | Crée/applique une migration en dev                                |
-| `npm run db:reset`    | Reset complet de la DB (drop, migrate, seed)                      |
-| `npm run db:deploy`   | Applique les migrations en production                             |
-| `npm run db:generate` | Génère le client Prisma                                           |
-| `npm run db:seed`     | Lance le script de seed                                           |
-| `npm run db:studio`   | Ouvre Prisma Studio (UI web pour la DB)                           |
+npm run dev → Lance le serveur en dev avec hot reload
 
+npm run db:sql → Applique le fichier SQL d’initialisation
+
+npm run db:pull → Récupère le schéma depuis la DB dans schema.prisma
+
+npm run db:format → Formate le fichier schema.prisma
+
+npm run db:dev → Crée/applique une migration en dev
+
+npm run db:reset → Reset complet de la DB (drop, migrate, seed)
+
+npm run db:deploy → Applique les migrations en production
+
+npm run db:gen → Génère le client Prisma
+
+npm run db:seed → Lance le script de seed
+
+npm run db:studio → Ouvre Prisma Studio (UI web pour la DB)
 
 ---
 
