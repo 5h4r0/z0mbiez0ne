@@ -4,8 +4,8 @@ import * as activitiesController from "../controllers/activities.controller.js";
 export const router = Router();
 
 // public routes
-router.get("/activities", activitiesController.getAllActivities);
-router.get("/activities/:id", activitiesController.getActivityById);
+router.get("/activities", activitiesController.getActivities);
+router.get("/activities/:id", activitiesController.getActivity);
 
 // protected routes (admin)
 router.post("/activities", activitiesController.createActivity);
