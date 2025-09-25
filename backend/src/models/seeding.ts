@@ -216,7 +216,7 @@ async function main() {
 main()
   .then(() => console.log("✅ Seeding terminé avec succès"))
   .catch((e) => {
-    console.error("❌ Erreur dans le seeding:", e);
+    console.error("❌ Erreur dans le seeding: ", e);
     process.exit(1);
   })
   .finally(async () => {
