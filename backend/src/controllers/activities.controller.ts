@@ -215,7 +215,7 @@ export async function deleteActivity(req: Request, res: Response) {
   return Number.isNaN(activityId)
     ? res.status(400).json({ message: `Invalid activity id ${id}` })
     : prisma.orders_lines
-        .count({ where: { sessions: { activity_id: activityId } } })
+        .count({ where: { session: { activity_id: activityId } } })
         .then((ordersLinesCount) =>
           ordersLinesCount > 0
             ? Promise.reject({ type: "hasOrders", count: ordersLinesCount })
