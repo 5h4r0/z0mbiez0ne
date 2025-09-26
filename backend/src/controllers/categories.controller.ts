@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { makeSlug } from "../utils/slugify.js";
-import { getRandomInt } from "../utils/getrandomint.js";
+import { getRandomInt } from "../utils/index.js";
 import { Prisma } from "@prisma/client";
 
 

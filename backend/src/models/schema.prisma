@@ -24,7 +24,7 @@ model users {
   updated_at    DateTime  @default(now()) @updatedAt @db.Timestamp(6)
   deleted_at    DateTime? @db.Timestamp(6)
   orders        orders[]
-  role         roles     @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  role          roles     @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model categories {

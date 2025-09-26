@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { Prisma } from "@prisma/client";
 import { makeSlug } from "../utils/slugify.js";
-import { getRandomInt } from "../utils/getrandomint.js";
+import { getRandomInt } from "../utils/index.js";
 
 /** GET all */
 export async function getActivities(req: Request, res: Response) {
@@ -80,7 +80,7 @@ export async function getActivity(req: Request, res: Response) {
         : res.status(404).json({ message: `Activity ${id} not found` })
     )
     .catch((error) => (
-      console.error(`Error fetching activity with id ${id}:`, error),
+      console.error(`Error fetching activity with id: ${id}`, error),
       res.status(500).json({ message: "Internal server error" })
     ));
 }
@@ -215,7 +215,7 @@ export async function deleteActivity(req: Request, res: Response) {
   return Number.isNaN(activityId)
     ? res.status(400).json({ message: `Invalid activity id ${id}` })
     : prisma.orders_lines
-        .count({ where: { session: { activity_id: activityId } } })
+        .count({ where: { sessions: { activity_id: activityId } } })
         .then((ordersLinesCount) =>
           ordersLinesCount > 0
             ? Promise.reject({ type: "hasOrders", count: ordersLinesCount })
