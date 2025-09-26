@@ -5,6 +5,9 @@ import { router as usersRouter } from "./users.router.js";
 import { router as rolesRouter } from "./roles.router.js";
 import { router as activitiesRouter } from "./activities.router.js";
 import { router as categoriesRouter } from "./categories.router.js";
+import { router as sessionsRouter } from "./sessions.router.js";
+import { router as ordersRouter } from "./orders.router.js";
+import { router as ordersLinesRouter } from "./order.lines.router.js";
 
 export const router = Router();
 
@@ -12,19 +15,14 @@ router.use(usersRouter);
 router.use(rolesRouter)
 router.use(activitiesRouter);
 router.use(categoriesRouter);
-
-// router.use("sessionsRouter);
-
-
-
-
-
+router.use(sessionsRouter);
+router.use(ordersRouter);
+router.use(ordersLinesRouter);
 
 // /api/ root
 router.get("/", (req, res) => {
   res.json({ status: "Nothing here... but the API is running 🚀" });
 });
-
 
 
 
