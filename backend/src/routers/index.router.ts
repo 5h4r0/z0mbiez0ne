@@ -3,10 +3,11 @@ import { Router } from "express";
 
 import { router as activitiesRouter } from "./activities.router.js";
 import { router as categoriesRouter } from "./categories.router.js";
-// import { router as sessionsRouter } from "./sessions.router.js";
+import { router as rolesRouter } from "./roles.router.js";
 
 export const router = Router();
 
+router.use(rolesRouter)
 router.use(activitiesRouter);
 router.use(categoriesRouter);
 
