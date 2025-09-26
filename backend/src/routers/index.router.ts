@@ -1,12 +1,14 @@
 // import path from "node:path";
 import { Router } from "express";
 
+import { router as usersRouter } from "./users.router.js";
+import { router as rolesRouter } from "./roles.router.js";
 import { router as activitiesRouter } from "./activities.router.js";
 import { router as categoriesRouter } from "./categories.router.js";
-import { router as rolesRouter } from "./roles.router.js";
 
 export const router = Router();
 
+router.use(usersRouter);
 router.use(rolesRouter)
 router.use(activitiesRouter);
 router.use(categoriesRouter);
