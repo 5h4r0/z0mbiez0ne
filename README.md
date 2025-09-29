@@ -1,176 +1,172 @@
-# 🧩 Workflow projet ZombieLand
+# 🧟 The z0mbie z0ne — Backend
 
-## ⚡️ Exemple rapide (nouveau dev)
+## 🚀 Setup initial
 
-```bash
-git clone git@github.com:5h4r0/ZombieLandSolo-CDA.git
-cd backend
-npm install
-# Option A: partir du SQL existant
-npm run db:sql
-npm run db:pull
-npm run db:format
-# Option B: partir du schema.prisma (crée la DB + migration init)
-npm run db:create
-npm run dev
-```
-
----
-
-## 📂 Arborescence recommandée
-
-```
-backend/
-├── src/
-│   ├── index.ts               # Point d'entrée du serveur
-│   ├── models/                # Logique liée aux données
-│   │   ├── schema.prisma      # Schéma Prisma (source de vérité DB)
-│   │   ├── migrations/        # Migrations générées par Prisma
-│   │   └── seeding.ts         # Script de seed pour la DB
-│   ├── routers/               # Routes de l’API (Express)
-│   ├── controllers/           # Logique métier (optionnel)
-│   └── middlewares/           # Middlewares (optionnel)
-├── package.json
-├── tsconfig.json
-└── .env                       # Variables d'environnement (DATABASE_URL, etc.)
-```
-
-
----
-
-## ⚙️ Fichier de variables d'environnement `.env`
-
-```
-# Connexion PostgreSQL
-DATABASE_URL="postgresql://zombiezone:zombiezone@localhost:5432/zombiezone"
-
-# Port d’application
-PORT=3000
-
-ADMIN_EMAIL=prenom@domaine.fr
-ADMIN_FIRSTNAME=Prénom
-ADMIN_LASTNAME=Nom
-ADMIN_PASSWORD=
-BCRYPT_SALT_ROUNDS=10
-```
-
----
-
-## ⚙️ Setup initial
-
-1. Installer les dépendances  
+1. Installer les dépendances :
 ```bash
 npm install
 ```
 
-2. Créer la base à partir du SQL, injecter dans schema.prisma, formater si nécessaire  
+2. **DB-first** (à partir du SQL existant) :
 ```bash
 npm run db:sql
 npm run db:pull
 npm run db:format
-```
-
-  - *Ou depuis schema.prisma valide*
-```bash
-npm run db:create
-```
-
-3. Générer/mettre à jour le client Prisma (optionnel mais conseillé)  
-```bash
 npm run db:generate
 ```
 
-4. Migration : si `schema.prisma` modifié  
+3. **Prisma-first** (à partir d’un `schema.prisma` déjà écrit) :
 ```bash
-npm run db:migrate
-# ou pour nommer explicitement :
-# npm run db:migrate -- --name <nom>
+npm run db:create
 ```
 
-5. Reset (dev) : réinitialise la DB et rejoue le seed  
+4. Migration (si `schema.prisma` modifié) :
+```bash
+npm run db:migrate -- --name <nom>
+```
+
+5. Reset complet (drop + migrations + seed) :
 ```bash
 npm run db:reset
 ```
 
----
-
-## 🚀 Développement
-
-- Lancer le serveur :  
-```bash
-npm run dev
-```
-
-- Appliquer une migration après modification de `schema.prisma` :  
-```bash
-npm run db:migrate
-```
-
-- Remplir la base avec des données de test :  
+6. Seeding (insérer données de test) :
 ```bash
 npm run db:seed
 ```
 
-- Explorer la base via Prisma Studio :  
+---
+
+## 💻 Développement
+
+- Lancer le serveur :
+```bash
+npm run dev
+```
+
+- Explorer la base avec Prisma Studio :
 ```bash
 npm run db:studio
 ```
 
 ---
 
-## 🔄 Reset complet (local uniquement)
+## 📦 Production
 
-Supprime toutes les tables, rejoue toutes les migrations et relance le seed :  
+- Appliquer toutes les migrations en prod :
 ```bash
-npm run db:reset
+npm run db:deploy
+```
+
+- Lancer le serveur compilé :
+```bash
+npm run build
+npm start
 ```
 
 ---
 
-## 📦 Production
+## 📂 Arborescence
 
-- Appliquer toutes les migrations :  
-```bash
-npm run db:deploy
 ```
+backend/
+├── src/
+│   ├── index.ts                 # Point d'entrée du serveur
+│   ├── config/                  # Configuration de l'application
+│   │   ├── config.ts            # Variables et options centralisées
+│   │   └── cors.ts              # Configuration CORS basée sur config.ts
+│   ├── models/                  # Schéma et scripts liés à la base de données
+│   │   ├── schema.prisma        # Schéma Prisma (source de vérité de la DB)
+│   │   ├── migrations/          # Migrations générées par Prisma
+│   │   ├── seeding.ts           # Script de seed
+│   │   └── postgres_schema.psql # Script SQL d'initialisation (optionnel)
+│   ├── routers/                 # Routes de l’API (Express)
+│   │   ├── index.router.ts      # Point d'entrée des routes
+│   │   ├── activities.router.ts
+│   │   ├── categories.router.ts
+│   │   ├── users.router.ts
+│   │   ├── roles.router.ts
+│   │   ├── sessions.router.ts   # (temp) renvoie users pour avancer l’auth
+│   │   ├── orders.router.ts     # (temp) renvoie users pour avancer l’auth
+│   │   └── order.lines.router.ts# (temp) renvoie users pour avancer l’auth
+│   ├── controllers/             # Logique métier
+│   │   ├── activities.controller.ts
+│   │   ├── categories.controller.ts
+│   │   ├── users.controller.ts
+│   │   ├── roles.controller.ts
+│   │   ├── sessions.controller.ts
+│   │   ├── orders.controller.ts
+│   │   └── orders.lines.controller.ts
+│   └── utils/                   # Fonctions utilitaires (helpers)
+│       ├── index.ts             # Barrel file (exports centralisés)
+│       ├── slugify.ts
+│       ├── getrandomint.ts
+│       ├── cleanObject.ts
+│       └── getPagination.ts
+├── package.json
+├── tsconfig.json
+├── .env                         # Variables d'environnement
+└── .env.example                 # Exemple de configuration d'environnement
+```
+
+---
+
+## 🛡️ Note temporaire (routers *fake*)
+
+Les routers **sessions**, **orders** et **order.lines** renvoient pour le moment les `users`, le temps d’avancer sur l’authentification **JWT** (login, refresh, middleware).
 
 ---
 
 ## 📜 Scripts disponibles
 
-| Commande                | Description                                                        |
-|-------------------------|--------------------------------------------------------------------|
-| `npm run dev`         | Lance le serveur en dev avec hot reload                          |
-| `npm run db:sql`      | Applique le fichier SQL d’initialisation                          |
-| `npm run db:pull`     | Récupère le schéma depuis la DB dans schema.prisma               |
-| `npm run db:format`   | Formate le fichier schema.prisma                                  |
-| `npm run db:create`   | Crée/applique la migration initiale à partir du schema.prisma     |
-| `npm run db:migrate`  | Crée/applique une migration en dev                                |
-| `npm run db:reset`    | Reset complet de la DB (drop, migrate, seed)                      |
-| `npm run db:deploy`   | Applique les migrations en production                             |
-| `npm run db:generate` | Génère le client Prisma                                           |
-| `npm run db:seed`     | Lance le script de seed                                           |
-| `npm run db:studio`   | Ouvre Prisma Studio (UI web pour la DB)                           |
-
+| Commande              | Description                                                                 |
+|-----------------------|-----------------------------------------------------------------------------|
+| `npm run dev`         | Lance le serveur en dev avec hot reload                                     |
+| `npm run build`       | Compile TypeScript dans `/dist`                                             |
+| `npm start`           | Démarre le serveur Node depuis `/dist`                                      |
+| `npm run clean`       | Supprime le dossier `dist`                                                  |
+| `npm run db:sql`      | Applique le script SQL `postgres_schema.psql` directement sur PostgreSQL    |
+| `npm run db:pull`     | Récupère la structure réelle de la DB → `schema.prisma`                     |
+| `npm run db:format`   | Formate le `schema.prisma`                                                  |
+| `npm run db:generate` | Génère le client Prisma                                                     |
+| `npm run db:seed`     | Lance le script de seed (`seeding.ts`)                                      |
+| `npm run db:studio`   | Ouvre Prisma Studio (UI web DB)                                             |
+| `npm run db:create`   | Crée/applique la migration init depuis `schema.prisma`                      |
+| `npm run db:migrate`  | Crée/applique une migration supplémentaire (dev)                            |
+| `npm run db:reset`    | Reset complet DB (drop, migrate, seed)                                      |
+| `npm run db:deploy`   | Applique les migrations en production                                       |
 
 ---
 
-## Note : commit types
+## 🧩 Notes projet
 
-*Avant de mettre vos branches de fonctionnalités sur la branche de dev, faites un merge de dev sur votre branche. Vous pourrez régler les potentiels conflits sur votre branche à vous avant de faire votre pull request. Ce qui fait que votre pull request passera à coup sûr.*
+- Pas de `if {}` dans le projet.  
+  → Utiliser opérateurs logiques, ternaires, mapping d’objets, `.map`, `.filter`, `.reduce`.  
+  → Favorise un code lisible, testable, fonctionnel.  
 
+- Uniformiser les retours : toujours retourner une `Promise`, gérer erreurs avec `.catch` / `Promise.reject`.
 
-| Commit Type | Title                    | Description                                                                                                 | Emoji |
-|-------------|--------------------------|-------------------------------------------------------------------------------------------------------------|:-----:|
-| `feat`      | Features                 | A new feature                                                                                               |   ✨   |
-| `fix`       | Bug Fixes                | A bug Fix                                                                                                   |  🐛   |
-| `wip`       | WIP                      | Work in progress                                                                                            |  🚧   |
-| `docs`      | Documentation            | Documentation only changes                                                                                  |  📚   |
-| `style`     | Styles                   | Changes that do not affect the meaning of the code (whitespace, formatting, missing semicolons, etc)        |  💎   |
-| `refactor`  | Code Refactoring         | A code change that neither fixes a bug nor adds a feature                                                   |  📦   |
-| `perf`      | Performance Improvements | A code change that improves performance                                                                     |  🚀   |
-| `test`      | Tests                    | Adding missing tests or correcting existing tests                                                           |  🚨   |
-| `build`     | Builds                   | Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)         |  🛠   |
-| `ci`        | Continuous Integrations  | Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs) |  ⚙️   |
-| `chore`     | Chores                   | Other changes that don't modify src or test files                                                           |  ♻️   |
-| `revert`    | Reverts                  | Reverts a previous commit                                                                                   |  🗑   |
+- Paradigme adopté :  
+  - Réponses JSON aplaties et harmonisées  
+  - `.then` / `.catch` systématiques  
+  - Pas de branches conditionnelles complexes  
+  - Erreurs gérées par rejets explicites  
+
+---
+
+## 🗂️ Commit types
+
+| Type        | Description                                       | Emoji |
+|-------------|---------------------------------------------------|:-----:|
+| `feat`      | Nouvelle fonctionnalité                           | ✨    |
+| `fix`       | Correction de bug                                 | 🐛    |
+| `wip`       | Work in progress                                  | 🚧    |
+| `docs`      | Documentation                                     | 📚    |
+| `style`     | Changement sans impact logique (formatage, etc.)  | 💎    |
+| `refactor`  | Refactoring sans ajout ni correction              | 📦    |
+| `perf`      | Amélioration performance                          | 🚀    |
+| `test`      | Ajout/correction de tests                         | 🚨    |
+| `build`     | Changements liés au build ou dépendances          | 🛠    |
+| `ci`        | Changement config CI/CD                           | ⚙️    |
+| `chore`     | Tâches diverses (hors code/test)                  | ♻️    |
+| `revert`    | Annulation d’un commit précédent                  | 🗑    |

@@ -5,15 +5,16 @@
     "outDir": "./dist",
 
     /* Environment Settings */
-    "module": "NodeNext",        // pour Node.js ESM
+    "module": "NodeNext",             // pour Node.js ESM
     "moduleResolution": "NodeNext",
-    "target": "ES2022",          // output moderne mais compatible
+    //"esModuleInterop": true,
+    "target": "ES2022",               // output moderne mais compatible
     "lib": ["ESNext"],
-    "types": ["node"],           // ajoute les types Node.js
+    "types": ["node"],                // ajoute les types Node.js
 
     /* Other Outputs */
-    "sourceMap": true,           // utile pour debug
-    "declaration": true,         // génère les .d.ts (utile si tu publies une lib)
+    "sourceMap": true,                // utile pour debug
+    "declaration": true,              // génère les .d.ts (utile si tu publies une lib)
     "declarationMap": true,
 
     /* Stricter Typechecking Options */

@@ -1,9 +1,13 @@
 import express from "express";
 import { router as apiRouter } from "./routers/index.router.js";
 
-// Créer une app Express
+// create an express app
 export const app = express();
 
+// middleware, json parsing
+app.use(express.json());
+
+// header
 app.use((req, res, next) => {
   res.setHeader("X-Powered-By", "ZombieLand");
   next();
