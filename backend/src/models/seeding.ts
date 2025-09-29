@@ -7,11 +7,11 @@
  *   npx tsx --env-file=.env src/models/seeding.ts
  */
 
-import { prisma } from "./index.js";
 import { faker } from "@faker-js/faker";
 import { Prisma } from "@prisma/client";
-import { makeSlug } from "../utils/slugify.js";
 import bcrypt from "bcryptjs";
+import { makeSlug } from "../utils/slugify.js";
+import { prisma } from "./index.js";
 
 /** Utilitaire : entier aléatoire inclusif [min, max] */
 const getRandomInt = (min: number, max: number) =>

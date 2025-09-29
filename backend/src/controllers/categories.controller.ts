@@ -1,33 +1,23 @@
+import { Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { makeSlug } from "../utils/slugify.js";
-import { getRandomInt } from "../utils/index.js";
-import { Prisma } from "@prisma/client";
 
 
-/** GET all */
-export async function getCategories(req: Request, res: Response) {
+/** GET all categories */
+export const getCategories = (req: Request, res: Response): Promise<void> => {
   return prisma.categories
     .findMany({
       include: {
         activities_categories: {
-          select: {
-            activity: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-                description: true,
-                image_filename: true,
-              },
-            },
-          },
+          select: { activity: { select: { id: true, title: true, slug: true } } },
         },
       },
     })
-    .then((categories) =>
-      res.status(200).json(
-        categories.map((c) => ({
+    .then((categories) => {
+      res.status(200).json({
+        success: true,
+        data: categories.map((c) => ({
           id: c.id,
           title: c.title,
           slug: c.slug,
@@ -35,18 +25,21 @@ export async function getCategories(req: Request, res: Response) {
           image_filename: c.image_filename,
           activities_count: c.activities_categories.length,
           activities: c.activities_categories.map((ac) => ac.activity),
-        }))
-      )
-    )
-    .catch((error) => (
-      console.error(`Error fetching categories:`, error),
-      res.status(500).json({ message: "Internal server error" })
-    ));
-}
+        })),
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message: "Internal server error"
+      });
+    });
+};
 
 
-/** GET one */
-export async function getCategory(req: Request, res: Response) {
+/** GET one category */
+export const getCategory = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   return prisma.categories
@@ -54,144 +47,157 @@ export async function getCategory(req: Request, res: Response) {
       where: { id: Number(id) },
       include: {
         activities_categories: {
-          select: {
-            activity: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-                description: true,
-                image_filename: true,
-              },
-            },
-          },
+          select: { activity: { select: { id: true, title: true, slug: true } } },
         },
       },
     })
-    .then((category) =>
+    .then((category) => {
       category
         ? res.status(200).json({
-            id: category.id,
-            title: category.title,
-            slug: category.slug,
-            description: category.description,
-            image_filename: category.image_filename,
-            activities: category.activities_categories.map((ac) => ac.activity),
+            success: true,
+            data: {
+              id: category.id,
+              title: category.title,
+              slug: category.slug,
+              description: category.description,
+              image_filename: category.image_filename,
+              activities: category.activities_categories.map((ac) => ac.activity),
+            },
           })
-        : res.status(404).json({ message: `Category ${id} not found` })
-    )
-    .catch((error) => (
-      console.error(`Error fetching category with id ${id}:`, error),
-      res.status(500).json({ message: "Internal server error" })
-    ));
-}
+        : res.status(404).json({
+            success: false,
+            error: `Category ${id} not found`,
+          });
+    })
+    .catch((error) => {
+      console.error(`Error fetching category ${id}:`, error);
+      res.status(500).json({ success: false, error: "Internal server error" });
+    });
+};
 
 
-/** CREATE */
-export async function createCategory(req: Request, res: Response) {
-  const { title, description } = req.body;
+/** CREATE category */
+export const createCategory = (req: Request, res: Response): Promise<void> => {
+  const { title, description, image_filename } = req.body;
   const slug = makeSlug(title);
-  const image_filename = `img-category-${getRandomInt(1, 999)}.jpg`
-  try {
-    const newCategory = await prisma.categories.create({
+
+  return prisma.categories
+    .create({
       data: {
         title,
         slug,
         description,
-        image_filename
-      }
+        image_filename,
+      },
+    })
+    .then((created) => {
+      res.status(201).json({
+        success: true,
+        data: created,
+      });
+    })
+    .catch((error) => {
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+        ? res.status(409).json({
+            success: false,
+            error: "Category with this title or slug already exists",
+          })
+        : (console.error("Error creating category:", error),
+          res.status(500).json({ success: false, error: "Internal server error" }));
     });
-    console.log(`Category ${newCategory.id} created`);
-    res.status(201).json(newCategory);
-  } catch (error) {
-    console.error(`Error creating category:`, error);
-    res.status(500).json({ message: `Internal server error` });
-  }
-}
+};
 
 
-/** UPDATE */
-export async function updateCategory(req: Request, res: Response) {
+/** UPDATE category */
+export const updateCategory = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { title, description } = req.body;
-  const slug = makeSlug(title);
-  const image_filename = `img-category-${getRandomInt(1, 999)}.jpg`;
+  const { title, description, image_filename } = req.body;
+
+  const data: Prisma.categoriesUpdateInput = Object.assign(
+    {
+      title,
+      slug: makeSlug(title),
+    },
+    description !== undefined ? { description } : {},
+    image_filename !== undefined ? { image_filename } : {}
+  );
 
   return prisma.categories
     .update({
       where: { id: Number(id) },
-      data: { title, slug, description, image_filename },
-      include: {
-        activities_categories: {
-          select: {
-            activity: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-                description: true,
-                image_filename: true,
-              },
-            },
-          },
-        },
-      },
+      data,
     })
-    .then((updated) =>
+    .then((updated) => {
       res.status(200).json({
-        id: updated.id,
-        title: updated.title,
-        slug: updated.slug,
-        description: updated.description,
-        image_filename: updated.image_filename,
-        activities: updated.activities_categories.map((ac) => ac.activity),
-      })
-    )
-    .catch((error) =>
+        success: true,
+        data: updated,
+      });
+    })
+    .catch((error) => {
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2025"
-        ? res.status(404).json({ message: `Category ${id} not found` })
+        ? res.status(404).json({
+            success: false,
+            error: `Category ${id} not found`,
+          })
         : (console.error(`Error updating category ${id}:`, error),
-          res.status(500).json({ message: "Internal server error" }))
-    );
-}
+          res.status(500).json({
+            success: false,
+            error: "Internal server error",
+          }));
+    });
+};
 
 
-/** DELETE */
-export async function deleteCategory(req: Request, res: Response) {
+/** DELETE category */
+export const deleteCategory = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const categoryId = Number(id);
 
-  return Number.isNaN(categoryId)
-    ? res.status(400).json({ message: `Invalid category id ${id}` })
+  // Rejeter tôt si id invalide pour éviter les unions "void | T"
+  return (Number.isNaN(categoryId)
+    ? Promise.reject({ type: "invalidId" })
     : prisma.activities_categories.findMany({
         where: { category_id: categoryId },
         include: { activity: { select: { id: true, activities_categories: true } } },
       })
-        .then((linked) =>
-          linked.some((relation) => relation.activity.activities_categories.length === 1)
-            ? res.status(400).json({
-                message: `Cannot delete category ${id}, activities ${linked
-                  .filter((relation) => relation.activity.activities_categories.length === 1)
-                  .map((relation) => relation.activity.id)
-                  .join(", ")} depend exclusively on it`,
-              })
-            : prisma.activities_categories
-                .deleteMany({ where: { category_id: categoryId } })
-                .then(() =>
-                  prisma.categories
-                    .delete({ where: { id: categoryId } })
-                    .then((deleted) =>
-                      res.status(200).json({
-                        message: `Category ${deleted.id} * ${deleted.title} has been deleted`,
-                      })
-                    )
-                )
-        )
-        .catch((error) =>
-          error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025"
-            ? res.status(404).json({ message: `Category ${id} not found` })
-            : (console.error(`Error deleting category ${id}:`, error),
-              res.status(500).json({ message: "Internal server error" }))
-        );
-}
+  )
+    .then((linked) => {
+      const orphanActivities = linked
+        .filter((relation) => relation.activity.activities_categories.length === 1)
+        .map((relation) => relation.activity.id);
+
+      // Court-circuit : on rejette → le then suivant ne voit que la catégorie supprimée (pas de union foireux)
+      return orphanActivities.length > 0
+        ? Promise.reject({ type: "hasOrphans", ids: orphanActivities })
+        : prisma.activities_categories
+            .deleteMany({ where: { category_id: categoryId } })
+            .then(() => prisma.categories.delete({ where: { id: categoryId } }));
+    })
+    .then((deletedCategory) => {
+      res.status(200).json({
+        success: true,
+        data: {
+          id: deletedCategory.id,
+          title: deletedCategory.title,
+          slug: deletedCategory.slug,
+          description: deletedCategory.description,
+          image_filename: deletedCategory.image_filename,
+        },
+      });
+    })
+    .catch((error) => {
+      error?.type === "invalidId"
+        ? res.status(400).json({ success: false, error: `Invalid category id ${id}` })
+        : error?.type === "hasOrphans"
+        ? res.status(400).json({
+            success: false,
+            error: `Cannot delete category ${id}, activities ${error.ids.join(", ")} depend exclusively on it`,
+          })
+        : error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025"
+        ? res.status(404).json({ success: false, error: `Category ${id} not found` })
+        : (console.error(`Error deleting category ${id}:`, error),
+          res.status(500).json({ success: false, error: "Internal server error" }));
+    });
+};
