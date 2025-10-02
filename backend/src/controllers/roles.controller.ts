@@ -2,28 +2,29 @@ import type { Request, Response } from "express";
 import { getPagination } from "../helpers/index.js";
 import { prisma } from "../models/index.js";
 
-/** GET all */
-export async function getRoles(req: Request, res: Response) {
+/** get all */
+export const getRoles = (req: Request, res: Response): Promise<void> => {
   return prisma.roles
     .findMany()
-    .then((roles) =>
+    .then((roles) => {
       res.status(200).json({
         success: true,
         data: roles,
-      })
-    )
-    .catch((error) => (
-      console.error(`Error fetching roles:`, error),
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching roles:", error);
       res.status(500).json({
         success: false,
-        message: "Erreur dans la récupération des rôles",
-        error: error.message,
-    })
-  ))
-}
+        message: "Error fetching roles",
+        error: "Internal server error",
+      });
+    });
+};
 
-/** GET one */
-export async function getRole(req: Request, res: Response) {
+
+/** get one */
+export const getRole = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { take, skip } = getPagination(req);
 
@@ -45,7 +46,7 @@ export async function getRole(req: Request, res: Response) {
         ),
       },
     })
-    .then((role) =>
+    .then((role) => {
       role
         ? res.status(200).json({
             id: role.id,
@@ -53,9 +54,9 @@ export async function getRole(req: Request, res: Response) {
             users: role.users,
           })
         : res.status(404).json({ message: `Role ${id} not found` })
-    )
-    .catch((error) => (
+    })
+    .catch((error) => {
       console.error(`Error fetching role with id: ${id}`, error),
       res.status(500).json({ message: "Internal server error" })
-    ));
-}
+    });
+};

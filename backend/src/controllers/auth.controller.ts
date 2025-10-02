@@ -87,6 +87,7 @@ export function registerUser(req: Request, res: Response) {
 
 
 /** Login */
+
 // schema for login body validation
 const loginUserBodySchema = z.object({
   email: z.email({ message: "invalid email address" }),
