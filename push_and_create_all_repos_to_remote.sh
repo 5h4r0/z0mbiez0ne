@@ -3,7 +3,7 @@
 # Script pour pousser toutes les branches des dépôts locaux vers leurs remotes upstream ou en créer de nouveaux si nécessaire
 
 # Définir le chemin du dossier parent contenant les projets
-parent_folder="/var/www/html"
+parent_folder="/home/sharo/projects"
 
 # Définir les codes de couleur ANSI
 RED="\033[31m"

@@ -1,44 +1,48 @@
-import express from "express";
-import { router as apiRouter } from "./routers/index.router.js";
+import cors from "cors"
+import express from "express"
+import { config } from "./config/config.js"
+import { router as apiRouter } from "./routers/index.router.js"
 
-// create an express app
-export const app = express();
+// create express app
+export const app = express()
 
-// middleware, json parsing
-app.use(express.json());
-
-// header
+// log every request + response
 app.use((req, res, next) => {
-  res.setHeader("X-Powered-By", "ZombieLand");
-  next();
-});
+  console.log("➡️ incoming request", req.method, req.url)
+  res.on("finish", () => {
+    console.log("⬅️ response sent", req.method, req.url, res.statusCode)
+  })
+  next()
+})
 
-// mount API router on /api
-app.use("/api", apiRouter);
+// simple routes before parsers
+app.get("/ping", (_, res) => {
+  console.log("ping route hit")
+  res.send("pong")
+})
 
+app.get("/", (_, res) => {
+  res.send("Welcome | homepage 👋")
+})
 
-
-
-
-
-
-
-
-
-
-
-
-
-// homepage
-app.get("/", (req, res) => {
-  res.send("Welcome | homepage 👋");
-});
-
-// health check
-app.get("/health", (req, res) => {
+app.get("/health", (_, res) => {
   res.status(200).json({
     status: "ok",
     timestamp: new Date().toISOString()
-  });
-});
+  })
+})
 
+// json parser
+app.use(express.json())
+
+// cors
+app.use(cors({ origin: config.server.allowedOrigins }))
+
+// api router
+app.use("/api", apiRouter)
+
+// headers
+app.use((_, res, next) => {
+  res.setHeader("X-Powered-By", "ZombieLand")
+  next()
+})

@@ -12,4 +12,5 @@ router.post("/categories", categoriesController.createCategory);
 router.put("/categories/:id", categoriesController.updateCategory);
 router.delete("/categories/:id", categoriesController.deleteCategory);
 
+
 // export default router;
