@@ -9,7 +9,7 @@ datasource db {
 
 model roles {
   id    Int     @id @default(autoincrement())
-  name  String  @db.VarChar(20)
+  name  String  @unique @db.VarChar(20)
   users users[]
 }
 
@@ -19,35 +19,53 @@ model users {
   email         String    @unique @db.VarChar(320)
   firstname     String    @db.VarChar(50)
   lastname      String    @db.VarChar(50)
-  password_hash String    @db.VarChar(100)
+  password_hash String    @db.VarChar(150)
   created_at    DateTime  @default(now()) @db.Timestamp(6)
   updated_at    DateTime  @default(now()) @updatedAt @db.Timestamp(6)
   deleted_at    DateTime? @db.Timestamp(6)
-  orders        orders[]
-  role          roles     @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // relations
+  role  roles  @relation(fields: [role_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  refresh_tokens  RefreshToken[]
+  orders  orders[]
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique @db.Text // chaque refresh token doit être unique
+  user_id    Int
+  issued_at  DateTime @default(now()) @db.Timestamp(6)
+  expired_at DateTime @db.Timestamp(6)
+
+  // relation
+  user  users @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("refresh_token")
 }
 
 model categories {
-  id                    Int                     @id @default(autoincrement())
-  title                 String                  @db.VarChar(120)
-  slug                  String                  @db.VarChar(120)
-  description           String?                 @db.VarChar(2000)
-  image_filename        String?                 @db.VarChar(50)
-  created_at            DateTime                @default(now()) @db.Timestamp(6)
-  updated_at            DateTime                @default(now()) @updatedAt @db.Timestamp(6)
-  deleted_at            DateTime?               @db.Timestamp(6)
+  id             Int       @id @default(autoincrement())
+  title          String    @db.VarChar(120)
+  slug           String    @db.VarChar(120)
+  description    String?   @db.VarChar(2000)
+  image_filename String?   @db.VarChar(50)
+  created_at     DateTime  @default(now()) @db.Timestamp(6)
+  updated_at     DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+  deleted_at     DateTime? @db.Timestamp(6)
+
   activities_categories activities_categories[]
 }
 
 model activities {
-  id                    Int                     @id @default(autoincrement())
-  title                 String                  @db.VarChar(120)
-  slug                  String                  @db.VarChar(120)
-  description           String?                 @db.VarChar(2000)
-  image_filename        String?                 @db.VarChar(50)
-  created_at            DateTime                @default(now()) @db.Timestamp(6)
-  updated_at            DateTime                @default(now()) @updatedAt @db.Timestamp(6)
-  deleted_at            DateTime?               @db.Timestamp(6)
+  id             Int       @id @default(autoincrement())
+  title          String    @db.VarChar(120)
+  slug           String    @db.VarChar(120)
+  description    String?   @db.VarChar(2000)
+  image_filename String?   @db.VarChar(50)
+  created_at     DateTime  @default(now()) @db.Timestamp(6)
+  updated_at     DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+  deleted_at     DateTime? @db.Timestamp(6)
+
   activities_categories activities_categories[]
   sessions              sessions[]
 }
@@ -56,31 +74,36 @@ model activities_categories {
   activity_id Int
   category_id Int
 
-  activity  activities @relation(fields: [activity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  category  categories @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  activity activities @relation(fields: [activity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  category categories @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   
   @@id([activity_id, category_id])
+  @@map("activities_categories")
 }
 
 model sessions {
-  id           Int            @id @default(autoincrement())
-  activity_id  Int
-  date         DateTime       @db.Timestamp(6)
-  capacity     Int
-  unit_price   Decimal        @db.Decimal(5, 2)
-  status       String         @db.VarChar(10)
-  created_at   DateTime       @default(now()) @db.Timestamp(6)
-  updated_at   DateTime       @default(now()) @updatedAt @db.Timestamp(6)
-  deleted_at   DateTime?      @db.Timestamp(6)
+  id          Int       @id @default(autoincrement())
+  activity_id Int
+  date        DateTime  @db.Timestamp(6)
+  capacity    Int
+  unit_price  Decimal   @db.Decimal(5, 2)
+  /// CHECK (status IN ('Scheduled', 'Cancelled', 'Completed'))
+  status      String    @db.VarChar(10)
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  updated_at  DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+  deleted_at  DateTime? @db.Timestamp(6)
+
+  // relations
+  activity     activities     @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   orders_lines orders_lines[]
-  activity   activities     @relation(fields: [activity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([activity_id], map: "idx_session_activity_id")
 }
 
 model orders {
   id             Int            @id @default(autoincrement())
-  user_id        Int
+  user_id        Int?           // nullable foreign key
+  user           users?         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   taxes          Decimal        @default(0) @db.Decimal(4, 2)
   total_amount   Decimal        @db.Decimal(5, 2)
   payment_method String?        @db.VarChar(30)
@@ -89,7 +112,6 @@ model orders {
   created_at     DateTime       @default(now()) @db.Timestamp(6)
   updated_at     DateTime       @default(now()) @updatedAt @db.Timestamp(6)
   deleted_at     DateTime?      @db.Timestamp(6)
-  user          users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   orders_lines   orders_lines[]
 }
 
@@ -101,8 +123,10 @@ model orders_lines {
   amount      Decimal  @db.Decimal(4, 2)
   created_at  DateTime @default(now()) @db.Timestamp(6)
   updated_at  DateTime @default(now()) @updatedAt @db.Timestamp(6)
-  order      orders   @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  session    sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // relations
+  order   orders   @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  session sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([order_id, session_id], map: "order_session")
 }

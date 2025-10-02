@@ -1,73 +1,96 @@
 // src/models/seeding.ts
 /**
- * Script de seeding (Prisma + Faker)
- * Exécution :
+ * seeding script (prisma + faker)
+ * run with :
  *   npm run db:seed
- *   ou
+ *   or
  *   npx tsx --env-file=.env src/models/seeding.ts
  */
 
 import { faker } from "@faker-js/faker";
 import { Prisma } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import argon2 from "argon2";
 import { makeSlug } from "../utils/slugify.js";
 import { prisma } from "./index.js";
 
-/** Utilitaire : entier aléatoire inclusif [min, max] */
+/** random int util */
 const getRandomInt = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
 
-/** Utilitaire : créer un Decimal à partir de centimes (ex: 199 → 1.99) */
+/** decimal util from cents (199 -> 1.99) */
 const decimalFromCents = (cents: number) =>
   new Prisma.Decimal((cents / 100).toFixed(2));
 
-/** Variables depuis .env (fallbacks dev) */
+/** env vars with fallbacks */
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "steph@sharo.fr";
 const ADMIN_FIRSTNAME = process.env.ADMIN_FIRSTNAME ?? "Stéphane";
 const ADMIN_LASTNAME = process.env.ADMIN_LASTNAME ?? "Jeankev";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "hastur";
-const BCRYPT_SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS ?? 10);
 
 async function main() {
-  /** Rôles fixes */
+  // clean all tables in fk order
+  await prisma.orders_lines.deleteMany();
+  await prisma.orders.deleteMany();
+  await prisma.sessions.deleteMany();
+  await prisma.activities_categories.deleteMany();
+  await prisma.activities.deleteMany();
+  await prisma.categories.deleteMany();
+  await prisma.users.deleteMany();
+  await prisma.roles.deleteMany();
+
+  // seed roles
   await prisma.roles.createMany({
     data: [{ name: "member" }, { name: "admin" }],
     skipDuplicates: true,
   });
 
-  /** Admin fixe (upsert + bcrypt) */
-  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, BCRYPT_SALT_ROUNDS);
+  // seed member users
+  await prisma.roles.findUnique({ where: { name: "member" } })
+    .then((role) =>
+      role
+        ? prisma.users.createMany({
+            data: Array.from({ length: 10 }).map(() => ({
+              email: faker.internet.email(),
+              firstname: faker.person.firstName(),
+              lastname: faker.person.lastName(),
+              password_hash: faker.internet.password(),
+              role_id: role.id,
+            })),
+            skipDuplicates: true,
+          })
+        : Promise.reject(new Error("member role missing"))
+    );
 
-  await prisma.users.upsert({
-    where: { email: ADMIN_EMAIL },
-    update: {
-      firstname: ADMIN_FIRSTNAME,
-      lastname: ADMIN_LASTNAME,
-      password_hash: passwordHash,
-      role_id: 2, // admin
-    },
-    create: {
-      email: ADMIN_EMAIL,
-      firstname: ADMIN_FIRSTNAME,
-      lastname: ADMIN_LASTNAME,
-      password_hash: passwordHash,
-      role_id: 2, // admin
-    },
-  });
+  // seed static admin
+  const passwordHash = await argon2.hash(ADMIN_PASSWORD);
 
-  /** 10 users Faker (members) - emails uniques → skipDuplicates utile */
-  await prisma.users.createMany({
-    data: Array.from({ length: 10 }).map(() => ({
-      email: faker.internet.email(),
-      firstname: faker.person.firstName(),
-      lastname: faker.person.lastName(),
-      password_hash: faker.internet.password(),
-      role_id: 1, // member
-    })),
-    skipDuplicates: true,
-  });
+  await prisma.roles.findUnique({ where: { name: "admin" } })
+    .then((role) =>
+      role
+        ? prisma.users.upsert({
+            where: { email: ADMIN_EMAIL },
+            update: {
+              firstname: ADMIN_FIRSTNAME,
+              lastname: ADMIN_LASTNAME,
+              password_hash: passwordHash,
+              role_id: role.id,
+            },
+            create: {
+              email: ADMIN_EMAIL,
+              firstname: ADMIN_FIRSTNAME,
+              lastname: ADMIN_LASTNAME,
+              password_hash: passwordHash,
+              role_id: role.id,
+            },
+          })
+        : Promise.reject(new Error("admin role missing"))
+    )
+    .catch((e) => {
+      console.error("❌ seeding admin failed:", e);
+      throw e;
+    });
 
-  /** Catégories */
+  // categories
   const CATEGORIES = [
     "Attractions à Sensations",
     "Spectacles Horrifiques",
@@ -88,13 +111,13 @@ async function main() {
         title,
         description: faker.lorem.sentences(2),
         image_filename: `img-category-${getRandomInt(1, 999)}.jpg`,
-        slug: makeSlug(title)
-      }
+        slug: makeSlug(title),
+      };
     }),
-    skipDuplicates: true, // optionnel mais sans risque
+    skipDuplicates: true,
   });
 
-  /** Activités */
+  // activities
   const ACTIVITIES = [
     "Train Fantôme",
     "Maison Hantée",
@@ -135,23 +158,15 @@ async function main() {
         title,
         description: faker.lorem.sentences(2),
         image_filename: `img-activity-${getRandomInt(1, 999)}.jpg`,
-        slug: makeSlug(title)
-      }
+        slug: makeSlug(title),
+      };
     }),
-    skipDuplicates: true, // optionnel
+    skipDuplicates: true,
   });
 
-  /** Jointure activités ↔ catégories: chaque activité reçoit 1, 2 ou 3 catégories, flatMap produit un tableau plat */
-  const allActivities = await prisma.activities.findMany({
-    select: {
-      id: true
-    }
-  });
-  const allCategories = await prisma.categories.findMany({
-    select: {
-      id: true
-    }
-  });
+  // link activities and categories
+  const allActivities = await prisma.activities.findMany({ select: { id: true } });
+  const allCategories = await prisma.categories.findMany({ select: { id: true } });
 
   const ACTIVITY_CATEGORY_LINKS = allActivities.flatMap((activity) => {
     const chosenCategorie = faker.helpers.arrayElements(allCategories, getRandomInt(1, 3));
@@ -163,38 +178,44 @@ async function main() {
 
   await prisma.activities_categories.createMany({
     data: ACTIVITY_CATEGORY_LINKS,
-    skipDuplicates: true, // protège la clé composite
+    skipDuplicates: true,
   });
 
-  /** Sessions liées aux activités : nécessite un champ activity_id dans le modèle sessions, prix entiers → stockés comme xx.00 */
+  // sessions
   await prisma.sessions.createMany({
     data: Array.from({ length: 10 }).map(() => ({
       activity_id: faker.helpers.arrayElement(allActivities).id,
       date: faker.date.soon({ days: 30 }),
       capacity: getRandomInt(10, 50),
-      unit_price: new Prisma.Decimal(getRandomInt(20, 50)), // OK si @db.Decimal(5,2)
+      unit_price: new Prisma.Decimal(getRandomInt(20, 50)),
       status: faker.helpers.arrayElement(["Scheduled", "Cancelled", "Completed"]),
     })),
   });
 
-  /** Orders : liés à des users members (exclusion explicite de l'admin), taxes : Decimal(3,2) → plage 0.00–9.99, total_amount : Decimal(4,2) → plage 20.00–99.99 */
-  const memberUser = await prisma.users.findMany({
-    where: { role_id: 1 },
-    select: { id: true },
-  });
+  // orders linked to member users
+  await prisma.roles.findUnique({ where: { name: "member" } })
+    .then((role) =>
+      role
+        ? prisma.users.findMany({
+            where: { role_id: role.id },
+            select: { id: true },
+          })
+        : Promise.reject(new Error("member role missing"))
+    )
+    .then((memberUsers) =>
+      prisma.orders.createMany({
+        data: Array.from({ length: 5 }).map(() => ({
+          user_id: faker.helpers.arrayElement(memberUsers).id,
+          taxes: decimalFromCents(getRandomInt(0, 999)),
+          total_amount: new Prisma.Decimal(getRandomInt(20, 99)),
+          payment_method: faker.helpers.arrayElement(["Card", "Paypal", "Wire transfer"]),
+          payment_date: faker.date.recent(),
+          status: faker.helpers.arrayElement(["Pending", "Confirmed", "Cancelled", "Refunded"]),
+        })),
+      })
+    );
 
-  await prisma.orders.createMany({
-    data: Array.from({ length: 5 }).map(() => ({
-      user_id: faker.helpers.arrayElement(memberUser).id,
-      taxes: decimalFromCents(getRandomInt(0, 999)), // 0.00 → 9.99
-      total_amount: new Prisma.Decimal(getRandomInt(20, 99)), // 20.00 → 99.00
-      payment_method: faker.helpers.arrayElement(["Card", "Paypal", "Wire transfer"]),
-      payment_date: faker.date.recent(),
-      status: faker.helpers.arrayElement(["Pending", "Confirmed", "Cancelled", "Refunded"]),
-    })),
-  });
-
-  /** Orders_lines : clé composite unique (order_id, session_id), amount : Decimal(3,2) → 1.00–9.99 (seed simple) */
+  // orders_lines
   const allOrders = await prisma.orders.findMany({ select: { id: true } });
   const allSessions = await prisma.sessions.findMany({ select: { id: true } });
 
@@ -206,7 +227,7 @@ async function main() {
         order_id: order.id,
         session_id: session.id,
         tickets_qty: getRandomInt(1, 5),
-        amount: decimalFromCents(getRandomInt(100, 999)), // 1.00 → 9.99
+        amount: decimalFromCents(getRandomInt(100, 999)),
       };
     }),
     skipDuplicates: true,
@@ -214,9 +235,9 @@ async function main() {
 }
 
 main()
-  .then(() => console.log("✅ Seeding terminé avec succès"))
+  .then(() => console.log("🌱 seeding finished"))
   .catch((e) => {
-    console.error("❌ Erreur dans le seeding: ", e);
+    console.error("❌ error in seeding:", e);
     process.exit(1);
   })
   .finally(async () => {

@@ -21,23 +21,29 @@
 
 ## 🚧 Routes d'authentification & vues compte utilisateur
 
-| Route               | Description                                             |
-|---------------------|---------------------------------------------------------|
-| /register           | Créer un compte                                         |
-| /login              | Connection au compte                                    |
-| /orders             | Commande en pending, annulation de commande             |
-| /checkout           | Paiement de la commande                                 |
-| /user               | Page profil                                             |
-| /user/orders        | Liste des commandes                                     |
-| /user/orders/:id/   | Détail de commande                                      |
-| /user/ordershistory | Historique commandes, annulation d'une commande pending |
+| Route     | Description                                     |
+|-----------|-------------------------------------------------|
+| /register | Créer un compte                                 |
+| /login    | Connection au compte                            |
+| /logout   | Déconnection du compte                          |
+| /profile  | Accéder au profil membre, modifier ou supprimer |
+
+---
+
+### 🛒 Routes commandes & panier utilisateur
+
+| Route          | Description                                             |
+|----------------|---------------------------------------------------------|
+| /order         | Commande en cours (pending), modification/annulation    |
+| /checkout      | Paiement de la commande                                 |
+| /orders        | Liste des commandes                                     |
+| /orders/:id/   | Détail d'une commande                                   |
 
 ---
 
 ## 👮🏻‍♀️ Routes Administrateur
 
 ### Routes d'édition activités, sessions, catégories, pages
-
 
 | Route                  | Description          |
 |------------------------|----------------------|

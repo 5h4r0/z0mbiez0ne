@@ -1,9 +1,7 @@
-import type { users } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import type { Request, Response } from "express";
 import { getPagination } from "../helpers/getPagination.js";
-import { sanitizeUser } from "../helpers/sanitizeUser.js";
+import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.js";
 import { prisma } from "../models/index.js";
 
 // Type utilitaire : un user avec sa relation "role"
@@ -88,75 +86,50 @@ export async function getUser(req: Request, res: Response) {
 }
 
 
-/** REGISTER */
-export const registerUser = (req: Request, res: Response): Promise<void> => {
-  const { email, firstname, lastname, password } = req.body;
-
-  return (password === undefined
-    ? Promise.reject(new Error("Password is required"))
-    : bcrypt.hash(password, 10)
-  )
-    .then((hash) =>
-      prisma.roles
-        .findFirst({ where: { name: "member" } })
-        .then((role) =>
-          role
-            ? prisma.users.create({
-                data: {
-                  email,
-                  firstname,
-                  lastname,
-                  password_hash: hash,
-                  role_id: role.id,
-                },
-              })
-            : Promise.reject(new Error("Default role 'member' not found"))
-        )
-    )
-    .then((newUser: users) => {
-      res.status(201).json({
-        success: true,
-        data: sanitizeUser(newUser),
-      });
-    })
-    .catch((err) => {
-      console.error("Error registering user:", err);
-
-      const errorMessage =
-        err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002"
-          ? "A user with this email already exists"
-          : err instanceof Error
-          ? err.message
-          : JSON.stringify(err);
-
-      res.status(400).json({
-        success: false,
-        error: errorMessage,
-      });
-    });
-};
-
-
 /** UPDATE */
 export const updateUser = (req: Request, res: Response) => {
   const { id } = req.params;
-  const { email, firstname, lastname, role } = req.body;
+  const { email, firstname, lastname, role_id } = req.body;
 
   return prisma.users
-    .update({
-      where: { id: Number(id) },
-      data: { email, firstname, lastname, role },
+    .findFirst({
+      // check if another user already has this email
+      where: {
+        email,
+        NOT: { id: Number(id) } // exclude the current user from the check
+      }
     })
-    .then((updated) =>
-      res.status(200).json({ success: true, data: updated }),
+    .then((existing) => {
+      // if another user already uses this email, reject
+      return existing
+        ? Promise.reject(new ConflictError("Email already taken"))
+        // otherwise, update the current user
+        : prisma.users.update({
+            where: { id: Number(id) },
+            data: { email, firstname, lastname, role_id },
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+              role_id: true
+            }
+          });
+    })
+    .then((updatedUser) =>
+      // send a consistent REST response with sanitized user data
+      res.status(200).json({
+        status: "success",
+        data: updatedUser,
+        message: `User ${id} updated`
+      })
     )
-    .catch((error) =>
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-        ? res.status(404).json({ success: false, error: `User ${id} not found` })
-        : (res.status(500).json({ success: false, error: "Internal server error" }) &&
-        console.error(`Error updating user ${id}:`, error))
-    );
+    .catch((error) => {
+      // handle Prisma "record not found" error (P2025)
+      return error.code === "P2025"
+        ? res.status(404).json({ status: "error", message: `User ${id} not found` })
+        : res.status(500).json({ status: "error", message: error.message || "Internal server error" });
+    });
 };
 
 
@@ -176,7 +149,7 @@ export const deleteUser = (req: Request, res: Response) => {
         : prisma.users.delete({ where: { id: userId } }),
     )
     .then((deleted) =>
-      res.status(200).json({ success: true, message: `User ${id} deleted`, data: deleted }),
+      res.status(200).json({ success: true, data: deleted, message: `User ${id} deleted` }),
     )
     .catch((error) =>
       error?.type === "hasOrders"

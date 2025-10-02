@@ -1,7 +1,13 @@
 import { app } from "./app.js";
+import { config } from "./config/config.js";
 
-const PORT = process.env.PORT || 3000;
+// import { logger } from "./src/lib/log.js";
 
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+console.log("➡️ Index.ts loaded")
+console.log("➡️ Port =", config.server.port)
+
+// Démarre un serveur
+const port = config.server.port;
+app.listen(port, () => {
+  console.log(`🚀 Serveur démarré sur http://localhost:${port}`);
 });

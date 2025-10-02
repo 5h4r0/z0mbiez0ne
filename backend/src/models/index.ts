@@ -1,30 +1,45 @@
-// Import du client Prisma généré automatiquement dans node_modules/@prisma/client
-// Ce package est régénéré à chaque "prisma generate"
-import { PrismaClient } from '@prisma/client'
+// import PrismaClient from the generated @prisma/client package
+import { PrismaClient } from "@prisma/client";
 
-// Déclaration d'une variable globale pour stocker l'instance Prisma
-// - globalThis est l'objet global en JS (équivalent window en browser ou global en Node)
-// - "as unknown as { prisma?: PrismaClient }" force TypeScript à accepter une
-//   propriété "prisma" optionnelle qui n'existe pas dans le typage natif de globalThis
-// - Cela permet de tester si une instance existe déjà (prisma?) ou non
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
+// define a global container to hold the Prisma instance on globalThis
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-// Export d'une instance unique de PrismaClient
-// - Si une instance existe déjà dans globalForPrisma, elle est réutilisée
-// - Sinon, une nouvelle instance est créée avec une configuration adaptée à l'environnement
+// export a Prisma instance, reusing an existing one in dev or creating a new one
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    // Configuration des logs Prisma
-    // - En production : uniquement les erreurs critiques
-    // - En développement : toutes les informations (requêtes SQL, infos, warnings, erreurs)
-    log: process.env.NODE_ENV === 'production'
-      ? ['error']
-      : ['query', 'info', 'warn', 'error'],
-  })
+    // configure logs depending on environment:
+    // - production: only errors
+    // - development: queries, info, warnings, and errors
+    log:
+      process.env.NODE_ENV === "production"
+        ? ["error"]
+        : ["query", "info", "warn", "error"],
+  });
 
-// Stockage de l'instance Prisma dans globalThis en environnement de développement
-// - En production, inutile car le process Node ne redémarre pas en boucle
-// - En développement (hot reload via nodemon, tsx --watch, etc.), évite
-//   de créer une nouvelle connexion à chaque reload et limite les fuites de connexions
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// in development mode, assign Prisma instance to globalThis to avoid multiple connections
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+
+// define a graceful shutdown function to disconnect Prisma cleanly
+const shutdown = async () =>
+  prisma
+    // call Prisma disconnect
+    .$disconnect()
+    // log success and exit the process with code 0
+    .then(() => {
+      console.log("🔌 Prisma connection closed");
+      process.exit(0);
+    })
+    // log error if disconnect fails and exit with code 1
+    .catch((err) => {
+      console.error("Error while closing Prisma connection:", err);
+      process.exit(1);
+    });
+
+// listen for SIGINT (Ctrl+C) and call shutdown
+process.on("SIGINT", shutdown);
+
+// listen for SIGTERM (container stop, Kubernetes, etc.) and call shutdown
+process.on("SIGTERM", shutdown);

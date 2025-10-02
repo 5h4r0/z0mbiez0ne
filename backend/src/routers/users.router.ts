@@ -3,12 +3,13 @@ import * as usersController from "../controllers/users.controller.js";
 
 export const router = Router();
 
-// protected routes
+// protected route (admin)
 router.get("/users", usersController.getUsers);
+
+// protected route (member, admin)
 router.get("/users/:id", usersController.getUser);
 
-// public routes
-router.post("/users", usersController.registerUser);
+// protected routes (member)
 router.put("/users/:id", usersController.updateUser);
 router.delete("/users/:id", usersController.deleteUser);
 

@@ -12,4 +12,5 @@ router.post("/activities", activitiesController.createActivity);
 router.put("/activities/:id", activitiesController.updateActivity);
 router.delete("/activities/:id", activitiesController.deleteActivity);
 
+
 // export default router;
