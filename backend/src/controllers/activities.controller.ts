@@ -3,12 +3,12 @@ import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { getRandomInt } from "../utils/index.js";
 import { makeSlug } from "../utils/slugify.js";
-// import { getPagination } from "../helpers/getPagination.js";
+import { getPagination } from "../helpers/index.js";
 
 
-/** GET all */
+/** get all */
 export const getActivities = (req: Request, res: Response): Promise<void> => {
-  // const { take, skip } = getPagination(req);
+  const { take, skip } = getPagination(req);
 
   return prisma.activities
     .findMany({
@@ -27,6 +27,8 @@ export const getActivities = (req: Request, res: Response): Promise<void> => {
           },
         },
       },
+      ...(take !== undefined ? { take } : {}),
+      ...(skip !== undefined ? { skip } : {}),
     })
     .then((activities) => {
       res.status(200).json({
@@ -52,7 +54,7 @@ export const getActivities = (req: Request, res: Response): Promise<void> => {
 };
 
 
-/** GET one */
+/** get one */
 export const getActivity = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
@@ -102,7 +104,7 @@ export const getActivity = (req: Request, res: Response): Promise<void> => {
 };
 
 
-/** CREATE */
+/** create */
 export const createActivity = (req: Request, res: Response): Promise<void> => {
   const { title, description, activities_categories } = req.body;
   const slug = makeSlug(title);
@@ -157,7 +159,7 @@ export const createActivity = (req: Request, res: Response): Promise<void> => {
 };
 
 
-/** UPDATE */
+/** update */
 export const updateActivity = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { title, description, activities_categories } = req.body as {
@@ -246,7 +248,7 @@ export const updateActivity = (req: Request, res: Response): Promise<void> => {
 };
 
 
-/** DELETE */
+/** delete */
 export const deleteActivity = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const activityId = Number(id);
