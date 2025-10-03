@@ -168,7 +168,7 @@ export const deleteCategory = (req: Request, res: Response): Promise<void> => {
         .filter((relation) => relation.activity.activities_categories.length === 1)
         .map((relation) => relation.activity.id);
 
-      // Court-circuit : on rejette → le then suivant ne voit que la catégorie supprimée (pas de union foireux)
+      // rejected, the next then only sees the deleted category
       return orphanActivities.length > 0
         ? Promise.reject({ type: "hasOrphans", ids: orphanActivities })
         : prisma.activities_categories

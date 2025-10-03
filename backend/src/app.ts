@@ -8,9 +8,9 @@ export const app = express()
 
 // log every request + response
 app.use((req, res, next) => {
-  console.log("➡️ incoming request", req.method, req.url)
+  console.log("request", req.method, req.url)
   res.on("finish", () => {
-    console.log("⬅️ response sent", req.method, req.url, res.statusCode)
+    console.log("response", req.method, req.url, res.statusCode)
   })
   next()
 })

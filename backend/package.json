@@ -4,9 +4,13 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch --env-file=.env ./src/index.ts",
+    "dev": "tsx --watch --env-file=.env ./src/index.ts",
     "build": "tsc",
+
     "start": "node --env-file=.env ./dist/index.js",
+    "start:prod": "node --env-file=.env.production ./dist/index.js",
+    "deploy:prod": "npm run build && npm run start:prod",
+
     "clean": "rm -rf dist",
     "db:dev": "prisma migrate dev --schema=./src/models/schema.prisma",
     "db:reset": "prisma migrate reset --force --schema=./src/models/schema.prisma",
@@ -22,6 +26,7 @@
     "@prisma/client": "^6.16.3",
     "argon2": "^0.44.0",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "zod": "^4.1.11"
