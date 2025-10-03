@@ -4,7 +4,7 @@ import { prisma } from "../models/index.js";
 import { makeSlug } from "../utils/slugify.js";
 
 
-/** GET all categories */
+/** get all */
 export const getCategories = (req: Request, res: Response): Promise<void> => {
   return prisma.categories
     .findMany({
@@ -38,7 +38,7 @@ export const getCategories = (req: Request, res: Response): Promise<void> => {
 };
 
 
-/** GET one category */
+/** get one */
 export const getCategory = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
@@ -76,7 +76,7 @@ export const getCategory = (req: Request, res: Response): Promise<void> => {
 };
 
 
-/** CREATE category */
+/** create */
 export const createCategory = (req: Request, res: Response): Promise<void> => {
   const { title, description, image_filename } = req.body;
   const slug = makeSlug(title);
@@ -109,7 +109,7 @@ export const createCategory = (req: Request, res: Response): Promise<void> => {
 };
 
 
-/** UPDATE category */
+/** update */
 export const updateCategory = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { title, description, image_filename } = req.body;
@@ -150,7 +150,7 @@ export const updateCategory = (req: Request, res: Response): Promise<void> => {
 };
 
 
-/** DELETE category */
+/** delete */
 export const deleteCategory = (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const categoryId = Number(id);
