@@ -1,107 +1,156 @@
 import { Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
+import z from "zod"
+import { getPagination } from "../helpers/index.js";
 import { prisma } from "../models/index.js";
 import { getRandomInt } from "../utils/index.js";
 import { makeSlug } from "../utils/slugify.js";
-import { getPagination } from "../helpers/index.js";
+import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.js";
+import { format } from "date-fns"
+import { enUS } from "date-fns/locale"
 
 
 /** get all */
-export const getActivities = (req: Request, res: Response): Promise<void> => {
-  const { take, skip } = getPagination(req);
+export const getActivities = (req: Request, res: Response) => {
+  const { take, skip } = getPagination(req)
 
-  return prisma.activities
-    .findMany({
-      include: {
-        activities_categories: {
-          select: {
-            category: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-                description: true,
-                image_filename: true,
-              },
-            },
+  // schema to validate pagination query
+  const paginationSchema = z.object({
+    take: z.string().optional(),
+    skip: z.string().optional()
+  })
+
+  return paginationSchema.parseAsync(req.query)
+    .then(() => {
+      // base args with categories (via pivot) and sessions -> orders_lines -> order -> user (clean)
+      const baseArgs = {
+        include: {
+          activities_categories: {               // -> pivot table
+            include: { category: true }          // -> real categories
           },
-        },
-      },
-      ...(take !== undefined ? { take } : {}),
-      ...(skip !== undefined ? { skip } : {}),
+          sessions: {
+            include: {
+              orders_lines: {
+                include: {
+                  order: {
+                    include: {
+                      user: {                    // -> keep only safe fields
+                        select: {
+                          id: true,
+                          email: true,
+                          firstname: true,
+                          lastname: true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // add pagination without spread, no if
+      let args: typeof baseArgs & { take?: number; skip?: number } = Object.assign({}, baseArgs)
+      args = take !== undefined ? Object.assign({}, args, { take }) : args
+      args = skip !== undefined ? Object.assign({}, args, { skip }) : args
+
+      // query activities with nested data
+      return prisma.activities.findMany(args)
     })
     .then((activities) => {
-      res.status(200).json({
-        success: true,
-        data: activities.map((a) => ({
-          id: a.id,
-          title: a.title,
-          slug: a.slug,
-          description: a.description,
-          image_filename: a.image_filename,
-          categories_count: a.activities_categories.length,
-          categories: a.activities_categories.map((ac) => ac.category),
-        })),
-      });
+      // format and flatten: categories + sessions dates + users
+      const formatted = activities.map((a) => ({
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        categories: a.activities_categories.map((ac) => ac.category), // -> flatten categories
+        sessions: a.sessions.map((s) => ({
+          id: s.id,
+          date: format(new Date(s.date), "EEEE, MMMM d, yyyy, h:mm a", { locale: enUS }), // -> strict us business
+          capacity: s.capacity,
+          unit_price: s.unit_price,
+          status: s.status,
+          users: s.orders_lines.map((ol) => ol.order.user) // -> flattened, cleaned users
+        }))
+      }))
+
+      // reject empty list using ternary
+      return formatted.length === 0
+        ? Promise.reject(new BadRequestError("no activities caught"))
+        : res.status(200).json({ success: true, data: formatted })
     })
     .catch((error) => {
-      console.error("Error fetching activities:", error);
-      res.status(500).json({
-        success: false,
-        error: "Internal server error",
-      });
-    });
-};
+      // zod vs generic error
+      return error instanceof z.ZodError
+        ? res.status(400).json({ status: "error", message: error.issues.map((e) => e.message).join(", ") })
+        : res.status(500).json({ status: "error", message: error.message || "error fetching activities" })
+    })
+}
 
 
 /** get one */
-export const getActivity = (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+export const getActivity = (req: Request, res: Response) => {
+  // schema to validate route param
+  const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, "id must be a number") })
 
-  return prisma.activities
-    .findUnique({
-      where: { id: Number(id) },
-      include: {
-        activities_categories: {
-          select: {
-            category: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-                description: true,
-                image_filename: true,
-              },
-            },
-          },
-        },
-      },
+  return paramsSchema.parseAsync(req.params)
+    .then(({ id }) => {
+      // base args with categories via pivot + sessions users
+      const args = {
+        where: { id: Number(id) },
+        include: {
+          activities_categories: { include: { category: true } },
+          sessions: {
+            include: {
+              orders_lines: {
+                include: {
+                  order: {
+                    include: {
+                      user: {
+                        select: { id: true, email: true, firstname: true, lastname: true }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      // run query
+      return prisma.activities.findUnique(args)
     })
     .then((activity) => {
-      activity
-        ? res.status(200).json({
+      // not found -> reject, else format
+      return activity === null
+        ? Promise.reject(new BadRequestError("activity not found"))
+        : res.status(200).json({
             success: true,
             data: {
               id: activity.id,
               title: activity.title,
-              slug: activity.slug,
               description: activity.description,
-              image_filename: activity.image_filename,
               categories: activity.activities_categories.map((ac) => ac.category),
-            },
+              sessions: activity.sessions.map((s) => ({
+                id: s.id,
+                date: format(new Date(s.date), "EEEE, MMMM d, yyyy, h:mm a", { locale: enUS }),
+                capacity: s.capacity,
+                unit_price: s.unit_price,
+                status: s.status,
+                users: s.orders_lines.map((ol) => ol.order.user)
+              }))
+            }
           })
-        : res.status(404).json({
-            success: false,
-            error: `Activity ${id} not found`,
-          });
     })
     .catch((error) => {
-      console.error(`Error fetching activity with id: ${id}`, error);
-      res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
-    });
-};
+      // zod vs generic error
+      return error instanceof z.ZodError
+        ? res.status(400).json({ status: "error", message: error.issues.map((e) => e.message).join(", ") })
+        : res.status(500).json({ status: "error", message: error.message || "error fetching activity" })
+    })
+}
 
 
 /** create */
@@ -258,67 +307,76 @@ export const deleteActivity = (req: Request, res: Response): Promise<void> => {
         success: false,
         error: `Invalid activity id ${id}`,
       }), Promise.resolve())
-    : prisma.orders_lines
-        .count({ where: { session: { activity_id: activityId } } })
-        .then((orderLinesCount) =>
-          orderLinesCount > 0
-            ? Promise.reject({ type: "hasOrderLines", count: orderLinesCount })
-            : prisma.orders.count({
-                where: {
-                  orders_lines: { some: { session: { activity_id: activityId } } },
-                },
+    : prisma.orders_lines.findMany({
+        where: { session: { activity_id: activityId } },
+        select: { session: { select: { id: true, date: true } } },
+      })
+      .then((orderLines) =>
+        orderLines.length > 0
+          ? Promise.reject({
+              type: "hasOrderLines",
+              count: orderLines.length,
+              sessions: orderLines.map((ol) => ol.session),
+            })
+          : prisma.orders.count({
+              where: {
+                orders_lines: { some: { session: { activity_id: activityId } } },
+              },
+            })
+      )
+      .then((ordersCount) =>
+        ordersCount > 0
+          ? Promise.reject({ type: "hasOrders", count: ordersCount })
+          : prisma.sessions.count({ where: { activity_id: activityId } })
+      )
+      .then((sessionsCount) =>
+        sessionsCount > 0
+          ? Promise.reject({ type: "hasSessions", count: sessionsCount })
+          : prisma.activities_categories
+              .deleteMany({
+                where: { activity_id: activityId }
               })
-        )
-        .then((ordersCount) =>
-          ordersCount > 0
-            ? Promise.reject({ type: "hasOrders", count: ordersCount })
-            : prisma.sessions.count({ where: { activity_id: activityId } })
-        )
-        .then((sessionsCount) =>
-          sessionsCount > 0
-            ? Promise.reject({ type: "hasSessions", count: sessionsCount })
-            : prisma.activities_categories
-                .deleteMany({ where: { activity_id: activityId } })
-                .then(() => prisma.activities.delete({ where: { id: activityId } }))
-        )
-        .then((deleted) => {
-          res.status(200).json({
-            success: true,
-            data: {
-              id: deleted.id,
-              title: deleted.title,
-              slug: deleted.slug,
-              description: deleted.description,
-              image_filename: deleted.image_filename,
-            },
-          });
-        })
-        .catch((error) => {
-          error?.type === "hasOrderLines"
-            ? res.status(400).json({
-                success: false,
-                error: `Cannot delete activity ${id}, it has ${error.count} order lines linked through sessions`,
-              })
-            : error?.type === "hasOrders"
-            ? res.status(400).json({
-                success: false,
-                error: `Cannot delete activity ${id}, it has ${error.count} orders linked`,
-              })
-            : error?.type === "hasSessions"
-            ? res.status(400).json({
-                success: false,
-                error: `Cannot delete activity ${id}, it has ${error.count} sessions`,
-              })
-            : error instanceof Prisma.PrismaClientKnownRequestError &&
-              error.code === "P2025"
-            ? res.status(404).json({
-                success: false,
-                error: `Activity ${id} not found`,
-              })
-            : (console.error(`Error deleting activity ${id}:`, error),
-              res.status(500).json({
-                success: false,
-                error: "Internal server error",
-              }));
+              .then(() => prisma.activities.delete({ where: { id: activityId } }))
+      )
+      .then((deleted) => {
+        res.status(200).json({
+          success: true,
+          data: {
+            id: deleted.id,
+            title: deleted.title,
+            slug: deleted.slug,
+            description: deleted.description,
+            image_filename: deleted.image_filename,
+          },
         });
+      })
+      .catch((error) => {
+        error?.type === "hasOrderLines"
+          ? res.status(400).json({
+              success: false,
+              error: `Cannot delete activity ${id}, it has ${error.count} order lines linked through sessions`,
+              sessions: error.sessions,
+            })
+          : error?.type === "hasOrders"
+          ? res.status(400).json({
+              success: false,
+              error: `Cannot delete activity ${id}, it has ${error.count} orders linked`,
+            })
+          : error?.type === "hasSessions"
+          ? res.status(400).json({
+              success: false,
+              error: `Cannot delete activity ${id}, it has ${error.count} sessions`,
+            })
+          : error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === "P2025"
+          ? res.status(404).json({
+              success: false,
+              error: `Activity ${id} not found`,
+            })
+          : (console.error(`Error deleting activity ${id}:`, error),
+            res.status(500).json({
+              success: false,
+              error: "Internal server error",
+            }));
+      });
 };
