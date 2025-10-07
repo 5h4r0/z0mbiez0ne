@@ -13,6 +13,11 @@ model roles {
   users users[]
 }
 
+enum Role {
+  Member
+  Admin
+}
+
 model users {
   id            Int       @id @default(autoincrement())
   role_id       Int
