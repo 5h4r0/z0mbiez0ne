@@ -30,25 +30,25 @@ export const getOrders = (req: Request, res: Response): Promise<void> => {
 }
 
 
-/** get one */
-export const getOrder = (req: Request, res: Response): Promise<void> => {
+// /** get one */
+// export const getOrder = (req: Request, res: Response): Promise<void> => {
 
-}
-
-
-/** create */
-export const createOrder = (req: Request, res: Response): Promise<void> => {
-
-}
+// }
 
 
-/** update */
-export const updateOrder = (req: Request, res: Response): Promise<void> => {
+// /** create */
+// export const createOrder = (req: Request, res: Response): Promise<void> => {
 
-}
+// }
 
 
-/** delete */
-export const deleteOrder = (req: Request, res: Response): Promise<void> => {
+// /** update */
+// export const updateOrder = (req: Request, res: Response): Promise<void> => {
 
-}
+// }
+
+
+// /** delete */
+// export const deleteOrder = (req: Request, res: Response): Promise<void> => {
+
+// }
