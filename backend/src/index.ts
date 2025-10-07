@@ -9,5 +9,5 @@ console.log("➡️ Port =", config.server.port)
 // Démarre un serveur
 const port = config.server.port;
 app.listen(port, () => {
-  console.log(`🚀 Serveur démarré sur http://localhost:${port}`);
+  console.log(`🚀 server on : http://localhost:${port}`);
 });

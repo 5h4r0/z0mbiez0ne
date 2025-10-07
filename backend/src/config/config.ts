@@ -1,5 +1,3 @@
-// import "dotenv/config";  // env already loaded in package.json
-
 type NodeEnv = "development" | "production" | "test";
 type LogLevel = "error" | "warn" | "info" | "debug";
 
@@ -34,11 +32,16 @@ secure && jwtSecret === "jwt-secret" &&
     throw new Error("A secure JWT_SECRET must be set in production");
   })();
 
+// allowed origins en tableau
+const allowedOrigins: string[] = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  : ["*"];
+
 export const config = {
   server: {
     env: nodeEnv,
     port: parseInt(process.env.PORT || "3000", 10),
-    allowedOrigins: process.env.ALLOWED_ORIGINS || "*",
+    allowedOrigins,
     jwtSecret,
     secure,
     logLevel,
