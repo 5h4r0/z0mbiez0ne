@@ -1,16 +1,18 @@
-import type { users } from "@prisma/client";
-import argon2 from "argon2";
-import type { Request, Response } from "express";
-import z from "zod";
-import { config } from "../config/config.js";
-import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.js";
-import { generateAuthenticationTokens } from "../lib/token.js";
-import { prisma } from "../models/index.js";
+import type { users } from "@prisma/client"
+import argon2 from "argon2"
+import type { Request, Response } from "express"
+import z from "zod"
+import { config } from "../config/config.js"
+import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.js"
+import { generateAuthenticationTokens } from "../lib/token.js"
+import { prisma } from "../models/index.js"
 
 
 /** Register */
 export function registerUser(req: Request, res: Response) {
-  const passwordBlacklist = ["Passw0rd", "Password123", "Pass w0rd"];
+  const passwordBlacklist: string[] = process.env.PASSWORDS_BLACKLIST
+    ? process.env.PASSWORDS_BLACKLIST?.split(",").map((o) => o.trim())
+    : []
 
   const passwordSchema = z
     .string()
@@ -20,7 +22,7 @@ export function registerUser(req: Request, res: Response) {
     .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
     .regex(/[0-9]/, { message: "Password must contain at least one number" })
     .refine((val) => !/\s/.test(val), { message: "Password must not contain spaces" })
-    .refine((val) => !passwordBlacklist.includes(val), { message: "This password is not allowed" });
+    .refine((val) => !passwordBlacklist.includes(val), { message: "This password is not allowed" })
 
   const registerUserBodySchema = z.object({
     firstname: z.string().min(1),
@@ -28,8 +30,9 @@ export function registerUser(req: Request, res: Response) {
     email: z.email(),
     role_id: z.number(),
     password: passwordSchema,
-    confirm: passwordSchema
-  });
+    confirm: z.string()
+  })
+  .refine((data) => data.password === data.confirm, { path: ["confirm"], message: "Passwords do not match" })
 
   registerUserBodySchema.parseAsync(req.body)
     .then(({ firstname, lastname, email, password, confirm, role_id }) => {

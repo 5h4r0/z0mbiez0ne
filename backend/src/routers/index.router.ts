@@ -13,7 +13,6 @@ import { router as sessionsRouter } from "./sessions.router.js";
 import { router as ordersRouter } from "./orders.router.js";
 import { router as ordersLinesRouter } from "./order.lines.router.js";
 
-
 export const router = Router();
 
 router.use(activitiesRouter);
@@ -29,14 +28,13 @@ router.use(ordersRouter);
 router.use(ordersLinesRouter);
 
 
-
 // /api/ root
 router.get("/", (req, res) => {
   res.json({ status: "Nothing here... but the API is running 🚀" });
 });
 
 
-// // Documentation swagger
+// Documentation swagger
 // const spec = swaggerJsdoc({
 //   definition: {
 //     info: {

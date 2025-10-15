@@ -1,13 +1,14 @@
 import { Router } from "express";
 import * as rolesController from "../controllers/roles.controller.js";
+import { checkRoles } from "../middlewares/access-control.middleware.js"
+
 
 export const router = Router();
+// export default router;
 
-// protected routes (member, admin)
+
+// protected routes (Member, Admin)
 router.get("/roles/:id", rolesController.getRole);
 
-// protected routes (admin)
-router.get("/roles", rolesController.getRoles);
-
-
-// export default router;
+// protected routes (Admin)
+router.get("/roles", checkRoles(["Admin"]), rolesController.getRoles);
