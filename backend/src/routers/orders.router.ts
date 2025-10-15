@@ -1,16 +1,17 @@
 import { Router } from "express";
 import * as ordersController from "../controllers/orders.controller.js";
+import { checkRoles } from "../middlewares/access-control.middleware.js"
+
 
 export const router = Router();
-
-// // protected routes (admin, member)
-// router.get("/orders/:id", ordersController.getOrder);
-// router.post("/orders", ordersController.createOrder);
-// router.put("/orders/:id", ordersController.updateOrder);
-// router.delete("/orders/:id", ordersController.deleteOrder);
-
-// protected routes (admin)
-router.get("/orders", ordersController.getOrders);
-
-
 // export default router;
+
+
+// protected routes (Member, Admin)
+// router.get("/orders/:id", checkRoles(["Member", "Admin"]), ordersController.getOrder);
+// router.post("/orders", checkRoles(["Member", "Admin"]), ordersController.createOrder);
+// router.put("/orders/:id", checkRoles(["Member", "Admin"]), ordersController.updateOrder);
+// router.delete("/orders/:id", checkRoles(["Member", "Admin"]), ordersController.deleteOrder);
+
+// protected routes (Admin)
+router.get("/orders", checkRoles(["Admin"]), ordersController.getOrders);
