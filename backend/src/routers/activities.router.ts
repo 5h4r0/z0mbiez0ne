@@ -1,16 +1,17 @@
 import { Router } from "express";
 import * as activitiesController from "../controllers/activities.controller.js";
+import { checkRoles } from "../middlewares/access-control.middleware.js"
+
 
 export const router = Router();
+// export default router;
+
 
 // public routes
 router.get("/activities", activitiesController.getActivities);
 router.get("/activities/:id", activitiesController.getActivity);
 
-// protected routes (admin)
-router.post("/activities", activitiesController.createActivity);
-router.put("/activities/:id", activitiesController.updateActivity);
-router.delete("/activities/:id", activitiesController.deleteActivity);
-
-
-// export default router;
+// protected routes (Admin)
+router.post("/activities", checkRoles(["Admin"]), activitiesController.createActivity);
+router.put("/activities/:id", checkRoles(["Admin"]), activitiesController.updateActivity);
+router.delete("/activities/:id", checkRoles(["Admin"]), activitiesController.deleteActivity);

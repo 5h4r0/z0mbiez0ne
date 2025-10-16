@@ -5,23 +5,23 @@
 ```bash
 npm install
 
+# Option Prisma direct
+npm run db:dev
+
 # Option SQL → Prisma
 npm run db:sql
 npm run db:pull
 npm run db:format
 npm run db:gen
-
-# Option Prisma direct
-npm run db:create
 ```
 
 ## 🚀 Développement
 
 ```bash
-npm run dev       # Lancer serveur dev
-npm run db:migrate # Migrer après modif schema.prisma
-npm run db:seed   # Remplir la DB avec données de test
-npm run db:studio # Explorer la DB dans Prisma Studio
+npm run dev                     # Lancer serveur dev, migrer après modif schema.prisma
+npm run db:dev -- --name <nom>  # Si besoin d'un nom de migration, comme "init"
+npm run db:seed                 # Remplir la DB avec données de test
+npm run db:studio               # Explorer la DB dans Prisma Studio
 ```
 
 ## 🔄 Reset DB
