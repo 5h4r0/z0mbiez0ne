@@ -7,7 +7,17 @@
 npm install
 ```
 
-2. **DB-first** (à partir du SQL existant) :
+2. **Prisma-first** (à partir d’un `schema.prisma` déjà écrit) :
+```bash
+npm run db:dev
+```
+
+*Si besoin d'un nom de migration, comme "init" pour la première*
+```bash
+npm run db:dev -- --name <nom>
+```
+
+3. **DB-first** (à partir du SQL existant) :
 ```bash
 npm run db:sql
 npm run db:pull
@@ -15,14 +25,9 @@ npm run db:format
 npm run db:generate
 ```
 
-3. **Prisma-first** (à partir d’un `schema.prisma` déjà écrit) :
-```bash
-npm run db:create
-```
-
 4. Migration (si `schema.prisma` modifié) :
 ```bash
-npm run db:migrate -- --name <nom>
+npm run db:dev -- --name <nom>
 ```
 
 5. Reset complet (drop + migrations + seed) :
