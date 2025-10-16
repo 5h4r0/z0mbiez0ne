@@ -7,3 +7,12 @@ declare module "express-serve-static-core" {
     userRole?: string
   }
 }
+
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string
+      userRole?: import("../middlewares/checkRoles").Role
+    }
+  }
+}

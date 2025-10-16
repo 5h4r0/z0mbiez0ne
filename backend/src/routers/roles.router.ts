@@ -8,7 +8,7 @@ export const router = Router();
 
 
 // protected routes (Member, Admin)
-router.get("/roles/:id", rolesController.getRole);
+router.get("/roles/:id", checkRoles(["Member", "Admin"]), rolesController.getRole);
 
 // protected routes (Admin)
 router.get("/roles", checkRoles(["Admin"]), rolesController.getRoles);

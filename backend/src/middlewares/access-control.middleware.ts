@@ -1,10 +1,12 @@
-import { Role } from "@prisma/client"
 import type { Request, Response, NextFunction } from "express"
 import { z } from "zod"
 import jwt from "jsonwebtoken"
 import { ForbiddenError, UnauthorizedError } from "../lib/errors.js"
 import { config } from "../config/config.js"
 
+// -> source unique de vérité côté code
+const ROLE_VALUES = ["Member", "Admin"] as const
+type Role = typeof ROLE_VALUES[number]
 
 const JwtPayloadSchema = z.object({
   userId: z.string().min(1),
