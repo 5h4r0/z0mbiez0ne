@@ -1,2 +1,14 @@
 {
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "[typescript]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2
+  },
+  "[json]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2
+  },
+  "editor.defaultFormatter": "biomejs.biome"
 }
