@@ -20,7 +20,7 @@
     "db:format": "prisma format --schema=./src/models/schema.prisma",
     "db:sql": "dotenv -e .env -- sh -c 'psql \"$DATABASE_URL\" -f ./src/models/postgres_schema.psql'",
     "lint": "biome check",
-    "fix": "biome check --apply",
+    "fix": "biome check --write",
     "lint:prod": "biome check --config-path biome.prod.json"
   },
   "dependencies": {

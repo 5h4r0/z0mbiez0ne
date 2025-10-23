@@ -1,5 +1,5 @@
 // import PrismaClient from the generated @prisma/client package
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 // define a global container to hold the Prisma instance on globalThis
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
@@ -11,14 +11,11 @@ export const prisma =
     // configure logs depending on environment:
     // - production: only errors
     // - development: queries, info, warnings, and errors
-    log:
-      process.env.NODE_ENV === "production"
-        ? ["error"]
-        : ["query", "info", "warn", "error"],
+    log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'info', 'warn', 'error'],
   });
 
 // in development mode, assign Prisma instance to globalThis to avoid multiple connections
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 
@@ -29,17 +26,17 @@ const shutdown = async () =>
     .$disconnect()
     // log success and exit the process with code 0
     .then(() => {
-      console.log("🔌 Prisma connection closed");
+      console.log('🔌 Prisma connection closed');
       process.exit(0);
     })
     // log error if disconnect fails and exit with code 1
     .catch((err) => {
-      console.error("Error while closing Prisma connection:", err);
+      console.error('Error while closing Prisma connection:', err);
       process.exit(1);
     });
 
 // listen for SIGINT (Ctrl+C) and call shutdown
-process.on("SIGINT", shutdown);
+process.on('SIGINT', shutdown);
 
 // listen for SIGTERM (container stop, Kubernetes, etc.) and call shutdown
-process.on("SIGTERM", shutdown);
+process.on('SIGTERM', shutdown);

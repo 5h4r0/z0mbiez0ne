@@ -7,25 +7,23 @@
  *   npx tsx --env-file=.env src/models/seeding.ts
  */
 
-import { faker } from "@faker-js/faker";
-import { Prisma } from "@prisma/client";
-import argon2 from "argon2";
-import { makeSlug } from "../utils/slugify.js";
-import { prisma } from "./index.js";
+import { faker } from '@faker-js/faker';
+import { Prisma } from '@prisma/client';
+import argon2 from 'argon2';
+import { makeSlug } from '../utils/slugify.js';
+import { prisma } from './index.js';
 
 /** random int util */
-const getRandomInt = (min: number, max: number) =>
-  Math.floor(Math.random() * (max - min + 1)) + min;
+const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 /** decimal util from cents (199 -> 1.99) */
-const decimalFromCents = (cents: number) =>
-  new Prisma.Decimal((cents / 100).toFixed(2));
+const decimalFromCents = (cents: number) => new Prisma.Decimal((cents / 100).toFixed(2));
 
 /** env vars with fallbacks */
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "steph@sharo.fr";
-const ADMIN_FIRSTNAME = process.env.ADMIN_FIRSTNAME ?? "Stéphane";
-const ADMIN_LASTNAME = process.env.ADMIN_LASTNAME ?? "Jeankev";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "hastur";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'steph@sharo.fr';
+const ADMIN_FIRSTNAME = process.env.ADMIN_FIRSTNAME ?? 'Stéphane';
+const ADMIN_LASTNAME = process.env.ADMIN_LASTNAME ?? 'Jeankev';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'hastur';
 
 async function main() {
   // clean all tables in fk order
@@ -40,31 +38,31 @@ async function main() {
 
   // seed roles
   await prisma.roles.createMany({
-    data: [{ name: "member" }, { name: "admin" }],
+    data: [{ name: 'member' }, { name: 'admin' }],
     skipDuplicates: true,
   });
 
   // seed member users
-  await prisma.roles.findUnique({ where: { name: "member" } })
-    .then((role) =>
-      role
-        ? prisma.users.createMany({
-            data: Array.from({ length: 10 }).map(() => ({
-              email: faker.internet.email(),
-              firstname: faker.person.firstName(),
-              lastname: faker.person.lastName(),
-              password_hash: faker.internet.password(),
-              role_id: role.id,
-            })),
-            skipDuplicates: true,
-          })
-        : Promise.reject(new Error("member role missing"))
-    );
+  await prisma.roles.findUnique({ where: { name: 'member' } }).then((role) =>
+    role
+      ? prisma.users.createMany({
+          data: Array.from({ length: 10 }).map(() => ({
+            email: faker.internet.email(),
+            firstname: faker.person.firstName(),
+            lastname: faker.person.lastName(),
+            password_hash: faker.internet.password(),
+            role_id: role.id,
+          })),
+          skipDuplicates: true,
+        })
+      : Promise.reject(new Error('member role missing')),
+  );
 
   // seed static admin
   const passwordHash = await argon2.hash(ADMIN_PASSWORD);
 
-  await prisma.roles.findUnique({ where: { name: "admin" } })
+  await prisma.roles
+    .findUnique({ where: { name: 'admin' } })
     .then((role) =>
       role
         ? prisma.users.upsert({
@@ -83,25 +81,25 @@ async function main() {
               role_id: role.id,
             },
           })
-        : Promise.reject(new Error("admin role missing"))
+        : Promise.reject(new Error('admin role missing')),
     )
     .catch((e) => {
-      console.error("❌ seeding admin failed:", e);
+      console.error('❌ seeding admin failed:', e);
       throw e;
     });
 
   // categories
   const CATEGORIES = [
-    "Attractions à Sensations",
-    "Spectacles Horrifiques",
-    "Expériences Immersives",
-    "Zones Interdites",
-    "Pour Enfants",
-    "Jeux & Arcades",
-    "Escape Rooms",
-    "Simulations & VR",
-    "Classiques du Parc",
-    "Événements Spéciaux",
+    'Attractions à Sensations',
+    'Spectacles Horrifiques',
+    'Expériences Immersives',
+    'Zones Interdites',
+    'Pour Enfants',
+    'Jeux & Arcades',
+    'Escape Rooms',
+    'Simulations & VR',
+    'Classiques du Parc',
+    'Événements Spéciaux',
   ];
 
   await prisma.categories.createMany({
@@ -119,36 +117,36 @@ async function main() {
 
   // activities
   const ACTIVITIES = [
-    "Train Fantôme",
-    "Maison Hantée",
-    "Roller Coaster du Chaos",
-    "Chaises Volantes Sanglantes",
-    "Spectacle de Magie Noire",
-    "Parcours Zombie",
-    "Salle VR Apocalypse",
-    "Tir aux Canards Mutants",
-    "Labyrinthe des Miroirs",
-    "Tour de la Peur",
-    "Cimetière des Âmes Perdues",
-    "Cabane du Boucher",
-    "Escape Room Infernale",
-    "Montagnes Russes de l’Enfer",
-    "Marécage des Mutants",
-    "Hôpital Abandonné",
-    "Manoir du Docteur Fou",
-    "Château des Cris Éternels",
-    "Souterrains du Désespoir",
-    "Cirque des Clowns Démoniaques",
-    "Pont Suspendu Maudit",
-    "Simulateur de Crash Aérien",
-    "Chambre des Tortures",
-    "Forêt des Pendus",
-    "Spectacle Pyro-Zombie",
-    "Rivière de Sang",
-    "Zone Quarantaine Biohazard",
-    "Tour de Chute Libre",
-    "Grande Roue des Ombres",
-    "Crypte des Vampires",
+    'Train Fantôme',
+    'Maison Hantée',
+    'Roller Coaster du Chaos',
+    'Chaises Volantes Sanglantes',
+    'Spectacle de Magie Noire',
+    'Parcours Zombie',
+    'Salle VR Apocalypse',
+    'Tir aux Canards Mutants',
+    'Labyrinthe des Miroirs',
+    'Tour de la Peur',
+    'Cimetière des Âmes Perdues',
+    'Cabane du Boucher',
+    'Escape Room Infernale',
+    'Montagnes Russes de l’Enfer',
+    'Marécage des Mutants',
+    'Hôpital Abandonné',
+    'Manoir du Docteur Fou',
+    'Château des Cris Éternels',
+    'Souterrains du Désespoir',
+    'Cirque des Clowns Démoniaques',
+    'Pont Suspendu Maudit',
+    'Simulateur de Crash Aérien',
+    'Chambre des Tortures',
+    'Forêt des Pendus',
+    'Spectacle Pyro-Zombie',
+    'Rivière de Sang',
+    'Zone Quarantaine Biohazard',
+    'Tour de Chute Libre',
+    'Grande Roue des Ombres',
+    'Crypte des Vampires',
   ];
 
   await prisma.activities.createMany({
@@ -188,19 +186,20 @@ async function main() {
       date: faker.date.soon({ days: 30 }),
       capacity: getRandomInt(10, 50),
       unit_price: new Prisma.Decimal(getRandomInt(20, 50)),
-      status: faker.helpers.arrayElement(["Scheduled", "Cancelled", "Completed"]),
+      status: faker.helpers.arrayElement(['Scheduled', 'Cancelled', 'Completed']),
     })),
   });
 
   // orders linked to member users
-  await prisma.roles.findUnique({ where: { name: "member" } })
+  await prisma.roles
+    .findUnique({ where: { name: 'member' } })
     .then((role) =>
       role
         ? prisma.users.findMany({
             where: { role_id: role.id },
             select: { id: true },
           })
-        : Promise.reject(new Error("member role missing"))
+        : Promise.reject(new Error('member role missing')),
     )
     .then((memberUsers) =>
       prisma.orders.createMany({
@@ -208,11 +207,11 @@ async function main() {
           user_id: faker.helpers.arrayElement(memberUsers).id,
           taxes: decimalFromCents(getRandomInt(0, 999)),
           total_amount: new Prisma.Decimal(getRandomInt(20, 99)),
-          payment_method: faker.helpers.arrayElement(["Card", "Paypal", "Wire transfer"]),
+          payment_method: faker.helpers.arrayElement(['Card', 'Paypal', 'Wire transfer']),
           payment_date: faker.date.recent(),
-          status: faker.helpers.arrayElement(["Pending", "Confirmed", "Cancelled", "Refunded"]),
+          status: faker.helpers.arrayElement(['Pending', 'Confirmed', 'Cancelled', 'Refunded']),
         })),
-      })
+      }),
     );
 
   // orders_lines
@@ -235,9 +234,9 @@ async function main() {
 }
 
 main()
-  .then(() => console.log("🌱 seeding finished"))
+  .then(() => console.log('🌱 seeding finished'))
   .catch((e) => {
-    console.error("❌ error in seeding:", e);
+    console.error('❌ error in seeding:', e);
     process.exit(1);
   })
   .finally(async () => {

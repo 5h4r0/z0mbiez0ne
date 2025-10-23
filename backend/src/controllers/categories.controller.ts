@@ -1,16 +1,23 @@
-import { Prisma } from "@prisma/client";
-import type { Request, Response } from "express";
-import { prisma } from "../models/index.js";
-import { makeSlug } from "../utils/slugify.js";
-
+import { Prisma } from '@prisma/client';
+import type { Request, Response } from 'express';
+import { prisma } from '../models/index.js';
+import { makeSlug } from '../utils/slugify.js';
 
 /** get all */
-export const getCategories = (req: Request, res: Response): Promise<void> => {
+export const getCategories = (_req: Request, res: Response): Promise<void> => {
   return prisma.categories
     .findMany({
       include: {
         activities_categories: {
-          select: { activity: { select: { id: true, title: true, slug: true } } },
+          select: {
+            activity: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+              },
+            },
+          },
         },
       },
     })
@@ -29,14 +36,13 @@ export const getCategories = (req: Request, res: Response): Promise<void> => {
       });
     })
     .catch((error) => {
-      console.error("Error fetching categories:", error);
+      console.error('Error fetching categories:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message: "Internal server error"
+        error: error instanceof Error ? error.message : 'Internal server error',
       });
     });
 };
-
 
 /** get one */
 export const getCategory = (req: Request, res: Response): Promise<void> => {
@@ -47,7 +53,15 @@ export const getCategory = (req: Request, res: Response): Promise<void> => {
       where: { id: Number(id) },
       include: {
         activities_categories: {
-          select: { activity: { select: { id: true, title: true, slug: true } } },
+          select: {
+            activity: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+              },
+            },
+          },
         },
       },
     })
@@ -71,10 +85,9 @@ export const getCategory = (req: Request, res: Response): Promise<void> => {
     })
     .catch((error) => {
       console.error(`Error fetching category ${id}:`, error);
-      res.status(500).json({ success: false, error: "Internal server error" });
+      res.status(500).json({ success: false, error: 'Internal server error' });
     });
 };
-
 
 /** create */
 export const createCategory = (req: Request, res: Response): Promise<void> => {
@@ -97,17 +110,18 @@ export const createCategory = (req: Request, res: Response): Promise<void> => {
       });
     })
     .catch((error) => {
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
+      error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
         ? res.status(409).json({
             success: false,
-            error: "Category with this title or slug already exists",
+            error: 'Category with this title or slug already exists',
           })
-        : (console.error("Error creating category:", error),
-          res.status(500).json({ success: false, error: "Internal server error" }));
+        : (() => {
+            // keep single-expression style via IIFE, no comma operator - () at the end launch the IIFE (Immediately Invoked Function Expression)
+            console.error('Error creating category:', error);
+            return res.status(500).json({ success: false, error: 'internal server error' });
+          })();
     });
 };
-
 
 /** update */
 export const updateCategory = (req: Request, res: Response): Promise<void> => {
@@ -120,7 +134,7 @@ export const updateCategory = (req: Request, res: Response): Promise<void> => {
       slug: makeSlug(title),
     },
     description !== undefined ? { description } : {},
-    image_filename !== undefined ? { image_filename } : {}
+    image_filename !== undefined ? { image_filename } : {},
   );
 
   return prisma.categories
@@ -135,20 +149,18 @@ export const updateCategory = (req: Request, res: Response): Promise<void> => {
       });
     })
     .catch((error) => {
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
+      error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025'
         ? res.status(404).json({
             success: false,
             error: `Category ${id} not found`,
           })
-        : (console.error(`Error updating category ${id}:`, error),
-          res.status(500).json({
-            success: false,
-            error: "Internal server error",
-          }));
+        : (() => {
+            // keep single-expression style via IIFE, no comma operator - () at the end launch the IIFE (Immediately Invoked Function Expression)
+            console.error(`Error updating category ${id}:`, error);
+            return res.status(500).json({ success: false, error: 'internal server error' });
+          })();
     });
 };
-
 
 /** delete */
 export const deleteCategory = (req: Request, res: Response): Promise<void> => {
@@ -156,12 +168,13 @@ export const deleteCategory = (req: Request, res: Response): Promise<void> => {
   const categoryId = Number(id);
 
   // Rejeter tôt si id invalide pour éviter les unions "void | T"
-  return (Number.isNaN(categoryId)
-    ? Promise.reject({ type: "invalidId" })
-    : prisma.activities_categories.findMany({
-        where: { category_id: categoryId },
-        include: { activity: { select: { id: true, activities_categories: true } } },
-      })
+  return (
+    Number.isNaN(categoryId)
+      ? Promise.reject({ type: 'invalidId' })
+      : prisma.activities_categories.findMany({
+          where: { category_id: categoryId },
+          include: { activity: { select: { id: true, activities_categories: true } } },
+        })
   )
     .then((linked) => {
       const orphanActivities = linked
@@ -170,7 +183,7 @@ export const deleteCategory = (req: Request, res: Response): Promise<void> => {
 
       // rejected, the next then only sees the deleted category
       return orphanActivities.length > 0
-        ? Promise.reject({ type: "hasOrphans", ids: orphanActivities })
+        ? Promise.reject({ type: 'hasOrphans', ids: orphanActivities })
         : prisma.activities_categories
             .deleteMany({ where: { category_id: categoryId } })
             .then(() => prisma.categories.delete({ where: { id: categoryId } }));
@@ -188,16 +201,19 @@ export const deleteCategory = (req: Request, res: Response): Promise<void> => {
       });
     })
     .catch((error) => {
-      error?.type === "invalidId"
+      error?.type === 'invalidId'
         ? res.status(400).json({ success: false, error: `Invalid category id ${id}` })
-        : error?.type === "hasOrphans"
-        ? res.status(400).json({
-            success: false,
-            error: `Cannot delete category ${id}, activities ${error.ids.join(", ")} depend exclusively on it`,
-          })
-        : error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025"
-        ? res.status(404).json({ success: false, error: `Category ${id} not found` })
-        : (console.error(`Error deleting category ${id}:`, error),
-          res.status(500).json({ success: false, error: "Internal server error" }));
+        : error?.type === 'hasOrphans'
+          ? res.status(400).json({
+              success: false,
+              error: `Cannot delete category ${id}, activities ${error.ids.join(', ')} depend exclusively on it`,
+            })
+          : error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025'
+            ? res.status(404).json({ success: false, error: `Category ${id} not found` })
+            : (() => {
+                // keep single-expression style via IIFE, no comma operator - () at the end launch the IIFE (Immediately Invoked Function Expression)
+                console.error(`Error deleting category ${id}:`, error);
+                res.status(500).json({ success: false, error: 'Internal server error' });
+              })();
     });
 };

@@ -1,18 +1,12 @@
-// module augmentation : globel express module import, then fusion with the new types
+// module augmentation -> merge extra fields into express request
 import "express"
-
-declare module "express-serve-static-core" {
-  interface Request {
-    userId?: string
-    userRole?: string
-  }
-}
+import type { Role } from "../middlewares/access-control.middleware.js"
 
 declare global {
   namespace Express {
     interface Request {
       userId?: string
-      userRole?: import("../middlewares/checkRoles").Role
+      userRole?: Role
     }
   }
 }
