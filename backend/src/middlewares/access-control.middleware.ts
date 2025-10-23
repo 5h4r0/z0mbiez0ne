@@ -1,113 +1,78 @@
-import type { Request, Response, NextFunction } from "express"
-import { z } from "zod"
-import jwt from "jsonwebtoken"
-import { ForbiddenError, UnauthorizedError } from "../lib/errors.js"
-import { config } from "../config/config.js"
+import type { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+import { z } from 'zod';
+import { config } from '../config/config.js';
+import { ForbiddenError, UnauthorizedError } from '../lib/errors.js';
 
-// -> source unique de vérité côté code
-const ROLE_VALUES = ["Member", "Admin"] as const
-type Role = typeof ROLE_VALUES[number]
+// -> single source of truth for all allowed roles in code
+const ROLE_VALUES = ['Member', 'Admin'] as const;
 
-const JwtPayloadSchema = z.object({
-  userId: z.string().min(1),
-  role: z.enum(["Member", "Admin"])
-})
+// -> type built directly from ROLE_VALUES -> no manual sync
+type Role = (typeof ROLE_VALUES)[number];
 
-type JwtPayloadData = z.infer<typeof JwtPayloadSchema>
+// -> schema to validate and parse jwt payload
+const JwtPayloadSchema = z
+  .object({
+    // -> user unique id inside token
+    userId: z.string().min(1),
+    // -> user role, must be one of ROLE_VALUES
+    role: z.enum(ROLE_VALUES),
+  })
+  .strict();
 
-const checkRoles = (roles: Role[]) =>
-  (req: Request, res: Response, next: NextFunction) => {
-    extractAccessToken(req)
-      .then(token => verifyAndDecodeJWT(token))
-      .then(({ userId, role }) =>
-        roles.includes(role)
-          ? (req.userId = userId, req.userRole = role, next())
-          : Promise.reject(new ForbiddenError(`Permission denied for role: ${role}`))
-      )
-      .catch(next)
-  }
+// -> typescript type inferred from zod schema -> keeps runtime and compile time synced
+type JwtPayloadData = z.infer<typeof JwtPayloadSchema>;
 
+// factory -> builds a middleware that allows only selected roles
+const checkRoles =
+  // takes a list of allowed roles like ["Admin", "Member"]
+    (roles: Role[]) =>
+    // returns the actual express middleware
+    (req: Request, _res: Response, next: NextFunction) => {
+      // get access token from request headers/cookies
+      extractAccessToken(req)
+        // decode token -> returns jwt payload (userId + role)
+        .then((token) => verifyAndDecodeJWT(token))
+        // destructure payload -> check if role allowed
+        .then(({ userId, role }) =>
+          roles.includes(role)
+            ? Object.assign(req, { userId, userRole: role }) && next()
+            : Promise.reject(new ForbiddenError(`permission denied for role: ${role}`)),
+        )
+        // catch any error -> invalid token, missing token, role not allowed
+        // -> pass it to express error middleware
+        .catch(next);
+    };
 
+// -> extract access token from cookie or bearer header
 const extractAccessToken = (req: Request): Promise<string> =>
   Promise.resolve(
-  typeof req.cookies?.accessToken === "string"
-    ? req.cookies.accessToken
-    : typeof req.headers?.authorization === "string"
-      ? req.headers.authorization
-      : null
+    typeof (req as unknown as { cookies?: { accessToken?: unknown } }).cookies?.accessToken === 'string'
+      ? (req as unknown as { cookies: { accessToken: string } }).cookies.accessToken
+      : typeof req.headers?.authorization === 'string' && req.headers.authorization.startsWith('Bearer ')
+        ? req.headers.authorization.slice(7)
+        : null,
+  ).then((t) => (t ? t : Promise.reject(new UnauthorizedError('missing access token'))));
+
+// -> verify jwt and decode payload using zod
+const verifyAndDecodeJWT = (token: string): Promise<JwtPayloadData> =>
+  new Promise<jwt.JwtPayload | string>((resolve, reject) =>
+    jwt.verify(
+      token,
+      ((config as unknown as { jwt?: { accessTokenSecret?: unknown }; ACCESS_TOKEN_SECRET?: unknown }).jwt
+        ?.accessTokenSecret ?? (config as unknown as { ACCESS_TOKEN_SECRET?: unknown }).ACCESS_TOKEN_SECRET) as string,
+      { algorithms: ['HS256'] },
+      (err, payload) =>
+        err || payload === undefined
+          ? reject(new UnauthorizedError('invalid token'))
+          : resolve(payload as jwt.JwtPayload | string),
+    ),
   )
-  .then(token =>
-    token
-      ? token
-      : Promise.reject(new UnauthorizedError("Access token not provided"))
-  )
+    .then((payload) =>
+      typeof payload === 'object' && payload !== null
+        ? payload
+        : Promise.reject(new UnauthorizedError('invalid jwt payload')),
+    )
+    .then((obj) => JwtPayloadSchema.parse(obj));
 
-
-const verifyAndDecodeJWT = (accessToken: string): Promise<JwtPayloadData> => {
-  try {
-    const decoded = jwt.verify(accessToken, config.server.jwtSecret)
-    const result = JwtPayloadSchema.safeParse(decoded)
-    return result.success
-      ? Promise.resolve(result.data)
-      : Promise.reject(new UnauthorizedError("Invalid JWT payload structure"))
-  } catch (error) {
-    console.error(error)
-    return Promise.reject(new UnauthorizedError("Invalid or expired access token"))
-  }
-}
-
-export { checkRoles }
-
-
-
-/** first version */
-
-// function checkRoles(roles: Role[]) {
-//     // return a middleware
-//     return (req: Request, res: Response, next: NextFunction) => {
-//       // JWT extraction from cookies or headers authorization
-//       const token = extractAccessToken(req);
-
-//       // JWT validation & decoding (userId + role) - signed cookie, zod validation is useless
-//       const ( userId, role ) = verifyAndDecodeJWT(token);
-
-//       // verify user's role which must be authorized in this route
-//       if (! roles.includes(role)) {
-//         // if KO: 403 Forbidden
-//         throw new ForbiddenError(`Permission denied for role: ${role}`)
-//       }
-
-//       // authenticated userId and userRole added in req - to help the next controllers
-//       // note: at this stage, we could also retrieve the user from the DB to attach it to req
-//       // but that would be like stateful authentication (each API call the DB to obtain the user's information)
-//       req.userId = userId
-//       req.userRole = role
-
-//       // if OK: next()
-//       next()
-//     }
-// }
-
-
-// function extractAccessToken(req: Request): string {
-//   if (typeof req.cookies?.accessToken === "string")
-//     return req.cookies.accessToken
-
-//   if (typeof req.headers?.authorization === "string")
-//     return req.headers.authorization
-
-//   // if no accessToken, throw a unauthorized error which goes to the global-error-handler which return a 401
-//   throw new UnauthorizedError("Access token not provided")
-// }
-
-
-// function verifyAndDecodeJWT(accesstoken: string): JwtPayload {
-//   try {
-//     const payload = jwt.verify(accesstoken, config.server.jwtSecret) as JwtPayload
-//     return payload
-//   }
-//   catch {
-//     console.error(Error)
-//     throw new UnauthorizedError("Invalid or expired access token")
-//   }
-// }
+export { checkRoles };

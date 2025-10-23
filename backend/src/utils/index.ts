@@ -1,2 +1,2 @@
-export * from "./slugify.js";
-export * from "./getrandomint.js";
+export * from './getrandomint.js';
+export * from './slugify.js';
