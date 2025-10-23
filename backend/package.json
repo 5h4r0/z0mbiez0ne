@@ -6,11 +6,9 @@
   "scripts": {
     "dev": "tsx --watch --env-file=.env ./src/index.ts",
     "build": "tsc",
-
     "start": "node --env-file=.env ./dist/index.js",
     "start:prod": "node --env-file=.env.production ./dist/index.js",
     "deploy:prod": "npm run build && npm run start:prod",
-
     "clean": "rm -rf dist",
     "db:dev": "prisma migrate dev --schema=./src/models/schema.prisma",
     "db:reset": "prisma migrate reset --force --schema=./src/models/schema.prisma",
@@ -20,7 +18,10 @@
     "db:pull": "prisma db pull --schema=./src/models/schema.prisma",
     "db:gen": "prisma generate --schema=./src/models/schema.prisma",
     "db:format": "prisma format --schema=./src/models/schema.prisma",
-    "db:sql": "dotenv -e .env -- sh -c 'psql \"$DATABASE_URL\" -f ./src/models/postgres_schema.psql'"
+    "db:sql": "dotenv -e .env -- sh -c 'psql \"$DATABASE_URL\" -f ./src/models/postgres_schema.psql'",
+    "lint": "biome check",
+    "fix": "biome check --apply",
+    "lint:prod": "biome check --config-path biome.prod.json"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
