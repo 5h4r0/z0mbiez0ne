@@ -1,0 +1,80 @@
+#root {
+  width: 80%;
+  max-width: 80%;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  align-self: baseline;
+}
+
+/* header */
+header {
+  display: flex;
+}
+.logo {
+  height: 6em;
+  padding: .5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #14d14caa);
+}
+.zzlink {
+  display: inline-flex;
+}
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* a:nth-of-type(2) .logo {*/
+  .logo {
+    animation: logo-spin infinite 25s linear;
+  }
+}
+
+.header__nav {
+  margin: 3rem;
+}
+.menu-link {
+  margin: 0 2rem;
+}
+
+
+
+.zzbanner {
+  display: flex;
+  margin: auto;
+}
+
+.card {
+  padding: 2em;
+}
+
+.warning {
+  color: #888;
+}
+
+
+
+/* footer */
+footer {
+  display: flex;
+  bottom: 0;
+}
+
+.darkBtn {
+  margin: 0 0 0 auto;
+	border: none;
+	background-color: #444;
+	border-radius: 50%;
+	font-size: 1rem;
+  padding: .5rem;
+}
+.darkBtn:hover {
+  background: #888;
+}
