@@ -22,6 +22,7 @@ const passwordSchema = z
   .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
   .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
   .regex(/[0-9]/, { message: 'Password must contain at least one number' })
+  .regex(/[^a-zA-Z0-9]/, { message: 'Password must contain at least one special character' })
   .refine((val) => !/\s/.test(val), { message: 'Password must not contain spaces' })
   .refine((val) => !passwordBlacklist.includes(val), { message: 'This password is not allowed' });
 
@@ -43,6 +44,9 @@ export async function registerUser(req: Request, res: Response) {
     const existing = await prisma.users.findFirst({ where: { email } });
     if (existing) throw new ConflictError('Email already taken');
 
+    const role = await prisma.roles.findUnique({ where: { id: role_id } });
+    if (!role) return res.status(400).json({ status: "error", message: "Invalid role" });
+    
     const password_hash = await hashPassword(password);
 
     const newUser = await prisma.users.create({

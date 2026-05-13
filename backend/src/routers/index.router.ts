@@ -17,7 +17,8 @@ router.use(categoriesRouter);
 
 router.use(rolesRouter);
 router.use(usersRouter);
-router.use(authRouter);
+
+router.use('/auth', authRouter);
 
 router.use(sessionsRouter);
 
