@@ -10,7 +10,7 @@ push sur repo 5h4r0 [upstream]
 git remote set-url origin git@github.com:O-clock-Athenes/ZombieLandSolo-CDA.git
 git remote set-url --push origin git@github.com:O-clock-Athenes/ZombieLandSolo-CDA.git
 
-## origin
+### origin
 **connecter repo O-clock-Athenes *PROF* et push sur repo O-clock-Athenes *PROF***
 git remote set-url origin git@github.com:O-clock-Athenes/ZombieLandSolo-CDA-PROF.git
 git remote set-url --push origin git@github.com:O-clock-Athenes/ZombieLandSolo-CDA-PROF.git
@@ -19,7 +19,7 @@ git remote set-url --push origin git@github.com:O-clock-Athenes/ZombieLandSolo-C
 **connecter repo 5h4r0 *PROF***
 git remote add upstream git@github.com:5h4r0/ZombieLandSolo-CDA-PROF.git
 
-## upstream
+### upstream
 **connecter 5h4r0 pour push upstream sur repo 5h4r0 *PERSO***
 git remote set-url upstream git@github.com:5h4r0/zombiezone.git
 git remote set-url --push upstream git@github.com:5h4r0/zombiezone.git
@@ -42,6 +42,10 @@ git push upstream
 **_Notes-et-fichiers-divers.git**
 git remote add upstream git@github.com:5h4r0/\_Notes-et-fichiers-divers.git
 
+
+## kadath.fr
+git remote set-url origin git@github.com:5h4r0/kadath.fr.git
+git remote set-url --push origin git@github.com:5h4r0/kadath.fr.git
 
 
 

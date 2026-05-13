@@ -30,7 +30,7 @@ npm run db:generate
 npm run db:dev -- --name <nom>
 ```
 
-5. Reset complet (drop + migrations + seed) :
+5. Reset complet (drop + migrations) :
 ```bash
 npm run db:reset
 ```
