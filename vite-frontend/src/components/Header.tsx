@@ -12,6 +12,7 @@ export default function Header() {
 
         <Nav />
       </header>
+      <h1>the z0mbie z0ne</h1>
     </>
   )
 }
