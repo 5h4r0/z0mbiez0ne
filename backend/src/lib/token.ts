@@ -5,11 +5,13 @@ import { config } from '../config/config.js';
 // accept only the fields required for the token
 type User = {
   id: number;
+  role: string;
 };
 
 export function generateAuthenticationTokens(user: User) {
   const payload = {
     userId: user.id,
+    role: user.role,
   };
 
   // signed JWT access token

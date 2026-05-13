@@ -1,3 +1,7 @@
+// Note: this file intentionally uses .then/.catch instead of async/await.
+// The chain is linear (no nesting): extract token → verify → decode → check role.
+// This is the ideal use case for .then/.catch: each step passes its result to the next, .catch at the bottom catches everything.
+
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';

@@ -163,14 +163,14 @@
 
 | Nom         | Rôle               | Responsabilités                          |
 | ----------- | ------------------ | ---------------------------------------- |
-| Guillaume   | PO (Product Owner) | Vision produit, priorisation backlog     |
-| Guillaume   | Scrum Master       | Facilitation, organisation des sprints   |
-| Guillaume   | Lead Dev           | Développement de l’interface utilisateur |
-| Jean-Kevin  | Dev Back-End       | Développement API, sécurité              |
-| Jean-Kevin  | Dev Front-End      | Développement de l’interface utilisateur |
-| Jean-Kevin  | UI/UX Designer     | Maquettes, expérience utilisateur        |
-| xxxx        | Graphiste          | Création design visuel éventuel          |
-| Jean-Kevin  | Testeur / QA       | Plan de tests, vérification qualité      |
+| Stéphane R. | PO (Product Owner) | Vision produit, priorisation backlog     |
+| Stéphane R. | Scrum Master       | Facilitation, organisation des sprints   |
+| Stéphane R. | Lead Dev           | Développement de l’interface utilisateur |
+| Stéphane R. | Dev Back-End       | Développement API, sécurité              |
+| Stéphane R. | Dev Front-End      | Développement de l’interface utilisateur |
+| Stéphane R. | UI/UX Designer     | Maquettes, expérience utilisateur        |
+| undefined   | Graphiste          | Création design visuel éventuel          |
+| Stéphane R. | Testeur / QA       | Plan de tests, vérification qualité      |
 
 ---
 

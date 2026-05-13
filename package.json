@@ -1,0 +1,16 @@
+{
+  "name": "zombiezone",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --workspace=backend & npm run dev --workspace=vite-frontend",
+    "dev:back": "npm run dev --workspace=backend",
+    "dev:front": "npm run dev --workspace=vite-frontend",
+    "build": "npm run build --workspace=backend && npm run build --workspace=vite-frontend",
+    "install:all": "npm install --workspace=backend && npm install --workspace=vite-frontend"
+  },
+  "workspaces": [
+    "backend",
+    "vite-frontend"
+  ]
+}
