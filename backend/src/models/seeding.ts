@@ -8,7 +8,7 @@
  */
 
 import { faker } from '@faker-js/faker';
-import { Prisma } from '@prisma/client';
+import { OrderStatus, Prisma, SessionStatus } from '@prisma/client';
 import argon2 from 'argon2';
 import { makeSlug } from '../utils/slugify.js';
 import { prisma } from './index.js';
@@ -185,7 +185,7 @@ async function main() {
       date: faker.date.soon({ days: 30 }),
       capacity: getRandomInt(10, 50),
       unit_price: new Prisma.Decimal(getRandomInt(20, 50)),
-      status: faker.helpers.arrayElement(['Scheduled', 'Cancelled', 'Completed']),
+      status: faker.helpers.arrayElement([SessionStatus.Scheduled, SessionStatus.Cancelled, SessionStatus.Completed]),
     })),
   });
 
@@ -205,7 +205,7 @@ async function main() {
       total_amount: new Prisma.Decimal(getRandomInt(20, 99)),
       payment_method: faker.helpers.arrayElement(['Card', 'Paypal', 'Wire transfer']),
       payment_date: faker.date.recent(),
-      status: faker.helpers.arrayElement(['Pending', 'Confirmed', 'Cancelled', 'Refunded']),
+      status: faker.helpers.arrayElement([OrderStatus.Pending, OrderStatus.Confirmed, OrderStatus.Cancelled, OrderStatus.Refunded]),
     })),
   });
 

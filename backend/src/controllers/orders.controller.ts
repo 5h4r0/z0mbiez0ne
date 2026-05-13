@@ -1,6 +1,45 @@
+import { OrderStatus, Prisma } from '@prisma/client';
+import { format } from 'date-fns';
+import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
+import z from 'zod';
 import { getPagination } from '../helpers/index.js';
+import { BadRequestError } from '../lib/errors.js';
 import { prisma } from '../models/index.js';
+
+const TAXES_RATE = new Prisma.Decimal('0.20');
+const TAXES_MULTIPLIER = new Prisma.Decimal('1.20');
+
+// valid status transitions: only these paths are allowed
+const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
+  [OrderStatus.Pending]: [OrderStatus.Confirmed, OrderStatus.Cancelled],
+  [OrderStatus.Confirmed]: [OrderStatus.Refunded],
+};
+
+const formatDate = (d: Date) => format(d, 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS });
+
+// shared order response shape (without lines)
+const formatOrder = (o: {
+  id: number;
+  user_id: number;
+  taxes: Prisma.Decimal;
+  total_amount: Prisma.Decimal;
+  payment_method: string | null;
+  payment_date: Date | null;
+  status: OrderStatus;
+  created_at: Date;
+  deleted_at: Date | null;
+}) => ({
+  id: o.id,
+  user_id: o.user_id,
+  taxes: Number(o.taxes),
+  total_amount: Number(o.total_amount),
+  payment_method: o.payment_method,
+  payment_date: o.payment_date ? formatDate(o.payment_date) : null,
+  status: o.status,
+  created_at: o.created_at,
+  deleted_at: o.deleted_at,
+});
 
 /** get all */
 export const getOrders = async (req: Request, res: Response): Promise<void> => {
@@ -20,7 +59,7 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
     // send success -> do not return the Response
     res.status(200).json({
       success: true,
-      data: orders,
+      data: orders.map(formatOrder),
     });
   } catch (error) {
     // log -> stderr, then send error -> do not return the Response
@@ -33,22 +72,252 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// /** get one */
-// export const getOrder = (req: Request, res: Response): Promise<void> => {
+/** get one */
+export const getOrder = async (req: Request, res: Response): Promise<void> => {
+  const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
 
-// }
+  try {
+    const { id } = await paramsSchema.parseAsync(req.params);
 
-// /** create */
-// export const createOrder = (req: Request, res: Response): Promise<void> => {
+    const order = await prisma.orders.findUnique({
+      where: { id: Number(id) },
+      include: {
+        orders_lines: {
+          // include session details alongside each line
+          include: {
+            session: {
+              select: { id: true, date: true, capacity: true, unit_price: true, status: true },
+            },
+          },
+        },
+      },
+    });
 
-// }
+    if (!order) {
+      throw new BadRequestError(`order ${id} not found`);
+    }
 
-// /** update */
-// export const updateOrder = (req: Request, res: Response): Promise<void> => {
+    res.status(200).json({
+      success: true,
+      data: {
+        ...formatOrder(order),
+        lines: order.orders_lines.map((ol) => ({
+          id: ol.id,
+          session_id: ol.session_id,
+          tickets_qty: ol.tickets_qty,
+          amount: Number(ol.amount),
+          session: {
+            id: ol.session.id,
+            date: formatDate(ol.session.date),
+            capacity: ol.session.capacity,
+            unit_price: Number(ol.session.unit_price),
+            status: ol.session.status,
+          },
+        })),
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        status: 'error',
+        message: (error as Error).message || 'error fetching order',
+      });
+    }
+  }
+};
 
-// }
+/** create */
+export const createOrder = async (req: Request, res: Response): Promise<void> => {
+  const bodySchema = z.object({
+    user_id: z.number().int().positive(),
+    payment_method: z.string().max(30).optional(),
+    lines: z
+      .array(
+        z.object({
+          session_id: z.number().int().positive(),
+          tickets_qty: z.number().int().min(1),
+        }),
+      )
+      .min(1, { message: 'at least one line is required' }),
+  });
 
-// /** delete */
-// export const deleteOrder = (req: Request, res: Response): Promise<void> => {
+  try {
+    const { user_id, payment_method, lines } = await bodySchema.parseAsync(req.body);
 
-// }
+    const result = await prisma.$transaction(
+      async (tx) => {
+        // create order with placeholder total — will be updated after lines are inserted
+        const order = await tx.orders.create({
+          data: {
+            user_id,
+            taxes: TAXES_RATE,
+            total_amount: new Prisma.Decimal('0'),
+            status: OrderStatus.Pending,
+            ...(payment_method ? { payment_method } : {}),
+          },
+        });
+
+        const createdLines: { amount: Prisma.Decimal; id: number; order_id: number; session_id: number; tickets_qty: number }[] =
+          [];
+
+        for (const line of lines) {
+          const { session_id, tickets_qty } = line;
+
+          const session = await tx.sessions.findUnique({ where: { id: session_id } });
+          if (!session) throw new BadRequestError(`session ${session_id} not found`);
+
+          // check remaining capacity: capacity - already booked tickets for this session
+          const agg = await tx.orders_lines.aggregate({
+            where: { session_id },
+            _sum: { tickets_qty: true },
+          });
+          const booked = agg._sum.tickets_qty ?? 0;
+          const remaining = session.capacity - booked;
+          if (remaining < tickets_qty) {
+            throw new BadRequestError(
+              `not enough capacity for session ${session_id}: ${remaining} remaining, ${tickets_qty} requested`,
+            );
+          }
+
+          const amount = new Prisma.Decimal(tickets_qty).mul(session.unit_price);
+          const orderLine = await tx.orders_lines.create({
+            data: { order_id: order.id, session_id, tickets_qty, amount },
+          });
+          createdLines.push(orderLine);
+        }
+
+        // recalculate total_amount = SUM(lines.amount) * (1 + taxes_rate)
+        const subtotal = createdLines.reduce((s, l) => s.add(l.amount), new Prisma.Decimal('0'));
+        const total_amount = subtotal.mul(TAXES_MULTIPLIER);
+
+        return tx.orders.update({
+          where: { id: order.id },
+          data: { total_amount },
+          include: {
+            orders_lines: {
+              include: {
+                session: { select: { id: true, date: true, capacity: true, unit_price: true, status: true } },
+              },
+            },
+          },
+        });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        ...formatOrder(result),
+        lines: result.orders_lines.map((ol) => ({
+          id: ol.id,
+          session_id: ol.session_id,
+          tickets_qty: ol.tickets_qty,
+          amount: Number(ol.amount),
+          session: {
+            id: ol.session.id,
+            date: formatDate(ol.session.date),
+            capacity: ol.session.capacity,
+            unit_price: Number(ol.session.unit_price),
+            status: ol.session.status,
+          },
+        })),
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        status: 'error',
+        message: (error as Error).message || 'error creating order',
+      });
+    }
+  }
+};
+
+/** update */
+export const updateOrder = async (req: Request, res: Response): Promise<void> => {
+  const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
+  const bodySchema = z.object({
+    status: z.nativeEnum(OrderStatus).optional(),
+    payment_method: z.string().max(30).optional(),
+    payment_date: z.string().optional(),
+  });
+
+  try {
+    const { id } = await paramsSchema.parseAsync(req.params);
+    const body = await bodySchema.parseAsync(req.body);
+
+    const order = await prisma.orders.findUnique({ where: { id: Number(id) } });
+    if (!order) throw new BadRequestError(`order ${id} not found`);
+
+    // enforce valid status transitions
+    if (body.status !== undefined && body.status !== order.status) {
+      const allowed = VALID_TRANSITIONS[order.status] ?? [];
+      if (!allowed.includes(body.status)) {
+        const allowedStr = allowed.length ? allowed.join(', ') : 'none';
+        throw new BadRequestError(
+          `invalid status transition: ${order.status} → ${body.status} (allowed from ${order.status}: ${allowedStr})`,
+        );
+      }
+    }
+
+    const data: Prisma.ordersUpdateInput = {};
+    if (body.status !== undefined) data.status = body.status;
+    if (body.payment_method !== undefined) data.payment_method = body.payment_method;
+    if (body.payment_date !== undefined) data.payment_date = new Date(body.payment_date);
+
+    const updated = await prisma.orders.update({ where: { id: Number(id) }, data });
+
+    res.status(200).json({ success: true, data: formatOrder(updated) });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      res.status(404).json({ status: 'error', message: 'order not found' });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        status: 'error',
+        message: (error as Error).message || 'error updating order',
+      });
+    }
+  }
+};
+
+/** delete (soft) */
+export const deleteOrder = async (req: Request, res: Response): Promise<void> => {
+  const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
+
+  try {
+    const { id } = await paramsSchema.parseAsync(req.params);
+
+    const order = await prisma.orders.findUnique({ where: { id: Number(id) } });
+    if (!order) throw new BadRequestError(`order ${id} not found`);
+
+    // soft delete is only allowed for Pending orders
+    if (order.status !== OrderStatus.Pending) {
+      throw new BadRequestError(
+        `cannot delete order ${id} with status ${order.status}, only Pending orders can be deleted`,
+      );
+    }
+
+    const deleted = await prisma.orders.update({
+      where: { id: Number(id) },
+      data: { deleted_at: new Date() },
+    });
+
+    res.status(200).json({ success: true, data: formatOrder(deleted) });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        status: 'error',
+        message: (error as Error).message || 'error deleting order',
+      });
+    }
+  }
+};
