@@ -26,22 +26,22 @@
   "dependencies": {
     "@prisma/client": "^6.16.3",
     "argon2": "^0.44.0",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "date-fns": "^4.1.0",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "zod": "^4.1.11"
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.1",
-    "@faker-js/faker": "^10.0.0",
+    "@biomejs/biome": "2.4.15",
+    "@faker-js/faker": "^10.4.0",
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
+    "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^20.0.0",
-    "dotenv-cli": "^10.0.0",
+    "@types/node": "^25.7.0",
+    "dotenv-cli": "^11.0.0",
     "prisma": "^6.16.3",
-    "tsx": "^4.20.5",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.2"
   }
 }
