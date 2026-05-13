@@ -7,7 +7,7 @@ import { BadRequestError } from '../lib/errors.js';
 import { prisma } from '../models/index.js';
 
 /** get all sessions */
-export const getSessions = (req: Request, res: Response) => {
+export const getSessions = async (req: Request, res: Response) => {
   const { take, skip } = getPagination(req);
   // schema to validate pagination query
   const paginationSchema = z.object({
@@ -15,123 +15,121 @@ export const getSessions = (req: Request, res: Response) => {
     skip: z.string().optional(),
   });
 
-  return paginationSchema
-    .parseAsync(req.query)
-    .then(() => {
-      // args for prisma findMany
-      const args = {
-        include: {
-          orders_lines: {
-            include: {
-              order: {
-                include: {
-                  user: {
-                    select: {
-                      id: true,
-                      email: true,
-                      firstname: true,
-                      lastname: true,
-                    },
+  try {
+    await paginationSchema.parseAsync(req.query);
+
+    // args for prisma findMany
+    const args = {
+      include: {
+        orders_lines: {
+          include: {
+            order: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    firstname: true,
+                    lastname: true,
                   },
                 },
               },
             },
           },
         },
-        ...(take !== undefined ? { take } : {}),
-        ...(skip !== undefined ? { skip } : {}),
-      };
+      },
+      ...(take !== undefined ? { take } : {}),
+      ...(skip !== undefined ? { skip } : {}),
+    };
 
-      // query sessions with relations
-      return prisma.sessions.findMany(args);
-    })
-    .then((sessions) => {
-      // format sessions with flattened users
-      const formatted = sessions.map((s) => ({
-        id: s.id,
-        date: format(new Date(s.date), 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS }),
-        capacity: s.capacity,
-        unit_price: Number(s.unit_price),
-        status: s.status,
-        users: s.orders_lines.map((ol) => ol.order.user),
-      }));
+    // query sessions with relations
+    const sessions = await prisma.sessions.findMany(args);
 
-      // handle empty result
-      return formatted.length === 0
-        ? Promise.reject(new BadRequestError('no sessions caught'))
-        : res.status(200).json({ success: true, data: formatted });
-    })
-    .catch((error) => {
-      // handle zod error
-      return error instanceof z.ZodError
-        ? res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') })
-        : // handle generic error
-          res
-            .status(500)
-            .json({ status: 'error', message: error.message || 'error fetching sessions' });
-    });
+    // format sessions with flattened users
+    const formatted = sessions.map((s) => ({
+      id: s.id,
+      date: format(new Date(s.date), 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS }),
+      capacity: s.capacity,
+      unit_price: Number(s.unit_price),
+      status: s.status,
+      users: s.orders_lines.map((ol) => ol.order.user),
+    }));
+
+    // handle empty result
+    if (formatted.length === 0) {
+      throw new BadRequestError('no sessions caught');
+    }
+
+    res.status(200).json({ success: true, data: formatted });
+  } catch (error) {
+    // handle zod error
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      // handle generic error
+      res.status(500).json({ status: 'error', message: (error as Error).message || 'error fetching sessions' });
+    }
+  }
 };
 
 /** get one */
-export const getSession = (req: Request, res: Response) => {
+export const getSession = async (req: Request, res: Response) => {
   // schema to validate route param
   const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
 
-  return (
-    paramsSchema
-      .parseAsync(req.params)
-      // .then((result) => {
-      //   const id = result.id   // possible too
+  try {
+    const { id } = await paramsSchema.parseAsync(req.params);
 
-      .then(({ id }) => {
-        // args for prisma findUnique
-        const args = {
-          where: { id: Number(id) }, // required for findUnique
+    // args for prisma findUnique
+    const args = {
+      where: { id: Number(id) }, // required for findUnique
+      include: {
+        orders_lines: {
           include: {
-            orders_lines: {
+            order: {
               include: {
-                order: {
-                  include: {
-                    user: {
-                      select: {
-                        id: true,
-                        email: true,
-                        firstname: true,
-                        lastname: true,
-                      },
-                    },
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    firstname: true,
+                    lastname: true,
                   },
                 },
               },
             },
           },
-        };
-        // query session with relations
-        return prisma.sessions.findUnique(args);
-      })
-      .then((session) => {
-        // reject when null, else format
-        return session === null
-          ? Promise.reject(new BadRequestError('session not found'))
-          : res.status(200).json({
-              success: true,
-              data: {
-                id: session.id,
-                date: format(session.date, 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS }),
-                capacity: session.capacity,
-                unit_price: Number(session.unit_price),
-                status: session.status,
-                users: session.orders_lines.map((ol) => ol.order.user),
-              },
-            });
-      })
-      .catch((error) => {
-        // handle zod error vs generic
-        return error instanceof z.ZodError
-          ? res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') })
-          : res.status(500).json({ status: 'error', message: error.message || 'error fetching session' });
-      })
-  );
+        },
+      },
+    };
+
+    // query session with relations
+    const session = await prisma.sessions.findUnique(args);
+
+    // throw when null, else format
+    if (session === null) {
+      throw new BadRequestError('session not found');
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: session.id,
+        date: format(session.date, 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS }),
+        capacity: session.capacity,
+        unit_price: Number(session.unit_price),
+        status: session.status,
+        users: session.orders_lines.map((ol) => ol.order.user),
+      },
+    });
+  } catch (error) {
+    // handle zod error vs generic
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      res.status(500).json({ status: 'error', message: (error as Error).message || 'error fetching session' });
+    }
+  }
 };
 
 // /** create */

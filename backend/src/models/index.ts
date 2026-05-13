@@ -20,20 +20,19 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // define a graceful shutdown function to disconnect Prisma cleanly
-const shutdown = async () =>
-  prisma
+const shutdown = async () => {
+  try {
     // call Prisma disconnect
-    .$disconnect()
+    await prisma.$disconnect();
     // log success and exit the process with code 0
-    .then(() => {
-      console.log('🔌 Prisma connection closed');
-      process.exit(0);
-    })
+    console.log('🔌 Prisma connection closed');
+    process.exit(0);
+  } catch (err) {
     // log error if disconnect fails and exit with code 1
-    .catch((err) => {
-      console.error('Error while closing Prisma connection:', err);
-      process.exit(1);
-    });
+    console.error('Error while closing Prisma connection:', err);
+    process.exit(1);
+  }
+};
 
 // listen for SIGINT (Ctrl+C) and call shutdown
 process.on('SIGINT', shutdown);

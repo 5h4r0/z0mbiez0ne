@@ -25,11 +25,9 @@ const jwtSecret = process.env.JWT_SECRET || 'jwt-secret';
 jwtSecret === 'jwt-secret' && !secure ? console.warn('⚠️ Using default jwt-secret, define JWT_SECRET in .env') : null;
 
 // hard fail in production if weak secret
-secure && jwtSecret === 'jwt-secret'
-  ? (() => {
-      throw new Error('A secure JWT_SECRET must be set in production');
-    })()
-  : null;
+if (secure && jwtSecret === 'jwt-secret') {
+  throw new Error('A secure JWT_SECRET must be set in production');
+}
 
 // allowed origins as array
 const allowedOrigins: string[] = process.env.ALLOWED_ORIGINS

@@ -43,50 +43,49 @@ async function main() {
   });
 
   // seed member users
-  await prisma.roles.findUnique({ where: { name: 'member' } }).then((role) =>
-    role
-      ? prisma.users.createMany({
-          data: Array.from({ length: 10 }).map(() => ({
-            email: faker.internet.email(),
-            firstname: faker.person.firstName(),
-            lastname: faker.person.lastName(),
-            password_hash: faker.internet.password(),
-            role_id: role.id,
-          })),
-          skipDuplicates: true,
-        })
-      : Promise.reject(new Error('member role missing')),
-  );
+  const memberRole = await prisma.roles.findUnique({ where: { name: 'member' } });
+  if (!memberRole) {
+    throw new Error('member role missing');
+  }
+  await prisma.users.createMany({
+    data: Array.from({ length: 10 }).map(() => ({
+      email: faker.internet.email(),
+      firstname: faker.person.firstName(),
+      lastname: faker.person.lastName(),
+      password_hash: faker.internet.password(),
+      role_id: memberRole.id,
+    })),
+    skipDuplicates: true,
+  });
 
   // seed static admin
   const passwordHash = await argon2.hash(ADMIN_PASSWORD);
 
-  await prisma.roles
-    .findUnique({ where: { name: 'admin' } })
-    .then((role) =>
-      role
-        ? prisma.users.upsert({
-            where: { email: ADMIN_EMAIL },
-            update: {
-              firstname: ADMIN_FIRSTNAME,
-              lastname: ADMIN_LASTNAME,
-              password_hash: passwordHash,
-              role_id: role.id,
-            },
-            create: {
-              email: ADMIN_EMAIL,
-              firstname: ADMIN_FIRSTNAME,
-              lastname: ADMIN_LASTNAME,
-              password_hash: passwordHash,
-              role_id: role.id,
-            },
-          })
-        : Promise.reject(new Error('admin role missing')),
-    )
-    .catch((e) => {
-      console.error('❌ seeding admin failed:', e);
-      throw e;
+  try {
+    const adminRole = await prisma.roles.findUnique({ where: { name: 'admin' } });
+    if (!adminRole) {
+      throw new Error('admin role missing');
+    }
+    await prisma.users.upsert({
+      where: { email: ADMIN_EMAIL },
+      update: {
+        firstname: ADMIN_FIRSTNAME,
+        lastname: ADMIN_LASTNAME,
+        password_hash: passwordHash,
+        role_id: adminRole.id,
+      },
+      create: {
+        email: ADMIN_EMAIL,
+        firstname: ADMIN_FIRSTNAME,
+        lastname: ADMIN_LASTNAME,
+        password_hash: passwordHash,
+        role_id: adminRole.id,
+      },
     });
+  } catch (e) {
+    console.error('❌ seeding admin failed:', e);
+    throw e;
+  }
 
   // categories
   const CATEGORIES = [
@@ -130,7 +129,7 @@ async function main() {
     'Cimetière des Âmes Perdues',
     'Cabane du Boucher',
     'Escape Room Infernale',
-    'Montagnes Russes de l’Enfer',
+    "Montagnes Russes de l'Enfer",
     'Marécage des Mutants',
     'Hôpital Abandonné',
     'Manoir du Docteur Fou',
@@ -191,28 +190,24 @@ async function main() {
   });
 
   // orders linked to member users
-  await prisma.roles
-    .findUnique({ where: { name: 'member' } })
-    .then((role) =>
-      role
-        ? prisma.users.findMany({
-            where: { role_id: role.id },
-            select: { id: true },
-          })
-        : Promise.reject(new Error('member role missing')),
-    )
-    .then((memberUsers) =>
-      prisma.orders.createMany({
-        data: Array.from({ length: 5 }).map(() => ({
-          user_id: faker.helpers.arrayElement(memberUsers).id,
-          taxes: decimalFromCents(getRandomInt(0, 999)),
-          total_amount: new Prisma.Decimal(getRandomInt(20, 99)),
-          payment_method: faker.helpers.arrayElement(['Card', 'Paypal', 'Wire transfer']),
-          payment_date: faker.date.recent(),
-          status: faker.helpers.arrayElement(['Pending', 'Confirmed', 'Cancelled', 'Refunded']),
-        })),
-      }),
-    );
+  const memberRoleForOrders = await prisma.roles.findUnique({ where: { name: 'member' } });
+  if (!memberRoleForOrders) {
+    throw new Error('member role missing');
+  }
+  const memberUsers = await prisma.users.findMany({
+    where: { role_id: memberRoleForOrders.id },
+    select: { id: true },
+  });
+  await prisma.orders.createMany({
+    data: Array.from({ length: 5 }).map(() => ({
+      user_id: faker.helpers.arrayElement(memberUsers).id,
+      taxes: decimalFromCents(getRandomInt(0, 999)),
+      total_amount: new Prisma.Decimal(getRandomInt(20, 99)),
+      payment_method: faker.helpers.arrayElement(['Card', 'Paypal', 'Wire transfer']),
+      payment_date: faker.date.recent(),
+      status: faker.helpers.arrayElement(['Pending', 'Confirmed', 'Cancelled', 'Refunded']),
+    })),
+  });
 
   // orders_lines
   const allOrders = await prisma.orders.findMany({ select: { id: true } });
