@@ -68,6 +68,9 @@ export const getActivities = (req: Request, res: Response) => {
         title: a.title,
         description: a.description,
         categories: a.activities_categories.map((ac) => ac.category), // -> flatten categories
+        slug: a.slug,
+        image_filename: a.image_filename,
+        updated_at: a.updated_at,
         sessions: a.sessions.map((s) => ({
           id: s.id,
           date: format(new Date(s.date), 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS }), // -> strict us business
