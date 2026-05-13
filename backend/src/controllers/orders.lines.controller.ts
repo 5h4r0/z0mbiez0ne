@@ -1,6 +1,23 @@
+import { OrderStatus, Prisma } from '@prisma/client';
+import { format } from 'date-fns';
+import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
+import z from 'zod';
 import { getPagination } from '../helpers/index.js';
+import { BadRequestError } from '../lib/errors.js';
 import { prisma } from '../models/index.js';
+
+const TAXES_MULTIPLIER = new Prisma.Decimal('1.20');
+
+const formatDate = (d: Date) => format(d, 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS });
+
+// recalculate order.total_amount from all its lines inside a transaction
+const recalcOrderTotal = async (tx: Prisma.TransactionClient, order_id: number) => {
+  const allLines = await tx.orders_lines.findMany({ where: { order_id } });
+  const subtotal = allLines.reduce((s, l) => s.add(l.amount), new Prisma.Decimal('0'));
+  const total_amount = subtotal.mul(TAXES_MULTIPLIER);
+  await tx.orders.update({ where: { id: order_id }, data: { total_amount } });
+};
 
 /** get all */
 export const getOrdersLines = async (req: Request, res: Response): Promise<void> => {
@@ -32,22 +49,243 @@ export const getOrdersLines = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// /** get one */
-// export const getOrderLine = (req: Request, res: Response): Promise<void> => {
+/** get one */
+export const getOrderLine = async (req: Request, res: Response): Promise<void> => {
+  const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
 
-// }
+  try {
+    const { id } = await paramsSchema.parseAsync(req.params);
 
-// /** create */
-// export const createOrderLine = (req: Request, res: Response): Promise<void> => {
+    const line = await prisma.orders_lines.findUnique({
+      where: { id: Number(id) },
+      include: {
+        session: { select: { id: true, date: true, capacity: true, unit_price: true, status: true } },
+        order: { select: { id: true, status: true, user_id: true } },
+      },
+    });
 
-// }
+    if (!line) throw new BadRequestError(`order line ${id} not found`);
 
-// /** update */
-// export const updateOrderLine = (req: Request, res: Response): Promise<void> => {
+    res.status(200).json({
+      success: true,
+      data: {
+        id: line.id,
+        order_id: line.order_id,
+        session_id: line.session_id,
+        tickets_qty: line.tickets_qty,
+        amount: Number(line.amount),
+        session: {
+          id: line.session.id,
+          date: formatDate(line.session.date),
+          capacity: line.session.capacity,
+          unit_price: Number(line.session.unit_price),
+          status: line.session.status,
+        },
+        order: line.order,
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        status: 'error',
+        message: (error as Error).message || 'error fetching order line',
+      });
+    }
+  }
+};
 
-// }
+/** create */
+export const createOrderLine = async (req: Request, res: Response): Promise<void> => {
+  const bodySchema = z.object({
+    order_id: z.number().int().positive(),
+    session_id: z.number().int().positive(),
+    tickets_qty: z.number().int().min(1),
+  });
 
-// /** delete */
-// export const deleteOrderLine = (req: Request, res: Response): Promise<void> => {
+  try {
+    const { order_id, session_id, tickets_qty } = await bodySchema.parseAsync(req.body);
 
-// }
+    const line = await prisma.$transaction(
+      async (tx) => {
+        // all mutations require order.status === Pending
+        const order = await tx.orders.findUnique({ where: { id: order_id } });
+        if (!order) throw new BadRequestError(`order ${order_id} not found`);
+        if (order.status !== OrderStatus.Pending) {
+          throw new BadRequestError(
+            `order ${order_id} is not Pending (status: ${order.status}), cannot add lines`,
+          );
+        }
+
+        const session = await tx.sessions.findUnique({ where: { id: session_id } });
+        if (!session) throw new BadRequestError(`session ${session_id} not found`);
+
+        // check remaining capacity
+        const agg = await tx.orders_lines.aggregate({
+          where: { session_id },
+          _sum: { tickets_qty: true },
+        });
+        const booked = agg._sum.tickets_qty ?? 0;
+        const remaining = session.capacity - booked;
+        if (remaining < tickets_qty) {
+          throw new BadRequestError(
+            `not enough capacity for session ${session_id}: ${remaining} remaining, ${tickets_qty} requested`,
+          );
+        }
+
+        const amount = new Prisma.Decimal(tickets_qty).mul(session.unit_price);
+        const created = await tx.orders_lines.create({
+          data: { order_id, session_id, tickets_qty, amount },
+        });
+
+        // recalculate order total after insert
+        await recalcOrderTotal(tx, order_id);
+
+        return created;
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        id: line.id,
+        order_id: line.order_id,
+        session_id: line.session_id,
+        tickets_qty: line.tickets_qty,
+        amount: Number(line.amount),
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        status: 'error',
+        message: (error as Error).message || 'error creating order line',
+      });
+    }
+  }
+};
+
+/** update */
+export const updateOrderLine = async (req: Request, res: Response): Promise<void> => {
+  const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
+  // only tickets_qty is updatable
+  const bodySchema = z.object({ tickets_qty: z.number().int().min(1) });
+
+  try {
+    const { id } = await paramsSchema.parseAsync(req.params);
+    const { tickets_qty } = await bodySchema.parseAsync(req.body);
+    const lineId = Number(id);
+
+    const updated = await prisma.$transaction(
+      async (tx) => {
+        const line = await tx.orders_lines.findUnique({ where: { id: lineId } });
+        if (!line) throw new BadRequestError(`order line ${id} not found`);
+
+        // all mutations require order.status === Pending
+        const order = await tx.orders.findUnique({ where: { id: line.order_id } });
+        if (!order) throw new BadRequestError(`order ${line.order_id} not found`);
+        if (order.status !== OrderStatus.Pending) {
+          throw new BadRequestError(
+            `order ${line.order_id} is not Pending (status: ${order.status}), cannot update lines`,
+          );
+        }
+
+        const session = await tx.sessions.findUnique({ where: { id: line.session_id } });
+        if (!session) throw new BadRequestError(`session ${line.session_id} not found`);
+
+        // check capacity excluding the current line being updated
+        const agg = await tx.orders_lines.aggregate({
+          where: { session_id: line.session_id, NOT: { id: lineId } },
+          _sum: { tickets_qty: true },
+        });
+        const bookedOthers = agg._sum.tickets_qty ?? 0;
+        const remaining = session.capacity - bookedOthers;
+        if (remaining < tickets_qty) {
+          throw new BadRequestError(
+            `not enough capacity for session ${line.session_id}: ${remaining} remaining, ${tickets_qty} requested`,
+          );
+        }
+
+        const amount = new Prisma.Decimal(tickets_qty).mul(session.unit_price);
+        const result = await tx.orders_lines.update({
+          where: { id: lineId },
+          data: { tickets_qty, amount },
+        });
+
+        // recalculate order total after update
+        await recalcOrderTotal(tx, line.order_id);
+
+        return result;
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: updated.id,
+        order_id: updated.order_id,
+        session_id: updated.session_id,
+        tickets_qty: updated.tickets_qty,
+        amount: Number(updated.amount),
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      res.status(404).json({ status: 'error', message: 'order line not found' });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        status: 'error',
+        message: (error as Error).message || 'error updating order line',
+      });
+    }
+  }
+};
+
+/** delete */
+export const deleteOrderLine = async (req: Request, res: Response): Promise<void> => {
+  const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
+
+  try {
+    const { id } = await paramsSchema.parseAsync(req.params);
+    const lineId = Number(id);
+
+    await prisma.$transaction(async (tx) => {
+      const line = await tx.orders_lines.findUnique({ where: { id: lineId } });
+      if (!line) throw new BadRequestError(`order line ${id} not found`);
+
+      // all mutations require order.status === Pending
+      const order = await tx.orders.findUnique({ where: { id: line.order_id } });
+      if (!order) throw new BadRequestError(`order ${line.order_id} not found`);
+      if (order.status !== OrderStatus.Pending) {
+        throw new BadRequestError(
+          `order ${line.order_id} is not Pending (status: ${order.status}), cannot delete lines`,
+        );
+      }
+
+      await tx.orders_lines.delete({ where: { id: lineId } });
+
+      // recalculate order total after delete
+      await recalcOrderTotal(tx, line.order_id);
+    });
+
+    res.status(200).json({ success: true, message: `order line ${id} deleted` });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+    } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      res.status(404).json({ status: 'error', message: 'order line not found' });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        status: 'error',
+        message: (error as Error).message || 'error deleting order line',
+      });
+    }
+  }
+};
