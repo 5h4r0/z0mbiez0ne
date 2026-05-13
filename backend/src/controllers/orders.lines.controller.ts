@@ -4,10 +4,9 @@ import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
 import z from 'zod';
 import { getPagination } from '../helpers/index.js';
+import { TAXES_MULTIPLIER } from '../lib/constants.js';
 import { BadRequestError } from '../lib/errors.js';
 import { prisma } from '../models/index.js';
-
-const TAXES_MULTIPLIER = new Prisma.Decimal('1.20');
 
 const formatDate = (d: Date) => format(d, 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS });
 

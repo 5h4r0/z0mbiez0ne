@@ -4,11 +4,9 @@ import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
 import z from 'zod';
 import { getPagination } from '../helpers/index.js';
+import { TAXES_MULTIPLIER, TAXES_RATE } from '../lib/constants.js';
 import { BadRequestError } from '../lib/errors.js';
 import { prisma } from '../models/index.js';
-
-const TAXES_RATE = new Prisma.Decimal('0.20');
-const TAXES_MULTIPLIER = new Prisma.Decimal('1.20');
 
 // valid status transitions: only these paths are allowed
 const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
