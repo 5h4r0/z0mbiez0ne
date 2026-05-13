@@ -1,12 +1,9 @@
-// module augmentation -> merge extra fields into express request
-import "express"
-import type { Role } from "../middlewares/access-control.middleware.js"
+import 'express';
 
 declare global {
   namespace Express {
     interface Request {
-      userId?: string
-      userRole?: Role
+      user?: { id: number; roleId: number; roleName?: string };
     }
   }
 }

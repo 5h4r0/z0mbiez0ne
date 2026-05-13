@@ -1,15 +1,15 @@
 import { Router } from 'express';
 import * as sessionsController from '../controllers/sessions.controller.js';
-import { checkRoles } from '../middlewares/access-control.middleware.js';
+import { requireAuth } from '../middlewares/requireAuth.js';
+import { requireRole } from '../middlewares/requireRole.js';
 
 export const router = Router();
-// export default router;
 
 // public routes
 router.get('/sessions', sessionsController.getSessions);
 router.get('/sessions/:id', sessionsController.getSession);
 
-// protected routes (Admin)
-router.post('/sessions', checkRoles(['Admin']), sessionsController.createSession);
-router.put('/sessions/:id', checkRoles(['Admin']), sessionsController.updateSession);
-router.delete('/sessions/:id', checkRoles(['Admin']), sessionsController.deleteSession);
+// admin-only routes
+router.post('/sessions', requireAuth, requireRole('Admin'), sessionsController.createSession);
+router.put('/sessions/:id', requireAuth, requireRole('Admin'), sessionsController.updateSession);
+router.delete('/sessions/:id', requireAuth, requireRole('Admin'), sessionsController.deleteSession);
