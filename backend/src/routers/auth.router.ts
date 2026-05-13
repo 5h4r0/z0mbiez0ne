@@ -1,17 +1,18 @@
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
-import { checkRoles } from '../middlewares/access-control.middleware.js';
+import { requireAuth } from '../middlewares/requireAuth.js';
 
 export const router = Router();
-// export default router;
 
 // public routes
 router.post('/register', authController.registerUser);
 router.post('/login', authController.loginUser);
-router.post('/logout', checkRoles(['Member', 'Admin']), authController.logoutUser);
-router.post('/refresh', checkRoles(['Member', 'Admin']), authController.refreshAccessToken);
 
-// protected routes
-// router.get("/profile", checkRoles(["Member", "Admin"]), authController.getAuthenticatedUser);
-// router.put("/profile/:id", checkRoles(["Member", "Admin"]), authController.updateAuthenticatedUser);
-// router.delete("/profile/:id", checkRoles(["Member", "Admin"]), authController.deleteAuthenticatedUser);
+// stateless logout — client drops tokens
+router.post('/logout', authController.logoutUser);
+
+// requires valid refresh token in cookie (no access token needed)
+router.post('/refresh', authController.refreshAccessToken);
+
+// protected profile
+router.get('/profile', requireAuth, authController.getAuthenticatedUser);
