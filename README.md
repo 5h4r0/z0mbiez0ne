@@ -22,7 +22,7 @@ npm run db:dev -- --name <nom>
 npm run db:sql
 npm run db:pull
 npm run db:format
-npm run db:generate
+npm run db:gen
 ```
 
 4. Migration (si `schema.prisma` modifié) :
@@ -86,15 +86,17 @@ backend/
 │   │   ├── seeding.ts           # Script de seed
 │   │   └── postgres_schema.psql # Script SQL d'initialisation (optionnel)
 │   ├── routers/                 # Routes de l’API (Express)
-│   │   ├── index.router.ts      # Point d'entrée des routes
+│   │   ├── index.router.ts      # Point d’entrée des routes
+│   │   ├── auth.router.ts
 │   │   ├── activities.router.ts
 │   │   ├── categories.router.ts
 │   │   ├── users.router.ts
 │   │   ├── roles.router.ts
-│   │   ├── sessions.router.ts   # (temp) renvoie users pour avancer l’auth
-│   │   ├── orders.router.ts     # (temp) renvoie users pour avancer l’auth
-│   │   └── order.lines.router.ts# (temp) renvoie users pour avancer l’auth
+│   │   ├── sessions.router.ts
+│   │   ├── orders.router.ts
+│   │   └── order.lines.router.ts
 │   ├── controllers/             # Logique métier
+│   │   ├── auth.controller.ts
 │   │   ├── activities.controller.ts
 │   │   ├── categories.controller.ts
 │   │   ├── users.controller.ts
@@ -102,23 +104,26 @@ backend/
 │   │   ├── sessions.controller.ts
 │   │   ├── orders.controller.ts
 │   │   └── orders.lines.controller.ts
-│   └── utils/                   # Fonctions utilitaires (helpers)
-│       ├── index.ts             # Barrel file (exports centralisés)
-│       ├── slugify.ts
-│       ├── getrandomint.ts
-│       ├── cleanObject.ts
-│       └── getPagination.ts
+│   ├── lib/                     # Utilitaires métier (auth, tokens, erreurs, constantes)
+│   │   ├── auth.ts
+│   │   ├── constants.ts
+│   │   ├── errors.ts
+│   │   └── tokens.ts
+│   ├── middlewares/             # Middlewares Express
+│   │   ├── requireAuth.ts
+│   │   └── requireRole.ts
+│   ├── helpers/                 # Helpers génériques
+│   │   └── getPagination.ts
+│   ├── utils/                   # Fonctions utilitaires
+│   │   ├── index.ts             # Barrel file (exports centralisés)
+│   │   ├── slugify.ts
+│   │   └── getrandomint.ts
+│   └── types/                   # Types TypeScript partagés
 ├── package.json
 ├── tsconfig.json
 ├── .env                         # Variables d'environnement
 └── .env.example                 # Exemple de configuration d'environnement
 ```
-
----
-
-## 🛡️ Note temporaire (routers *fake*)
-
-Les routers **sessions**, **orders** et **order.lines** renvoient pour le moment les `users`, le temps d’avancer sur l’authentification **JWT** (login, refresh, middleware).
 
 ---
 
@@ -133,11 +138,9 @@ Les routers **sessions**, **orders** et **order.lines** renvoient pour le moment
 | `npm run db:sql`      | Applique le script SQL `postgres_schema.psql` directement sur PostgreSQL    |
 | `npm run db:pull`     | Récupère la structure réelle de la DB → `schema.prisma`                     |
 | `npm run db:format`   | Formate le `schema.prisma`                                                  |
-| `npm run db:generate` | Génère le client Prisma                                                     |
+| `npm run db:gen` | Génère le client Prisma                                                     |
 | `npm run db:seed`     | Lance le script de seed (`seeding.ts`)                                      |
 | `npm run db:studio`   | Ouvre Prisma Studio (UI web DB)                                             |
-| `npm run db:create`   | Crée/applique la migration init depuis `schema.prisma`                      |
-| `npm run db:migrate`  | Crée/applique une migration supplémentaire (dev)                            |
 | `npm run db:reset`    | Reset complet DB (drop, migrate, seed)                                      |
 | `npm run db:deploy`   | Applique les migrations en production                                       |
 

@@ -4,15 +4,13 @@
 
 ## 🔑 Authentification & création Utilisateur
 
-| Méthode | Endpoint         | Description                    |
-|---------|------------------|--------------------------------|
-| POST    | /api/register    | Créer un compte utilisateur    |
-| POST    | /api/login       | Se connecter                   |
-| POST    | /api/refresh     | Rafrîchir le token JWT         |
-| POST    | /api/logout      | Se déconnecter                 |
-| GET     | /api/profile     | Obtenir son profil utilisateur |
-| PUT     | /api/profile/:id | Mettre à jour son profil       |
-| DELETE  | /api/profile/:id | Supprimer son compte           |
+| Méthode | Endpoint              | Description                    |
+|---------|-----------------------|--------------------------------|
+| POST    | /api/auth/register    | Créer un compte utilisateur    |
+| POST    | /api/auth/login       | Se connecter                   |
+| POST    | /api/auth/refresh     | Rafraîchir le token JWT        |
+| POST    | /api/auth/logout      | Se déconnecter                 |
+| GET     | /api/auth/profile     | Obtenir son profil utilisateur |
 
 ---
 
@@ -52,15 +50,15 @@
 
 ---
 
-### OrderLines
+### Orders Lines
 
 | Méthode | Endpoint             | Description                          |
 |---------|----------------------|--------------------------------------|
-| GET     | /api/orderslines     | Liste des réservations de session    |
-| GET     | /api/orderslines/:id | Détail d'une réservation de session  |
-| POST    | /api/orderslines     | Créer une réservation de session     |
-| PUT     | /api/orderslines/:id | Modifier une réservation de session  |
-| DELETE  | /api/orderslines/:id | Supprimer une réservation de session |
+| GET     | /api/orders_lines     | Liste des réservations de session    |
+| GET     | /api/orders_lines/:id | Détail d'une réservation de session  |
+| POST    | /api/orders_lines     | Créer une réservation de session     |
+| PUT     | /api/orders_lines/:id | Modifier une réservation de session  |
+| DELETE  | /api/orders_lines/:id | Supprimer une réservation de session |
 
 ---
 
@@ -82,7 +80,5 @@
 |---------|----------------|-----------------------|
 | GET     | /api/users     | Liste utilisateurs    |
 | GET     | /api/users/:id | Détail utilisateur    |
-
-<!-- | POST    | /api/users     | Créer utilisateur     |
 | PUT     | /api/users/:id | Modifier utilisateur  |
-| DELETE  | /api/users/:id | Supprimer utilisateur | -->
+| DELETE  | /api/users/:id | Supprimer compte      |
