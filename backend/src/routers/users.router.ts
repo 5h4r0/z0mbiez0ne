@@ -5,7 +5,7 @@ import { requireRole } from '../middlewares/requireRole.js';
 
 export const router = Router();
 
-router.get('/users', requireAuth, requireRole('Admin'), usersController.getUsers);
-router.get('/users/:id', requireAuth, requireRole('Member', 'Admin'), usersController.getUser);
-router.put('/users/:id', requireAuth, requireRole('Member', 'Admin'), usersController.updateUser);
-router.delete('/users/:id', requireAuth, requireRole('Member', 'Admin'), usersController.deleteUser);
+router.get('/users', requireAuth, requireRole('admin'), usersController.getUsers);
+router.get('/users/:id', requireAuth, requireRole('member', 'admin'), usersController.getUser);
+router.put('/users/:id', requireAuth, requireRole('member', 'admin'), usersController.updateUser);
+router.delete('/users/:id', requireAuth, requireRole('member', 'admin'), usersController.deleteUser);

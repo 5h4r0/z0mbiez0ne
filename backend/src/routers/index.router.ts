@@ -14,16 +14,13 @@ export const router = Router();
 
 router.use(activitiesRouter);
 router.use(categoriesRouter);
+router.use(sessionsRouter);
+router.use(ordersRouter);
+router.use(ordersLinesRouter);
 
 router.use(rolesRouter);
 router.use(usersRouter);
-
 router.use('/auth', authRouter);
-
-router.use(sessionsRouter);
-
-router.use(ordersRouter);
-router.use(ordersLinesRouter);
 
 // /api/ root
 router.get('/', (_req, res) => {

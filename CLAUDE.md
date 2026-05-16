@@ -3,7 +3,7 @@
 
 ---
 
-## Project Overview
+## Project Overview | https://github.com/5h4r0/z0mbiez0ne 
 
 **zombiezone.kadath.fr** — parc d'attractions fictif post-apocalyptique. Projet pédagogique fullstack TypeScript, monorepo `backend/` + `vite-frontend/`.
 
