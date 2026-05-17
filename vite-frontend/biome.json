@@ -14,7 +14,7 @@
     "indentStyle": "space",
     "lineWidth": 120,
     "indentWidth": 2,
-    "includes": ["src/**/*.ts", "!**/*.d.ts", "!/dist/**", "!/node_modules/**"]
+    "includes": ["src/**/*.ts", "src/**/*.tsx", "!**/*.d.ts", "!/dist/**", "!/node_modules/**"]
   },
   "linter": {
     "enabled": true,
