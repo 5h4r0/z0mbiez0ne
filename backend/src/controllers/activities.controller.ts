@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import z from 'zod';
 import { getPagination } from '../helpers/index.js';
 import { BadRequestError } from '../lib/errors.js';
+import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 import { getRandomInt } from '../utils/index.js';
 import { makeSlug } from '../utils/slugify.js';
@@ -195,19 +196,16 @@ export const createActivity = async (req: Request, res: Response): Promise<void>
     res.status(201).json({
       success: true,
       data: created,
+      message: buildCudMessage('created', 'activity', created.title, {
+        categories: created.activities_categories.map((ac) => ac.category.title),
+      }),
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({
-        success: false,
-        error: 'One or more categories not found',
-      });
+      res.status(404).json({ success: false, message: buildErrorMessage('invalid_categories', 'activity', title) });
     } else {
       console.error('Error creating activity:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'activity') });
     }
   }
 };
@@ -283,21 +281,21 @@ export const updateActivity = async (req: Request, res: Response): Promise<void>
         image_filename: updated.image_filename,
         categories: updated.activities_categories.map((ac) => ac.category),
       },
+      message: buildCudMessage('updated', 'activity', updated.title, {
+        categories: updated.activities_categories.map((ac) => ac.category.title),
+      }),
     });
   } catch (error: unknown) {
     const err = error as { type?: string; ids?: number[] };
     if (err?.type === 'notFound') {
-      res.status(404).json({ success: false, error: `Activity ${id} not found` });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'activity', id) });
     } else if (err?.type === 'invalidCategories') {
-      res.status(400).json({
-        success: false,
-        error: `Invalid category IDs: ${err.ids?.join(', ')}`,
-      });
+      res.status(400).json({ success: false, message: buildErrorMessage('invalid_categories', 'activity', id) });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ success: false, error: `Activity ${id} not found` });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'activity', id) });
     } else {
       console.error(`Error updating activity ${id}:`, error);
-      res.status(500).json({ success: false, error: 'Internal server error' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'activity') });
     }
   }
 };
@@ -309,7 +307,8 @@ export const deleteActivity = async (req: Request, res: Response): Promise<void>
 
   try {
     if (Number.isNaN(activityId)) {
-      throw new BadRequestError(`invalid activity id ${id}`);
+      res.status(400).json({ success: false, message: buildErrorMessage('invalid_id', 'activity', String(id)) });
+      return;
     }
 
     const orderLines = await prisma.orders_lines.findMany({
@@ -353,34 +352,25 @@ export const deleteActivity = async (req: Request, res: Response): Promise<void>
         description: deleted.description,
         image_filename: deleted.image_filename,
       },
+      message: buildCudMessage('deleted', 'activity', deleted.title),
     });
   } catch (error: unknown) {
     const err = error as { type?: string; count?: number; sessions?: unknown[] };
     if (err?.type === 'hasOrderLines') {
       res.status(400).json({
         success: false,
-        error: `Cannot delete activity ${id}, it has ${err.count} order lines linked through sessions`,
+        message: buildErrorMessage('has_order_lines', 'activity', id),
         sessions: err.sessions,
       });
     } else if (err?.type === 'hasOrders') {
-      res.status(400).json({
-        success: false,
-        error: `Cannot delete activity ${id}, it has ${err.count} orders linked`,
-      });
+      res.status(400).json({ success: false, message: buildErrorMessage('has_orders', 'activity', id) });
     } else if (err?.type === 'hasSessions') {
-      res.status(400).json({
-        success: false,
-        error: `Cannot delete activity ${id}, it has ${err.count} sessions`,
-      });
+      res.status(400).json({ success: false, message: buildErrorMessage('has_sessions', 'activity', id) });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({
-        success: false,
-        error: `Activity ${id} not found`,
-      });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'activity', id) });
     } else {
-      // keep single-expression style via IIFE, no comma operator - () at the end launch the IIFE (Immediately Invoked Function Expression)
       console.error(`Error deleting activity ${id}:`, error);
-      res.status(500).json({ success: false, error: 'Internal server error' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'activity') });
     }
   }
 };

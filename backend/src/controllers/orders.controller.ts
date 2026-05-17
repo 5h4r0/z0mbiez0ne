@@ -5,7 +5,7 @@ import type { Request, Response } from 'express';
 import z from 'zod';
 import { getPagination } from '../helpers/index.js';
 import { TAXES_MULTIPLIER, TAXES_RATE } from '../lib/constants.js';
-import { BadRequestError } from '../lib/errors.js';
+import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
 // valid status transitions: only these paths are allowed
@@ -92,7 +92,8 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!order) {
-      throw new BadRequestError(`order ${id} not found`);
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order', id) });
+      return;
     }
 
     res.status(200).json({
@@ -116,12 +117,9 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else {
-      res.status((error as { status?: number }).status || 500).json({
-        status: 'error',
-        message: (error as Error).message || 'error fetching order',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'order') });
     }
   }
 };
@@ -157,14 +155,19 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
           },
         });
 
-        const createdLines: { amount: Prisma.Decimal; id: number; order_id: number; session_id: number; tickets_qty: number }[] =
-          [];
+        const createdLines: {
+          amount: Prisma.Decimal;
+          id: number;
+          order_id: number;
+          session_id: number;
+          tickets_qty: number;
+        }[] = [];
 
         for (const line of lines) {
           const { session_id, tickets_qty } = line;
 
           const session = await tx.sessions.findUnique({ where: { id: session_id } });
-          if (!session) throw new BadRequestError(`session ${session_id} not found`);
+          if (!session) throw { type: 'sessionNotFound', id: session_id };
 
           // check remaining capacity: capacity - already booked tickets for this session
           const agg = await tx.orders_lines.aggregate({
@@ -174,9 +177,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
           const booked = agg._sum.tickets_qty ?? 0;
           const remaining = session.capacity - booked;
           if (remaining < tickets_qty) {
-            throw new BadRequestError(
-              `not enough capacity for session ${session_id}: ${remaining} remaining, ${tickets_qty} requested`,
-            );
+            throw { type: 'insufficientCapacity', id: session_id };
           }
 
           const amount = new Prisma.Decimal(tickets_qty).mul(session.unit_price);
@@ -223,15 +224,20 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
           },
         })),
       },
+      message: buildCudMessage('created', 'order', String(result.id)),
     });
   } catch (error) {
+    const err = error as { type?: string; id?: number };
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
+    } else if (err?.type === 'sessionNotFound') {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'session', String(err.id)) });
+    } else if (err?.type === 'insufficientCapacity') {
+      res
+        .status(400)
+        .json({ success: false, message: buildErrorMessage('insufficient_capacity', 'session', String(err.id)) });
     } else {
-      res.status((error as { status?: number }).status || 500).json({
-        status: 'error',
-        message: (error as Error).message || 'error creating order',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'order') });
     }
   }
 };
@@ -250,16 +256,17 @@ export const updateOrder = async (req: Request, res: Response): Promise<void> =>
     const body = await bodySchema.parseAsync(req.body);
 
     const order = await prisma.orders.findUnique({ where: { id: Number(id) } });
-    if (!order) throw new BadRequestError(`order ${id} not found`);
+    if (!order) {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order', id) });
+      return;
+    }
 
     // enforce valid status transitions
     if (body.status !== undefined && body.status !== order.status) {
       const allowed = VALID_TRANSITIONS[order.status] ?? [];
       if (!allowed.includes(body.status)) {
-        const allowedStr = allowed.length ? allowed.join(', ') : 'none';
-        throw new BadRequestError(
-          `invalid status transition: ${order.status} → ${body.status} (allowed from ${order.status}: ${allowedStr})`,
-        );
+        res.status(400).json({ success: false, message: buildErrorMessage('invalid_status_transition', 'order', id) });
+        return;
       }
     }
 
@@ -270,17 +277,18 @@ export const updateOrder = async (req: Request, res: Response): Promise<void> =>
 
     const updated = await prisma.orders.update({ where: { id: Number(id) }, data });
 
-    res.status(200).json({ success: true, data: formatOrder(updated) });
+    res.status(200).json({
+      success: true,
+      data: formatOrder(updated),
+      message: buildCudMessage('updated', 'order', String(updated.id)),
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ status: 'error', message: 'order not found' });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order', req.params.id) });
     } else {
-      res.status((error as { status?: number }).status || 500).json({
-        status: 'error',
-        message: (error as Error).message || 'error updating order',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'order') });
     }
   }
 };
@@ -293,13 +301,14 @@ export const deleteOrder = async (req: Request, res: Response): Promise<void> =>
     const { id } = await paramsSchema.parseAsync(req.params);
 
     const order = await prisma.orders.findUnique({ where: { id: Number(id) } });
-    if (!order) throw new BadRequestError(`order ${id} not found`);
+    if (!order) {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order', id) });
+      return;
+    }
 
-    // soft delete is only allowed for Pending orders
     if (order.status !== OrderStatus.Pending) {
-      throw new BadRequestError(
-        `cannot delete order ${id} with status ${order.status}, only Pending orders can be deleted`,
-      );
+      res.status(400).json({ success: false, message: buildErrorMessage('not_pending', 'order', id) });
+      return;
     }
 
     const deleted = await prisma.orders.update({
@@ -307,15 +316,16 @@ export const deleteOrder = async (req: Request, res: Response): Promise<void> =>
       data: { deleted_at: new Date() },
     });
 
-    res.status(200).json({ success: true, data: formatOrder(deleted) });
+    res.status(200).json({
+      success: true,
+      data: formatOrder(deleted),
+      message: buildCudMessage('deleted', 'order', String(deleted.id)),
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else {
-      res.status((error as { status?: number }).status || 500).json({
-        status: 'error',
-        message: (error as Error).message || 'error deleting order',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'order') });
     }
   }
 };

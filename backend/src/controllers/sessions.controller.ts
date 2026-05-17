@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import z from 'zod';
 import { getPagination } from '../helpers/index.js';
 import { BadRequestError } from '../lib/errors.js';
+import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
 // shared date formatter
@@ -83,12 +84,10 @@ export const getSessions = async (req: Request, res: Response) => {
 
     res.status(200).json({ success: true, data: formatted });
   } catch (error) {
-    // handle zod error
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else {
-      // handle generic error
-      res.status(500).json({ status: 'error', message: (error as Error).message || 'error fetching sessions' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'session') });
     }
   }
 };
@@ -144,11 +143,10 @@ export const getSession = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    // handle zod error vs generic
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else {
-      res.status(500).json({ status: 'error', message: (error as Error).message || 'error fetching session' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'session') });
     }
   }
 };
@@ -176,14 +174,18 @@ export const createSession = async (req: Request, res: Response): Promise<void> 
       },
     });
 
-    res.status(201).json({ success: true, data: formatSession(session) });
+    res.status(201).json({
+      success: true,
+      data: formatSession(session),
+      message: buildCudMessage('created', 'session', formatDate(session.date)),
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-      res.status(404).json({ status: 'error', message: 'activity not found' });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'activity') });
     } else {
-      res.status(500).json({ status: 'error', message: (error as Error).message || 'error creating session' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'session') });
     }
   }
 };
@@ -214,14 +216,18 @@ export const updateSession = async (req: Request, res: Response): Promise<void> 
 
     const session = await prisma.sessions.update({ where: { id: Number(id) }, data });
 
-    res.status(200).json({ success: true, data: formatSession(session) });
+    res.status(200).json({
+      success: true,
+      data: formatSession(session),
+      message: buildCudMessage('updated', 'session', formatDate(session.date)),
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ status: 'error', message: 'session not found' });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'session', req.params.id) });
     } else {
-      res.status(500).json({ status: 'error', message: (error as Error).message || 'error updating session' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'session') });
     }
   }
 };
@@ -234,27 +240,26 @@ export const deleteSession = async (req: Request, res: Response): Promise<void> 
     const { id } = await paramsSchema.parseAsync(req.params);
     const sessionId = Number(id);
 
-    // block deletion if any order lines reference this session
     const orderLinesCount = await prisma.orders_lines.count({ where: { session_id: sessionId } });
     if (orderLinesCount > 0) {
-      throw new BadRequestError(
-        `cannot delete session ${id}, it has ${orderLinesCount} order line${orderLinesCount > 1 ? 's' : ''}`,
-      );
+      res.status(400).json({ success: false, message: buildErrorMessage('has_order_lines', 'session', id) });
+      return;
     }
 
     const deleted = await prisma.sessions.delete({ where: { id: sessionId } });
 
-    res.status(200).json({ success: true, data: formatSession(deleted) });
+    res.status(200).json({
+      success: true,
+      data: formatSession(deleted),
+      message: buildCudMessage('deleted', 'session', formatDate(deleted.date)),
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ status: 'error', message: 'session not found' });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'session', req.params.id) });
     } else {
-      res.status((error as { status?: number }).status || 500).json({
-        status: 'error',
-        message: (error as Error).message || 'error deleting session',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'session') });
     }
   }
 };
