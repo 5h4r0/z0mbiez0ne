@@ -10,6 +10,6 @@ router.get('/activities', activitiesController.getActivities);
 router.get('/activities/:id', activitiesController.getActivity);
 
 // admin-only routes
-router.post('/activities', requireAuth, requireRole('Admin'), activitiesController.createActivity);
-router.put('/activities/:id', requireAuth, requireRole('Admin'), activitiesController.updateActivity);
-router.delete('/activities/:id', requireAuth, requireRole('Admin'), activitiesController.deleteActivity);
+router.post('/activities', requireAuth, requireRole('admin'), activitiesController.createActivity);
+router.put('/activities/:id', requireAuth, requireRole('admin'), activitiesController.updateActivity);
+router.delete('/activities/:id', requireAuth, requireRole('admin'), activitiesController.deleteActivity);

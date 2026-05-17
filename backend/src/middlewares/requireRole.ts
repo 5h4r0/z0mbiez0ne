@@ -8,9 +8,7 @@ export function requireRole(...roleNames: string[]) {
       if (!req.user) throw new UnauthorizedError('not authenticated');
 
       // use cached roleName if already loaded by a previous requireRole call
-      const roleName =
-        req.user.roleName ??
-        (await prisma.roles.findUnique({ where: { id: req.user.roleId } }))?.name;
+      const roleName = req.user.roleName ?? (await prisma.roles.findUnique({ where: { id: req.user.roleId } }))?.name;
 
       if (!roleName) throw new ForbiddenError('role not found');
 

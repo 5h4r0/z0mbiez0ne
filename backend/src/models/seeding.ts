@@ -205,7 +205,12 @@ async function main() {
       total_amount: new Prisma.Decimal(getRandomInt(20, 99)),
       payment_method: faker.helpers.arrayElement(['Card', 'Paypal', 'Wire transfer']),
       payment_date: faker.date.recent(),
-      status: faker.helpers.arrayElement([OrderStatus.Pending, OrderStatus.Confirmed, OrderStatus.Cancelled, OrderStatus.Refunded]),
+      status: faker.helpers.arrayElement([
+        OrderStatus.Pending,
+        OrderStatus.Confirmed,
+        OrderStatus.Cancelled,
+        OrderStatus.Refunded,
+      ]),
     })),
   });
 

@@ -10,6 +10,6 @@ router.get('/categories', categoriesController.getCategories);
 router.get('/categories/:id', categoriesController.getCategory);
 
 // admin-only routes
-router.post('/categories', requireAuth, requireRole('Admin'), categoriesController.createCategory);
-router.put('/categories/:id', requireAuth, requireRole('Admin'), categoriesController.updateCategory);
-router.delete('/categories/:id', requireAuth, requireRole('Admin'), categoriesController.deleteCategory);
+router.post('/categories', requireAuth, requireRole('admin'), categoriesController.createCategory);
+router.put('/categories/:id', requireAuth, requireRole('admin'), categoriesController.updateCategory);
+router.delete('/categories/:id', requireAuth, requireRole('admin'), categoriesController.deleteCategory);

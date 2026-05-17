@@ -5,5 +5,5 @@ import { requireRole } from '../middlewares/requireRole.js';
 
 export const router = Router();
 
-router.get('/roles', requireAuth, requireRole('Admin'), rolesController.getRoles);
-router.get('/roles/:id', requireAuth, requireRole('Member', 'Admin'), rolesController.getRole);
+router.get('/roles', requireAuth, requireRole('admin'), rolesController.getRoles);
+router.get('/roles/:id', requireAuth, requireRole('member', 'admin'), rolesController.getRole);
