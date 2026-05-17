@@ -4,7 +4,6 @@ import { enUS } from 'date-fns/locale'; // -> use US locale
 import type { Request, Response } from 'express';
 import z from 'zod';
 import { getPagination } from '../helpers/index.js';
-import { BadRequestError } from '../lib/errors.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
@@ -77,11 +76,6 @@ export const getSessions = async (req: Request, res: Response) => {
       users: s.orders_lines.map((ol) => ol.order.user),
     }));
 
-    // handle empty result
-    if (formatted.length === 0) {
-      throw new BadRequestError('no sessions caught');
-    }
-
     res.status(200).json({ success: true, data: formatted });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -126,9 +120,9 @@ export const getSession = async (req: Request, res: Response) => {
     // query session with relations
     const session = await prisma.sessions.findUnique(args);
 
-    // throw when null, else format
     if (session === null) {
-      throw new BadRequestError('session not found');
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'session', req.params.id) });
+      return;
     }
 
     res.status(200).json({

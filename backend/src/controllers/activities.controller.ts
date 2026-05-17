@@ -4,7 +4,6 @@ import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
 import z from 'zod';
 import { getPagination } from '../helpers/index.js';
-import { BadRequestError } from '../lib/errors.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 import { getRandomInt } from '../utils/index.js';
@@ -81,18 +80,12 @@ export const getActivities = async (req: Request, res: Response) => {
       })),
     }));
 
-    // reject empty list using ternary
-    if (formatted.length === 0) {
-      throw new BadRequestError('no activities caught');
-    }
-
     res.status(200).json({ success: true, data: formatted });
   } catch (error) {
-    // zod vs generic error
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
     } else {
-      res.status(500).json({ status: 'error', message: (error as Error).message || 'error fetching activities' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'activity') });
     }
   }
 };
@@ -131,9 +124,9 @@ export const getActivity = async (req: Request, res: Response) => {
     // run query
     const activity = await prisma.activities.findUnique(args);
 
-    // not found -> throw, else format
     if (activity === null) {
-      throw new BadRequestError('activity not found');
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'activity', id) });
+      return;
     }
 
     res.status(200).json({
