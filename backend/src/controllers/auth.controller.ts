@@ -45,8 +45,8 @@ export async function registerUser(req: Request, res: Response) {
     if (existing) throw new ConflictError('Email already taken');
 
     const role = await prisma.roles.findUnique({ where: { id: role_id } });
-    if (!role) return res.status(400).json({ status: "error", message: "Invalid role" });
-    
+    if (!role) return res.status(400).json({ status: 'error', message: 'Invalid role' });
+
     const password_hash = await hashPassword(password);
 
     const newUser = await prisma.users.create({
