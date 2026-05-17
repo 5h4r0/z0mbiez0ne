@@ -19,7 +19,7 @@ export default function Sessions() {
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const response = await fetch('./api/sessions', {
+        const response = await fetch('/api/sessions', {
           headers: {
           }
         });

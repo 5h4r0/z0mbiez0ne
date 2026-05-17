@@ -6,7 +6,7 @@ import Footer from './Footer';
 import MainPage from '../pages/MainPage';
 import AllActivities from './AllActivities';
 import AllSessions from './AllSessions';
-import CategoriesPage from '../pages/CategoriesPage';
+import AllCategories from './AllCategories';
 import ContactPage from '../pages/ContactPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
@@ -20,7 +20,7 @@ function App() {
           <Route path="/" element={<MainPage />} />
           <Route path="/activities" element={<AllActivities />} />
           <Route path="/sessions" element={<AllSessions />} />
-          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/categories" element={<AllCategories />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
