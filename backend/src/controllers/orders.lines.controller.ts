@@ -5,7 +5,6 @@ import type { Request, Response } from 'express';
 import z from 'zod';
 import { getPagination } from '../helpers/index.js';
 import { TAXES_MULTIPLIER } from '../lib/constants.js';
-import { BadRequestError } from '../lib/errors.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
@@ -64,7 +63,10 @@ export const getOrderLine = async (req: Request, res: Response): Promise<void> =
       },
     });
 
-    if (!line) throw new BadRequestError(`order line ${id} not found`);
+    if (!line) {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order_line', id) });
+      return;
+    }
 
     res.status(200).json({
       success: true,
