@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Link } from "react-router"
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 
 interface IActivities {
   id: number;
@@ -13,7 +13,7 @@ interface IActivities {
 export default function Activities() {
   const [activitiesList, setActivitiesList] = useState<IActivities[]>([]);
   const [fetchError, setFetchError] = useState<null | string>(null);
-	const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchActivities = async () => {
