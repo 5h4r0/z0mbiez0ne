@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import type { Request, Response } from 'express';
+import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 import { makeSlug } from '../utils/slugify.js';
 
@@ -36,10 +37,7 @@ export const getCategories = async (_req: Request, res: Response): Promise<void>
     });
   } catch (error) {
     console.error('Error fetching categories:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Internal server error',
-    });
+    res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
   }
 };
 
@@ -78,14 +76,11 @@ export const getCategory = async (req: Request, res: Response): Promise<void> =>
         },
       });
     } else {
-      res.status(404).json({
-        success: false,
-        error: `Category ${id} not found`,
-      });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'category', id) });
     }
   } catch (error) {
     console.error(`Error fetching category ${id}:`, error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
+    res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
   }
 };
 
@@ -107,17 +102,14 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
     res.status(201).json({
       success: true,
       data: created,
+      message: buildCudMessage('created', 'category', created.title),
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      res.status(409).json({
-        success: false,
-        error: 'Category with this title or slug already exists',
-      });
+      res.status(409).json({ success: false, message: buildErrorMessage('already_exists', 'category', title) });
     } else {
-      // keep single-expression style via IIFE, no comma operator - () at the end launch the IIFE (Immediately Invoked Function Expression)
       console.error('Error creating category:', error);
-      res.status(500).json({ success: false, error: 'internal server error' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
     }
   }
 };
@@ -145,17 +137,14 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
     res.status(200).json({
       success: true,
       data: updated,
+      message: buildCudMessage('updated', 'category', updated.title),
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({
-        success: false,
-        error: `Category ${id} not found`,
-      });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'category', id) });
     } else {
-      // keep single-expression style via IIFE, no comma operator - () at the end launch the IIFE (Immediately Invoked Function Expression)
       console.error(`Error updating category ${id}:`, error);
-      res.status(500).json({ success: false, error: 'internal server error' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
     }
   }
 };
@@ -197,22 +186,19 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
         description: deletedCategory.description,
         image_filename: deletedCategory.image_filename,
       },
+      message: buildCudMessage('deleted', 'category', deletedCategory.title),
     });
   } catch (error: unknown) {
     const err = error as { type?: string; ids?: number[] };
     if (err?.type === 'invalidId') {
-      res.status(400).json({ success: false, error: `Invalid category id ${id}` });
+      res.status(400).json({ success: false, message: buildErrorMessage('invalid_id', 'category', id) });
     } else if (err?.type === 'hasOrphans') {
-      res.status(400).json({
-        success: false,
-        error: `Cannot delete category ${id}, activities ${err.ids?.join(', ')} depend exclusively on it`,
-      });
+      res.status(400).json({ success: false, message: buildErrorMessage('has_orphan_activities', 'category', id) });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ success: false, error: `Category ${id} not found` });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'category', id) });
     } else {
-      // keep single-expression style via IIFE, no comma operator - () at the end launch the IIFE (Immediately Invoked Function Expression)
       console.error(`Error deleting category ${id}:`, error);
-      res.status(500).json({ success: false, error: 'Internal server error' });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
     }
   }
 };

@@ -1,7 +1,8 @@
 import { Prisma } from '@prisma/client';
 import type { Request, Response } from 'express';
 import { getPagination } from '../helpers/getPagination.js';
-import { BadRequestError, ConflictError } from '../lib/errors.js';
+import { ConflictError } from '../lib/errors.js';
+import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
 // Type utilitaire : un user avec sa relation "role"
@@ -61,10 +62,14 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
 
   try {
     if (!Number.isFinite(userId)) {
-      throw new BadRequestError(`Invalid user id ${req.params.id}`);
+      res.status(400).json({ success: false, message: buildErrorMessage('invalid_id', 'user', req.params.id) });
+      return;
     }
 
-    const user = (await prisma.users.findUnique({ where: { id: userId }, include: { role: true } })) as UserWithRole | null;
+    const user = (await prisma.users.findUnique({
+      where: { id: userId },
+      include: { role: true },
+    })) as UserWithRole | null;
 
     if (user) {
       // -> side-effect only, no return
@@ -79,15 +84,11 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
         role: user.role?.name ?? null,
       });
     } else {
-      res.status(404).json({ message: `User ${userId} not found` });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'user', String(userId)) });
     }
   } catch (error) {
-    if (error instanceof BadRequestError) {
-      res.status(400).json({ status: 'error', message: (error as Error).message });
-    } else {
-      console.error(`Error fetching user with id: ${userId}`, error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
+    console.error(`Error fetching user with id: ${userId}`, error);
+    res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'user') });
   }
 };
 
@@ -107,7 +108,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
     // if another user already uses this email, reject
     if (existing) {
-      throw new ConflictError('Email already taken');
+      throw new ConflictError(buildErrorMessage('already_exists', 'user', email));
     }
 
     // otherwise, update the current user
@@ -123,18 +124,19 @@ export const updateUser = async (req: Request, res: Response) => {
       },
     });
 
-    // send a consistent REST response with sanitized user data
     res.status(200).json({
-      status: 'success',
+      success: true,
       data: updatedUser,
-      message: `User ${id} updated`,
+      message: buildCudMessage('updated', 'user', updatedUser.email),
     });
   } catch (error) {
-    // handle Prisma "record not found" error (P2025)
     if ((error as { code?: string }).code === 'P2025') {
-      res.status(404).json({ status: 'error', message: `User ${id} not found` });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'user', id) });
     } else {
-      res.status(500).json({ status: 'error', message: (error as Error).message || 'Internal server error' });
+      res.status((error as { status?: number }).status || 500).json({
+        success: false,
+        message: (error as Error).message || buildErrorMessage('internal_error', 'user'),
+      });
     }
   }
 };
@@ -156,25 +158,16 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     const deleted = await prisma.users.delete({ where: { id: userId } });
 
-    res.status(200).json({ success: true, data: deleted, message: `User ${id} deleted` });
+    res.status(200).json({ success: true, data: deleted, message: buildCudMessage('deleted', 'user', deleted.email) });
   } catch (error: unknown) {
     const err = error as { type?: string; ids?: number[] };
     if (err?.type === 'hasOrders') {
-      res.status(400).json({
-        success: false,
-        error: `Cannot delete user ${id}, order ${err.ids?.join(', ')} depend exclusively on it`,
-      });
+      res.status(400).json({ success: false, message: buildErrorMessage('has_orders', 'user', id) });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({
-        success: false,
-        error: `User ${id} not found`,
-      });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'user', id) });
     } else {
       console.error(`Error deleting user ${id}:`, error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'user') });
     }
   }
 };

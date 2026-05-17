@@ -6,6 +6,7 @@ import z from 'zod';
 import { getPagination } from '../helpers/index.js';
 import { TAXES_MULTIPLIER } from '../lib/constants.js';
 import { BadRequestError } from '../lib/errors.js';
+import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
 const formatDate = (d: Date) => format(d, 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS });
@@ -110,15 +111,11 @@ export const createOrderLine = async (req: Request, res: Response): Promise<void
       async (tx) => {
         // all mutations require order.status === Pending
         const order = await tx.orders.findUnique({ where: { id: order_id } });
-        if (!order) throw new BadRequestError(`order ${order_id} not found`);
-        if (order.status !== OrderStatus.Pending) {
-          throw new BadRequestError(
-            `order ${order_id} is not Pending (status: ${order.status}), cannot add lines`,
-          );
-        }
+        if (!order) throw { type: 'orderNotFound', id: order_id };
+        if (order.status !== OrderStatus.Pending) throw { type: 'orderNotPending', id: order_id };
 
         const session = await tx.sessions.findUnique({ where: { id: session_id } });
-        if (!session) throw new BadRequestError(`session ${session_id} not found`);
+        if (!session) throw { type: 'sessionNotFound', id: session_id };
 
         // check remaining capacity
         const agg = await tx.orders_lines.aggregate({
@@ -127,11 +124,7 @@ export const createOrderLine = async (req: Request, res: Response): Promise<void
         });
         const booked = agg._sum.tickets_qty ?? 0;
         const remaining = session.capacity - booked;
-        if (remaining < tickets_qty) {
-          throw new BadRequestError(
-            `not enough capacity for session ${session_id}: ${remaining} remaining, ${tickets_qty} requested`,
-          );
-        }
+        if (remaining < tickets_qty) throw { type: 'insufficientCapacity', id: session_id };
 
         const amount = new Prisma.Decimal(tickets_qty).mul(session.unit_price);
         const created = await tx.orders_lines.create({
@@ -155,15 +148,24 @@ export const createOrderLine = async (req: Request, res: Response): Promise<void
         tickets_qty: line.tickets_qty,
         amount: Number(line.amount),
       },
+      message: buildCudMessage('created', 'order_line', String(line.id)),
     });
   } catch (error) {
+    const err = error as { type?: string; id?: number };
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
+    } else if (err?.type === 'orderNotFound') {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order', String(err.id)) });
+    } else if (err?.type === 'orderNotPending') {
+      res.status(400).json({ success: false, message: buildErrorMessage('not_pending', 'order_line', String(err.id)) });
+    } else if (err?.type === 'sessionNotFound') {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'session', String(err.id)) });
+    } else if (err?.type === 'insufficientCapacity') {
+      res
+        .status(400)
+        .json({ success: false, message: buildErrorMessage('insufficient_capacity', 'session', String(err.id)) });
     } else {
-      res.status((error as { status?: number }).status || 500).json({
-        status: 'error',
-        message: (error as Error).message || 'error creating order line',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'order_line') });
     }
   }
 };
@@ -182,19 +184,15 @@ export const updateOrderLine = async (req: Request, res: Response): Promise<void
     const updated = await prisma.$transaction(
       async (tx) => {
         const line = await tx.orders_lines.findUnique({ where: { id: lineId } });
-        if (!line) throw new BadRequestError(`order line ${id} not found`);
+        if (!line) throw { type: 'lineNotFound', id };
 
         // all mutations require order.status === Pending
         const order = await tx.orders.findUnique({ where: { id: line.order_id } });
-        if (!order) throw new BadRequestError(`order ${line.order_id} not found`);
-        if (order.status !== OrderStatus.Pending) {
-          throw new BadRequestError(
-            `order ${line.order_id} is not Pending (status: ${order.status}), cannot update lines`,
-          );
-        }
+        if (!order) throw { type: 'orderNotFound', id: line.order_id };
+        if (order.status !== OrderStatus.Pending) throw { type: 'orderNotPending', id: line.order_id };
 
         const session = await tx.sessions.findUnique({ where: { id: line.session_id } });
-        if (!session) throw new BadRequestError(`session ${line.session_id} not found`);
+        if (!session) throw { type: 'sessionNotFound', id: line.session_id };
 
         // check capacity excluding the current line being updated
         const agg = await tx.orders_lines.aggregate({
@@ -203,11 +201,7 @@ export const updateOrderLine = async (req: Request, res: Response): Promise<void
         });
         const bookedOthers = agg._sum.tickets_qty ?? 0;
         const remaining = session.capacity - bookedOthers;
-        if (remaining < tickets_qty) {
-          throw new BadRequestError(
-            `not enough capacity for session ${line.session_id}: ${remaining} remaining, ${tickets_qty} requested`,
-          );
-        }
+        if (remaining < tickets_qty) throw { type: 'insufficientCapacity', id: line.session_id };
 
         const amount = new Prisma.Decimal(tickets_qty).mul(session.unit_price);
         const result = await tx.orders_lines.update({
@@ -232,17 +226,28 @@ export const updateOrderLine = async (req: Request, res: Response): Promise<void
         tickets_qty: updated.tickets_qty,
         amount: Number(updated.amount),
       },
+      message: buildCudMessage('updated', 'order_line', String(updated.id)),
     });
   } catch (error) {
+    const err = error as { type?: string; id?: number | string };
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
+    } else if (err?.type === 'lineNotFound') {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order_line', String(err.id)) });
+    } else if (err?.type === 'orderNotFound') {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order', String(err.id)) });
+    } else if (err?.type === 'orderNotPending') {
+      res.status(400).json({ success: false, message: buildErrorMessage('not_pending', 'order_line', req.params.id) });
+    } else if (err?.type === 'sessionNotFound') {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'session', String(err.id)) });
+    } else if (err?.type === 'insufficientCapacity') {
+      res
+        .status(400)
+        .json({ success: false, message: buildErrorMessage('insufficient_capacity', 'session', String(err.id)) });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ status: 'error', message: 'order line not found' });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order_line', req.params.id) });
     } else {
-      res.status((error as { status?: number }).status || 500).json({
-        status: 'error',
-        message: (error as Error).message || 'error updating order line',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'order_line') });
     }
   }
 };
@@ -257,16 +262,12 @@ export const deleteOrderLine = async (req: Request, res: Response): Promise<void
 
     await prisma.$transaction(async (tx) => {
       const line = await tx.orders_lines.findUnique({ where: { id: lineId } });
-      if (!line) throw new BadRequestError(`order line ${id} not found`);
+      if (!line) throw { type: 'lineNotFound', id };
 
       // all mutations require order.status === Pending
       const order = await tx.orders.findUnique({ where: { id: line.order_id } });
-      if (!order) throw new BadRequestError(`order ${line.order_id} not found`);
-      if (order.status !== OrderStatus.Pending) {
-        throw new BadRequestError(
-          `order ${line.order_id} is not Pending (status: ${order.status}), cannot delete lines`,
-        );
-      }
+      if (!order) throw { type: 'orderNotFound', id: line.order_id };
+      if (order.status !== OrderStatus.Pending) throw { type: 'orderNotPending', id: line.order_id };
 
       await tx.orders_lines.delete({ where: { id: lineId } });
 
@@ -274,17 +275,21 @@ export const deleteOrderLine = async (req: Request, res: Response): Promise<void
       await recalcOrderTotal(tx, line.order_id);
     });
 
-    res.status(200).json({ success: true, message: `order line ${id} deleted` });
+    res.status(200).json({ success: true, message: buildCudMessage('deleted', 'order_line', id) });
   } catch (error) {
+    const err = error as { type?: string; id?: number | string };
     if (error instanceof z.ZodError) {
-      res.status(400).json({ status: 'error', message: error.issues.map((e) => e.message).join(', ') });
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
+    } else if (err?.type === 'lineNotFound') {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order_line', String(err.id)) });
+    } else if (err?.type === 'orderNotFound') {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order', String(err.id)) });
+    } else if (err?.type === 'orderNotPending') {
+      res.status(400).json({ success: false, message: buildErrorMessage('not_pending', 'order_line', req.params.id) });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ status: 'error', message: 'order line not found' });
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'order_line', req.params.id) });
     } else {
-      res.status((error as { status?: number }).status || 500).json({
-        status: 'error',
-        message: (error as Error).message || 'error deleting order line',
-      });
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'order_line') });
     }
   }
 };
