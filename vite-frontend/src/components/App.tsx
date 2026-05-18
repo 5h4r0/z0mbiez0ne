@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Route, Routes } from 'react-router';
 import ActivitiesPage from '../pages/ActivitiesPage';
 import BasketPage from '../pages/BasketPage';
@@ -16,12 +17,20 @@ import PlanPage from '../pages/PlanPage';
 import SessionDetailPage from '../pages/SessionDetailPage';
 import SessionsPage from '../pages/SessionsPage';
 import TarifsPage from '../pages/TarifsPage';
+import { useAuthStore } from '../store/authStore';
 import Footer from './Footer';
 import Header from './Header';
 import '../styles/App.css';
 import ScrollToTop from './ScrollToTop';
 
 function App() {
+  useEffect(() => {
+    fetch('/api/auth/refresh', { method: 'POST' })
+      .then((r) => { if (!r.ok) throw new Error(); return r.json() as Promise<{ token: string }>; })
+      .then(({ token }) => { useAuthStore.setState({ token }); })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="app">
       <ScrollToTop />
