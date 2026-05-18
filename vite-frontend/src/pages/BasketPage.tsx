@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useAuthStore } from '../store/authStore';
+import { apiFetch, useAuthStore } from '../store/authStore';
 import { useBasketStore } from '../store/basketStore';
 import '../styles/pages.scss';
 
 export default function BasketPage() {
   const { items, removeItem, updateQuantity, clearBasket, totalPrice } = useBasketStore();
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const navigate = useNavigate();
   const [orderError, setOrderError] = useState('');
   const [ordering, setOrdering] = useState(false);
@@ -29,12 +29,9 @@ export default function BasketPage() {
     setOrderError('');
     setOrdering(true);
     try {
-      const res = await fetch('/api/orders', {
+      const res = await apiFetch('/api/orders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user.id,
           lines: items.map((item) => ({

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { useAuthStore } from '../store/authStore';
+import { apiFetch, useAuthStore } from '../store/authStore';
 import '../styles/pages.scss';
 
 type Tab = 'login' | 'register';
 
-type OrderLine = { id: number; session_id: number; tickets_qty: number; amount: number };
+type OrderLine = { id: number; session_id: number; tickets_qty: number; amount: number; activity_title: string | null };
 type Order = {
   id: number;
   status: string;
@@ -36,7 +36,7 @@ export default function EspaceClientPage() {
   const [tab, setTab] = useState<Tab>('login');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, register, user, token } = useAuthStore();
+  const { login, register, user } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') ?? '/espace-client';
@@ -46,17 +46,17 @@ export default function EspaceClientPage() {
   const [ordersError, setOrdersError] = useState(false);
 
   useEffect(() => {
-    if (!user || !token) return;
+    if (!user) return;
     let cancelled = false;
     setOrdersLoading(true);
     setOrdersError(false);
-    fetch('/api/orders/mine', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/orders/mine')
       .then((r) => { if (!r.ok) throw new Error(); return r.json() as Promise<{ data: Order[] }>; })
       .then((d) => { if (!cancelled) setOrders(d.data); })
       .catch(() => { if (!cancelled) setOrdersError(true); })
       .finally(() => { if (!cancelled) setOrdersLoading(false); });
     return () => { cancelled = true; };
-  }, [user, token]);
+  }, [user]);
 
   // already logged in
   if (user) {
@@ -102,7 +102,9 @@ export default function EspaceClientPage() {
                 >
                   <div className="flex justify-between items-start gap-4 flex-wrap">
                     <div>
-                      <div className="text-sm font-bold text-(--color-text) mb-1">Commande #{order.id}</div>
+                      <div className="text-sm font-bold text-(--color-text) mb-1">
+                      {order.lines[0]?.activity_title ?? `Commande #${order.id}`}
+                    </div>
                       <div className="text-xs text-(--color-text-muted)">
                         {order.lines.reduce((s, l) => s + l.tickets_qty, 0)} billet(s) · créée le {formatShortDate(order.created_at)}
                       </div>
