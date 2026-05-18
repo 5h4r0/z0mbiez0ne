@@ -36,7 +36,7 @@ export default function EspaceClientPage() {
   const [tab, setTab] = useState<Tab>('login');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, register, user } = useAuthStore();
+  const { login, register, user, isHydrating } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') ?? '/espace-client';
@@ -57,6 +57,19 @@ export default function EspaceClientPage() {
       .finally(() => { if (!cancelled) setOrdersLoading(false); });
     return () => { cancelled = true; };
   }, [user]);
+
+  if (isHydrating) {
+    return (
+      <div className="static-page">
+        <div className="static-page__inner">
+          <div className="skeleton-card__body flex flex-col gap-3">
+            <div className="skeleton-card__line skeleton-card__line--medium h-6" />
+            <div className="skeleton-card__line skeleton-card__line--full h-4" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // already logged in
   if (user) {

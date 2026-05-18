@@ -12,6 +12,7 @@ export interface AuthUser {
 interface AuthStore {
   token: string | null;
   user: AuthUser | null;
+  isHydrating: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: {
     firstname: string;
@@ -60,6 +61,7 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       token: null,
       user: null,
+      isHydrating: true,
 
       login: async (email, password) => {
         const res = await fetch('/api/auth/login', {
@@ -102,10 +104,14 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       refreshToken: async () => {
-        const res = await fetch('/api/auth/refresh', { method: 'POST' });
-        if (!res.ok) return;
-        const { token } = (await res.json()) as { token: string };
-        set({ token });
+        try {
+          const res = await fetch('/api/auth/refresh', { method: 'POST' });
+          if (!res.ok) return;
+          const { token } = (await res.json()) as { token: string };
+          set({ token });
+        } finally {
+          set({ isHydrating: false });
+        }
       },
 
       isAuthenticated: () => !!get().token,
