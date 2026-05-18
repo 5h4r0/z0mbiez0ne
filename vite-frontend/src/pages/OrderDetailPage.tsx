@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { apiFetch, useAuthStore } from '../store/authStore';
 import '../styles/pages.scss';
 
@@ -50,6 +50,7 @@ function formatSessionDate(iso: string): string {
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const isHydrating = useAuthStore((s) => s.isHydrating);
+  const navigate = useNavigate();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,6 +80,7 @@ export default function OrderDetailPage() {
       if (!res.ok) throw new Error(data.message ?? 'Erreur lors de l\'annulation');
       setOrder((o) => o ? { ...o, status: 'Cancelled' } : o);
       setConfirmCancel(false);
+      navigate('/espace-client');
     } catch (err) {
       setCancelError((err as Error).message);
       setConfirmCancel(false);
@@ -202,13 +204,13 @@ export default function OrderDetailPage() {
         {/* Bouton payer + annuler — uniquement si Pending et pas encore payé */}
         {isPending && !paid && (
           <div className="mt-10 flex flex-col gap-4">
-            <div>
+            <div className="flex flex-col items-end">
               {payError && <p className="text-(--color-red) text-sm mb-3">{payError}</p>}
               <button
                 type="button"
                 onClick={handlePay}
                 disabled={paying}
-                className="px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 bg-(--color-red) hover:bg-(--color-red-hover) text-white border-(--color-red)"
+                className="px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 bg-green-600 hover:bg-green-500 text-white border-green-600"
               >
                 {paying ? 'Traitement…' : 'Payer la commande'}
               </button>
