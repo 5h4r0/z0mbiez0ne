@@ -1,9 +1,15 @@
-import { Link } from 'react-router';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { useAuthStore } from '../store/authStore';
 import { useBasketStore } from '../store/basketStore';
 import '../styles/pages.scss';
 
 export default function BasketPage() {
   const { items, removeItem, updateQuantity, clearBasket, totalPrice } = useBasketStore();
+  const { isAuthenticated, user, token } = useAuthStore();
+  const navigate = useNavigate();
+  const [orderError, setOrderError] = useState('');
+  const [ordering, setOrdering] = useState(false);
 
   function formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString('fr-FR', {
@@ -12,6 +18,42 @@ export default function BasketPage() {
       month: 'short',
       year: 'numeric',
     });
+  }
+
+  async function handleOrder() {
+    if (!isAuthenticated() || !user) {
+      navigate('/espace-client?redirectTo=/panier');
+      return;
+    }
+
+    setOrderError('');
+    setOrdering(true);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          lines: items.map((item) => ({
+            session_id: item.sessionId,
+            tickets_qty: item.quantity,
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message ?? 'La commande a échoué');
+
+      clearBasket();
+      navigate('/espace-client');
+    } catch (err) {
+      setOrderError((err as Error).message);
+    } finally {
+      setOrdering(false);
+    }
   }
 
   return (
@@ -116,6 +158,12 @@ export default function BasketPage() {
               </button>
             </div>
 
+            {orderError && (
+              <p className="bg-red-950/40 border border-(--color-red) text-(--color-red) text-sm rounded px-4 py-3 mb-6">
+                {orderError}
+              </p>
+            )}
+
             <div className="border-t border-(--color-border) pt-6 flex justify-between items-center flex-wrap gap-4">
               <div>
                 <span className="text-(--color-text-muted)">Total : </span>
@@ -123,10 +171,11 @@ export default function BasketPage() {
               </div>
               <button
                 type="button"
-                onClick={() => console.log('TODO: commander', items)}
-                className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em] transition-colors duration-200"
+                onClick={handleOrder}
+                disabled={ordering}
+                className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em] transition-colors duration-200 disabled:opacity-50"
               >
-                Commander
+                {ordering ? 'Commande en cours…' : isAuthenticated() ? 'Commander' : 'Se connecter pour commander'}
               </button>
             </div>
           </div>

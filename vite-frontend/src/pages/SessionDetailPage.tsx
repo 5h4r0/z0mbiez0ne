@@ -149,6 +149,7 @@ export default function SessionDetailPage() {
                   activityTitle: activity?.title ?? 'Session',
                   date: session.date,
                   unitPrice: Number.parseFloat(session.unit_price),
+                  quantity,
                 });
                 navigate('/panier');
               }}
