@@ -110,7 +110,10 @@ export const useAuthStore = create<AuthStore>()(
         }
         try {
           const res = await fetch('/api/auth/refresh', { method: 'POST' });
-          if (!res.ok) { set({ token: null, user: null }); return; }
+          if (!res.ok) {
+            if (res.status === 401) set({ token: null, user: null });
+            return;
+          }
           const { token } = (await res.json()) as { token: string };
           set({ token });
         } finally {
