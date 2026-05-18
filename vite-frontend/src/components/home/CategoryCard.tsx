@@ -36,7 +36,7 @@ export default function CategoryCard({ category }: Props) {
   const Icon = resolveIcon(category.title);
 
   return (
-    <Link to={`/${category.slug}`} className="block no-underline">
+    <Link to={`/${category.slug}`} className="block no-underline" aria-label={`Voir la catégorie ${category.title}`}>
       <article className="bg-(--color-surface) border border-(--color-border) rounded-lg overflow-hidden flex flex-col transition-colors duration-200 hover:bg-(--color-surface-hover) cursor-pointer">
         <div className="relative">
           <img src={imgSrc} alt={category.title} className="w-full h-40 object-cover block" />
