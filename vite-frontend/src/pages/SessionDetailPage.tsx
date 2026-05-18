@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
+import { useBasketStore } from '../store/basketStore';
 import type { Session } from '../types/api';
 import '../styles/pages.scss';
 
@@ -19,6 +20,8 @@ function formatTime(iso: string): string {
 export default function SessionDetailPage() {
   const params = useParams<{ id?: string; slug?: string }>();
   const id = params.id ?? params.slug?.split('-').at(-1);
+  const navigate = useNavigate();
+  const addItem = useBasketStore((s) => s.addItem);
 
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,7 +143,15 @@ export default function SessionDetailPage() {
             </div>
             <button
               type="button"
-              onClick={() => console.log('Ajout au panier', { sessionId: session.id, quantity, total })}
+              onClick={() => {
+                addItem({
+                  sessionId: session.id,
+                  activityTitle: activity?.title ?? 'Session',
+                  date: session.date,
+                  unitPrice: Number.parseFloat(session.unit_price),
+                });
+                navigate('/panier');
+              }}
               className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold tracking-[0.06em] uppercase cursor-pointer transition-colors duration-200"
             >
               Ajouter au panier

@@ -1,6 +1,7 @@
 import { ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
+import { useBasketStore } from '../store/basketStore';
 
 const NAV_LINKS = [
   { label: 'Activités', to: '/les-epreuves' },
@@ -21,6 +22,7 @@ function ZombieLogo() {
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const totalItems = useBasketStore((s) => s.totalItems());
 
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-100 bg-[rgba(10,10,10,0.95)] backdrop-blur-sm border-b border-(--color-border)">
@@ -55,7 +57,7 @@ export default function Header() {
           >
             <ShoppingCart size={18} />
             <span className="bg-(--color-red) text-white rounded-full text-[0.65rem] font-bold px-1 min-w-4 text-center">
-              0
+              {totalItems}
             </span>
           </NavLink>
 
