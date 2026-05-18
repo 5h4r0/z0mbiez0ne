@@ -81,6 +81,7 @@ export const getSessions = async (req: Request, res: Response) => {
         activity_id: s.activity_id,
         activity: s.activity ?? null,
         date: formatDate(new Date(s.date)),
+        date_iso: s.date.toISOString(),
         capacity: s.capacity,
         available_capacity: s.capacity - bookedQty,
         unit_price: Number(s.unit_price),
@@ -171,6 +172,7 @@ export const getSession = async (req: Request, res: Response) => {
             }
           : null,
         date: formatDate(session.date),
+        date_iso: session.date.toISOString(),
         capacity: session.capacity,
         available_capacity: session.capacity - bookedQty,
         unit_price: Number(session.unit_price),

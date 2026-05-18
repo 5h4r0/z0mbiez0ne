@@ -124,9 +124,9 @@ export default function ActivityDetailPage() {
                 className="flex items-center justify-between flex-wrap gap-3 bg-(--color-surface) border border-(--color-border) rounded-lg px-5 py-4"
               >
                 <span className="text-sm text-(--color-text) font-semibold capitalize">
-                  {formatDate(s.date)} à {formatTime(s.date)}
+                  {formatDate(s.date_iso)} à {formatTime(s.date_iso)}
                 </span>
-                <span className="text-(--color-text-muted) text-[0.85rem]">{s.capacity} places</span>
+                <span className="text-(--color-text-muted) text-[0.85rem]">{s.available_capacity} places</span>
                 <span className="text-(--color-red) font-bold">€{Number.parseFloat(s.unit_price).toFixed(2)}</span>
                 <Link
                   to={`/sessions/${s.id}`}
