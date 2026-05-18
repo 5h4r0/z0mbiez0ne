@@ -34,7 +34,9 @@ export default function ActivityDetailPage() {
         if (!r.ok) throw new Error('not found');
         return r.json();
       })
-      .then((data: unknown) => setActivity(data as Activity))
+      .then((raw: unknown) => {
+        setActivity((raw as { data: Activity }).data);
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [activitySlug]);
@@ -51,10 +53,6 @@ export default function ActivityDetailPage() {
       .catch(() => setSessions([]))
       .finally(() => setSessionsLoading(false));
   }, [activitySlug]);
-
-  const imgUrl = activity?.image_filename
-    ? `/images/${activity.image_filename}`
-    : `https://placehold.co/1400x600/141414/888?text=${encodeURIComponent(activity?.title ?? '')}`;
 
   if (loading) {
     return (
@@ -83,6 +81,10 @@ export default function ActivityDetailPage() {
       </div>
     );
   }
+
+  const imgUrl = activity.image_filename
+    ? `/images/banners/${activity.image_filename}`
+    : `https://placehold.co/1400x600/141414/888?text=${encodeURIComponent(activity.title)}`;
 
   return (
     <div className="page-wrapper">

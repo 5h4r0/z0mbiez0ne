@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import SessionCard from '../components/home/SessionCard';
 import Pagination from '../components/Pagination';
 import type { PaginatedResponse, Session } from '../types/api';
@@ -38,10 +39,12 @@ function SkeletonGrid() {
 }
 
 export default function SessionsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
+
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [status, setStatus] = useState<StatusFilter>('Scheduled');
 
@@ -62,7 +65,7 @@ export default function SessionsPage() {
 
   function handleStatusChange(s: StatusFilter) {
     setStatus(s);
-    setPage(1);
+    setSearchParams({});
   }
 
   return (
@@ -99,7 +102,7 @@ export default function SessionsPage() {
                 <SessionCard key={s.id} session={s} index={i} />
               ))}
             </div>
-            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination page={page} totalPages={totalPages} buildHref={(p) => `?page=${p}`} />
           </>
         )}
       </div>

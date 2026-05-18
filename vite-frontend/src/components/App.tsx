@@ -16,32 +16,34 @@ import SessionsPage from '../pages/SessionsPage';
 import TarifsPage from '../pages/TarifsPage';
 import Footer from './Footer';
 import Header from './Header';
-import './App.css';
+import '../styles/App.css';
+import ScrollToTop from './ScrollToTop';
 
 function App() {
   return (
     <div className="app">
+      <ScrollToTop />
       <Header />
-
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/sessions" element={<SessionsPage />} />
-        <Route path="/les-epreuves" element={<ActivitiesPage />} />
-        <Route path="/categories-epreuves" element={<CategoriesPage />} />
-        <Route path="/plan" element={<PlanPage />} />
-        <Route path="/tarifs" element={<TarifsPage />} />
-        <Route path="/faq" element={<FaqPage />} />
-        <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
-        <Route path="/cgu" element={<CguPage />} />
-        <Route path="/confidentialite" element={<ConfidentialitePage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/panier" element={<BasketPage />} />
-        <Route path="/sessions/:id" element={<SessionDetailPage />} />
-        {/* Détail dynamique : session (slug-id), activité ou catégorie */}
-        <Route path="/:slug" element={<DynamicDetailPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/sessions" element={<SessionsPage />} />
+          <Route path="/les-epreuves" element={<ActivitiesPage />} />
+          <Route path="/categories-epreuves" element={<CategoriesPage />} />
+          <Route path="/plan" element={<PlanPage />} />
+          <Route path="/tarifs" element={<TarifsPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
+          <Route path="/cgu" element={<CguPage />} />
+          <Route path="/confidentialite" element={<ConfidentialitePage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/panier" element={<BasketPage />} />
+          <Route path="/sessions/:id" element={<SessionDetailPage />} />
+          {/* Détail dynamique : session (slug-id), activité ou catégorie */}
+          <Route path="/:slug" element={<DynamicDetailPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </main>
       <Footer />
     </div>
   );

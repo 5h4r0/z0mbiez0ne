@@ -31,25 +31,17 @@ export default function SessionDetailPage() {
       setLoading(false);
       return;
     }
-
     fetch(`/api/sessions/${id}`)
       .then((r) => {
         if (!r.ok) throw new Error('not found');
         return r.json();
       })
       .then((raw: unknown) => {
-        const data = (raw as { data?: Session }).data ?? (raw as Session);
-        setSession(data);
+        setSession((raw as { data: Session }).data);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [id]);
-
-  const activity = session?.activity ?? null;
-  const total = session ? (quantity * Number.parseFloat(session.unit_price)).toFixed(2) : '0.00';
-  const imgUrl = activity?.image_filename
-    ? `/images/${activity.image_filename}`
-    : 'https://placehold.co/1400x600/141414/888?text=Session';
 
   if (loading) {
     return (
@@ -75,6 +67,12 @@ export default function SessionDetailPage() {
       </div>
     );
   }
+
+  const activity = session.activity ?? null;
+  const total = (quantity * Number.parseFloat(session.unit_price)).toFixed(2);
+  const imgUrl = activity?.image_filename
+    ? `/images/banners/${activity.image_filename}`
+    : 'https://placehold.co/1400x600/141414/888?text=Session';
 
   return (
     <div className="page-wrapper">

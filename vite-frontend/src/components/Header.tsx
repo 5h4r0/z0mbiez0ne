@@ -23,7 +23,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] bg-[rgba(10,10,10,0.95)] backdrop-blur-sm border-b border-(--color-border)">
+    <header className="fixed top-0 left-0 right-0 w-full z-100 bg-[rgba(10,10,10,0.95)] backdrop-blur-sm border-b border-(--color-border)">
       <div className="max-w-350 mx-auto px-6 h-16 flex items-center justify-between gap-6">
         <ZombieLogo />
 

@@ -106,7 +106,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-(--color-border) text-center px-6 py-4 text-xs text-(--color-text-muted)">
-        © {new Date().getFullYear()} The Z0mbie Z0ne. Tous droits réservés.
+        © {new Date().getFullYear()} the zØmbie zØne. Tous droits réservés.
       </div>
     </footer>
   );

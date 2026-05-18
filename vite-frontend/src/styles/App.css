@@ -22,14 +22,6 @@
   --color-text-muted: #888;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
@@ -38,4 +30,7 @@ body {
 
 .app {
   min-height: 100vh;
+  padding-top: 4rem;
+  display: flex;
+  flex-direction: column;
 }

@@ -1,39 +1,40 @@
+import { Link } from 'react-router';
+
 interface Props {
   page: number;
   totalPages: number;
-  onPageChange: (p: number) => void;
+  buildHref: (page: number) => string;
 }
 
-export default function Pagination({ page, totalPages, onPageChange }: Props) {
+export default function Pagination({ page, totalPages, buildHref }: Props) {
   if (totalPages <= 1) return null;
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
-    <div className="pagination">
-      <button type="button" className="pagination__btn" disabled={page === 1} onClick={() => onPageChange(page - 1)}>
-        ← Précédent
-      </button>
+    <nav className="pagination" aria-label="Pagination">
+      {page === 1 ? (
+        <span className="pagination__btn pagination__btn--disabled">← Précédent</span>
+      ) : (
+        <Link className="pagination__btn" to={buildHref(page - 1)}>← Précédent</Link>
+      )}
 
       {pages.map((p) => (
-        <button
+        <Link
           key={p}
-          type="button"
           className={`pagination__btn${p === page ? ' pagination__btn--active' : ''}`}
-          onClick={() => onPageChange(p)}
+          to={buildHref(p)}
+          aria-current={p === page ? 'page' : undefined}
         >
           {p}
-        </button>
+        </Link>
       ))}
 
-      <button
-        type="button"
-        className="pagination__btn"
-        disabled={page === totalPages}
-        onClick={() => onPageChange(page + 1)}
-      >
-        Suivant →
-      </button>
-    </div>
+      {page === totalPages ? (
+        <span className="pagination__btn pagination__btn--disabled">Suivant →</span>
+      ) : (
+        <Link className="pagination__btn" to={buildHref(page + 1)}>Suivant →</Link>
+      )}
+    </nav>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import CategoryCard from '../components/home/CategoryCard';
 import Pagination from '../components/Pagination';
 import type { Category, PaginatedResponse } from '../types/api';
@@ -29,10 +30,12 @@ function SkeletonGrid() {
 }
 
 export default function CategoriesPage() {
+  const [searchParams] = useSearchParams();
+  const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
@@ -70,7 +73,7 @@ export default function CategoriesPage() {
                 <CategoryCard key={c.id} category={c} />
               ))}
             </div>
-            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination page={page} totalPages={totalPages} buildHref={(p) => `?page=${p}`} />
           </>
         )}
       </div>

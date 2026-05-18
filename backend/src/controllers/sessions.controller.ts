@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale'; // -> use US locale
 import type { Request, Response } from 'express';
 import z from 'zod';
-import { getPagination } from '../helpers/index.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
@@ -28,9 +27,8 @@ const formatSession = (s: {
 });
 
 const querySchema = z.object({
-  limit: z.string().optional(),
-  offset: z.string().optional(),
-  page: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(12),
   status: z.nativeEnum(SessionStatus).optional(),
   activity_slug: z.string().optional(),
   sort: z.enum(['date', 'id']).optional(),
@@ -41,10 +39,8 @@ const querySchema = z.object({
 export const getSessions = async (req: Request, res: Response) => {
   try {
     const query = await querySchema.parseAsync(req.query);
-
-    const { take, skip: skipFromOffset } = getPagination(req);
-    const skipFromPage = query.page && take ? (Number(query.page) - 1) * take : undefined;
-    const skip = skipFromOffset ?? skipFromPage;
+    const { page, limit } = query;
+    const skip = (page - 1) * limit;
 
     const where: Prisma.sessionsWhereInput = {};
     if (query.status) where.status = query.status;
@@ -54,33 +50,27 @@ export const getSessions = async (req: Request, res: Response) => {
       [query.sort ?? 'date']: query.order ?? 'asc',
     };
 
-    const sessions = await prisma.sessions.findMany({
-      where,
-      orderBy,
-      include: {
-        activity: {
-          select: { id: true, title: true, slug: true, image_filename: true },
-        },
-        orders_lines: {
-          include: {
-            order: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    email: true,
-                    firstname: true,
-                    lastname: true,
-                  },
-                },
+    const include = {
+      activity: {
+        select: { id: true, title: true, slug: true, image_filename: true },
+      },
+      orders_lines: {
+        include: {
+          order: {
+            include: {
+              user: {
+                select: { id: true, email: true, firstname: true, lastname: true },
               },
             },
           },
         },
       },
-      ...(take !== undefined ? { take } : {}),
-      ...(skip !== undefined ? { skip } : {}),
-    });
+    };
+
+    const [sessions, total] = await Promise.all([
+      prisma.sessions.findMany({ where, orderBy, include, take: limit, skip }),
+      prisma.sessions.count({ where }),
+    ]);
 
     const formatted = sessions.map((s) => ({
       id: s.id,
@@ -93,7 +83,14 @@ export const getSessions = async (req: Request, res: Response) => {
       users: s.orders_lines.map((ol) => ol.order.user),
     }));
 
-    res.status(200).json({ success: true, data: formatted });
+    res.status(200).json({
+      success: true,
+      data: formatted,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
