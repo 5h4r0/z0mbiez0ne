@@ -86,7 +86,7 @@ export default function SessionDetailPage() {
             ← Retour à {activity?.title ?? "l'épreuve"}
           </Link>
           <h1 className="detail-hero__title">
-            {activity?.title ?? 'Session'} — Session du {formatLongDate(session.date)}
+            {activity?.title ?? 'Session'} — Session du {formatLongDate(session.date_iso)}
           </h1>
         </div>
       </div>
@@ -94,8 +94,8 @@ export default function SessionDetailPage() {
       <div className="detail-body">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mb-10">
           {[
-            { label: 'Date', value: formatLongDate(session.date) },
-            { label: 'Heure', value: formatTime(session.date) },
+            { label: 'Date', value: formatLongDate(session.date_iso) },
+            { label: 'Heure', value: formatTime(session.date_iso) },
             { label: 'Places disponibles', value: `${session.available_capacity} / ${session.capacity}` },
             { label: 'Prix unitaire', value: `€${Number.parseFloat(session.unit_price).toFixed(2)}` },
           ].map(({ label, value }) => (
@@ -150,7 +150,7 @@ export default function SessionDetailPage() {
                 addItem({
                   sessionId: session.id,
                   activityTitle: activity?.title ?? 'Session',
-                  date: session.date,
+                  date: session.date_iso,
                   unitPrice: Number.parseFloat(session.unit_price),
                   quantity,
                 });

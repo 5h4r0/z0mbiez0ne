@@ -25,15 +25,15 @@ export default function SessionCard({ session }: Props) {
   const price = Number.parseFloat(session.unit_price).toFixed(2);
 
   return (
-    <Link to={href} className="block no-underline" aria-label={`Réserver ${title} — ${formatDate(session.date)} à ${formatTime(session.date)}`}>
+    <Link to={href} className="block no-underline" aria-label={`Réserver ${title} — ${formatDate(session.date_iso)} à ${formatTime(session.date_iso)}`}>
       <article className="bg-(--color-surface) border border-(--color-border) rounded-lg overflow-hidden transition-colors duration-200 hover:bg-(--color-surface-hover) cursor-pointer">
         <div className="relative">
           <img src={imgSrc} alt={title} className="w-full h-40 object-cover block" />
           <span className="absolute top-2 left-2 bg-black/80 text-(--color-text) px-2 py-0.5 rounded text-xs font-semibold capitalize">
-            {formatDate(session.date)}
+            {formatDate(session.date_iso)}
           </span>
           <span className="absolute top-2 right-2 bg-(--color-red) text-white px-2 py-0.5 rounded text-xs font-semibold">
-            {formatTime(session.date)}
+            {formatTime(session.date_iso)}
           </span>
         </div>
 
