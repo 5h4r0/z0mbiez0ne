@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* Alias "bebas-neue-regular" → Bebas Neue (Google Fonts) */
+@font-face {
+  font-family: 'bebas-neue-regular';
+  src: url('https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9Wdhyzbi.woff2') format('woff2'),
+       local('Bebas Neue'), local('Bebas Neue Regular');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --color-bg: #0a0a0a;
+  --color-surface: #141414;
+  --color-surface-hover: #1c1c1c;
+  --color-border: #2a2a2a;
+  --color-red: #c0392b;
+  --color-red-hover: #e74c3c;
+  --color-gold: #b8860b;
+  --color-text: #e8e8e8;
+  --color-text-muted: #888;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Montserrat', sans-serif;
+}
+
+.app {
+  min-height: 100vh;
+}
