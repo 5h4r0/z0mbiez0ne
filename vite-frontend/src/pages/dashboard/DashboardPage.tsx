@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { apiFetch, useAuthStore } from '../store/authStore';
-import '../styles/pages.scss';
+import { apiFetch, useAuthStore } from '../../store/authStore';
+import '../../styles/pages.scss';
 
 type Tab = 'login' | 'register';
 
@@ -39,7 +39,7 @@ export default function EspaceClientPage() {
   const { login, register, user, isHydrating } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo') ?? '/espace-client';
+  const redirectTo = searchParams.get('redirectTo') ?? '/dashboard';
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -110,7 +110,7 @@ export default function EspaceClientPage() {
               {orders.filter((o) => o.status !== 'Cancelled').map((order) => (
                 <Link
                   key={order.id}
-                  to={`/espace-client/commandes/${order.id}`}
+                  to={`/dashboard/commandes/${order.id}`}
                   className="block no-underline bg-(--color-surface) border border-(--color-border) rounded-lg p-5 hover:border-(--color-red) transition-colors duration-200"
                 >
                   <div className="flex justify-between items-start gap-4 flex-wrap">
