@@ -85,6 +85,7 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
           include: {
             session: {
               select: { id: true, date: true, capacity: true, unit_price: true, status: true },
+              include: { activity: { select: { title: true } } },
             },
           },
         },
@@ -105,9 +106,11 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
           session_id: ol.session_id,
           tickets_qty: ol.tickets_qty,
           amount: Number(ol.amount),
+          activity_title: ol.session.activity?.title ?? null,
           session: {
             id: ol.session.id,
             date: formatDate(ol.session.date),
+            date_iso: ol.session.date.toISOString(),
             capacity: ol.session.capacity,
             unit_price: Number(ol.session.unit_price),
             status: ol.session.status,
@@ -134,6 +137,7 @@ export const getMyOrders = async (req: Request, res: Response): Promise<void> =>
           include: {
             session: {
               select: { id: true, date: true, capacity: true, unit_price: true, status: true },
+              include: { activity: { select: { title: true } } },
             },
           },
         },
@@ -150,9 +154,11 @@ export const getMyOrders = async (req: Request, res: Response): Promise<void> =>
           session_id: ol.session_id,
           tickets_qty: ol.tickets_qty,
           amount: Number(ol.amount),
+          activity_title: ol.session.activity?.title ?? null,
           session: {
             id: ol.session.id,
             date: formatDate(ol.session.date),
+            date_iso: ol.session.date.toISOString(),
             capacity: ol.session.capacity,
             unit_price: Number(ol.session.unit_price),
             status: ol.session.status,
@@ -260,6 +266,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
           session: {
             id: ol.session.id,
             date: formatDate(ol.session.date),
+            date_iso: ol.session.date.toISOString(),
             capacity: ol.session.capacity,
             unit_price: Number(ol.session.unit_price),
             status: ol.session.status,

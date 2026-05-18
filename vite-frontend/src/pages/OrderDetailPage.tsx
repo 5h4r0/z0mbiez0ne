@@ -8,7 +8,8 @@ type OrderLine = {
   session_id: number;
   tickets_qty: number;
   amount: number;
-  session: { id: number; date: string; unit_price: number; status: string };
+  activity_title: string | null;
+  session: { id: number; date: string; date_iso: string; unit_price: number; status: string };
 };
 
 type Order = {
@@ -38,6 +39,12 @@ const STATUS_CLASS: Record<string, string> = {
 
 function formatShortDate(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function formatSessionDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
 }
 
 export default function OrderDetailPage() {
@@ -123,8 +130,10 @@ export default function OrderDetailPage() {
           {order.lines.map((line) => (
             <div key={line.id} className="bg-(--color-surface) border border-(--color-border) rounded-lg p-4 flex justify-between items-center flex-wrap gap-3">
               <div>
-                <div className="text-sm font-bold text-(--color-text) mb-0.5">Session #{line.session_id}</div>
-                <div className="text-xs text-(--color-text-muted)">{line.session.date}</div>
+                <div className="text-sm font-bold text-(--color-text) mb-0.5">
+                  {line.activity_title ?? `Session #${line.session_id}`}
+                </div>
+                <div className="text-xs text-(--color-text-muted)">{formatSessionDate(line.session.date_iso)}</div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-(--color-text-muted)">{line.tickets_qty} × €{line.session.unit_price.toFixed(2)}</div>
