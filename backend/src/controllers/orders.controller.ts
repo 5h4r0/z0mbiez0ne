@@ -124,6 +124,48 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+/** get my orders (authenticated user) */
+export const getMyOrders = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orders = await prisma.orders.findMany({
+      where: { user_id: req.user.id },
+      include: {
+        orders_lines: {
+          include: {
+            session: {
+              select: { id: true, date: true, capacity: true, unit_price: true, status: true },
+            },
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: orders.map((o) => ({
+        ...formatOrder(o),
+        lines: o.orders_lines.map((ol) => ({
+          id: ol.id,
+          session_id: ol.session_id,
+          tickets_qty: ol.tickets_qty,
+          amount: Number(ol.amount),
+          session: {
+            id: ol.session.id,
+            date: formatDate(ol.session.date),
+            capacity: ol.session.capacity,
+            unit_price: Number(ol.session.unit_price),
+            status: ol.session.status,
+          },
+        })),
+      })),
+    });
+  } catch (error) {
+    console.error('error fetching user orders:', error);
+    res.status(500).json({ success: false, message: 'error fetching user orders' });
+  }
+};
+
 /** create */
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
   const bodySchema = z.object({
