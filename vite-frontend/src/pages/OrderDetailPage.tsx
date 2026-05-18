@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { useAuthStore } from '../store/authStore';
+import { apiFetch } from '../store/authStore';
 import '../styles/pages.scss';
 
 type OrderLine = {
@@ -49,7 +49,6 @@ function formatSessionDate(iso: string): string {
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const token = useAuthStore((s) => s.token);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,9 +63,9 @@ export default function OrderDetailPage() {
     setCancelling(true);
     setCancelError('');
     try {
-      const res = await fetch(`/api/orders/${id}`, {
+      const res = await apiFetch(`/api/orders/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Cancelled' }),
       });
       const data = await res.json() as { success: boolean; message?: string };
@@ -82,15 +81,15 @@ export default function OrderDetailPage() {
   }
 
   useEffect(() => {
-    if (!id || !token) { setError(true); setLoading(false); return; }
+    if (!id) { setError(true); setLoading(false); return; }
     let cancelled = false;
-    fetch(`/api/orders/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch(`/api/orders/${id}`)
       .then((r) => { if (!r.ok) throw new Error(); return r.json() as Promise<{ data: Order }>; })
       .then((d) => { if (!cancelled) setOrder(d.data); })
       .catch(() => { if (!cancelled) setError(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [id, token]);
+  }, [id]);
 
   if (loading) {
     return (
