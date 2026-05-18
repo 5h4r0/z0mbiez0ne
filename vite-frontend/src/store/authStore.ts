@@ -102,6 +102,6 @@ export const useAuthStore = create<AuthStore>()(
 
       isAuthenticated: () => !!get().token,
     }),
-    { name: 'zz-auth' },
+    { name: 'zz-auth', partialize: (state) => ({ user: state.user }) },
   ),
 );
