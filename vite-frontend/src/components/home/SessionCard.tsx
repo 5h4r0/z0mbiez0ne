@@ -25,7 +25,7 @@ export default function SessionCard({ session }: Props) {
   const price = Number.parseFloat(session.unit_price).toFixed(2);
 
   return (
-    <Link to={href} className="block no-underline">
+    <Link to={href} className="block no-underline" aria-label={`Réserver ${title} — ${formatDate(session.date)} à ${formatTime(session.date)}`}>
       <article className="bg-(--color-surface) border border-(--color-border) rounded-lg overflow-hidden transition-colors duration-200 hover:bg-(--color-surface-hover) cursor-pointer">
         <div className="relative">
           <img src={imgSrc} alt={title} className="w-full h-40 object-cover block" />

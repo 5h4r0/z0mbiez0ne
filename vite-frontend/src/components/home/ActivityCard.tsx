@@ -13,7 +13,7 @@ export default function ActivityCard({ activity }: Props) {
     : `https://placehold.co/400x250/141414/888?text=${encodeURIComponent(activity.title)}`;
 
   return (
-    <Link to={`/${activity.slug}`} className="block no-underline">
+    <Link to={`/${activity.slug}`} className="block no-underline" aria-label={`Découvrir l'activité ${activity.title}`}>
       <article className="bg-(--color-surface) border border-(--color-border) rounded-lg overflow-hidden flex flex-col transition-colors duration-200 hover:bg-(--color-surface-hover) cursor-pointer">
         <img src={imgSrc} alt={activity.title} className="w-full h-40 object-cover block" />
 
