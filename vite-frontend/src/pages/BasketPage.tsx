@@ -41,11 +41,11 @@ export default function BasketPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; message?: string; data?: { id: number } };
       if (!res.ok) throw new Error(data.message ?? 'La commande a échoué');
 
       clearBasket();
-      navigate('/espace-client');
+      navigate(`/espace-client/commandes/${data.data?.id}`);
     } catch (err) {
       setOrderError((err as Error).message);
     } finally {
@@ -170,7 +170,7 @@ export default function BasketPage() {
                 type="button"
                 onClick={handleOrder}
                 disabled={ordering}
-                className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em] transition-colors duration-200 disabled:opacity-50"
+                className="bg-yellow-500 hover:bg-yellow-400 text-black border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em] transition-colors duration-200 disabled:opacity-50"
               >
                 {ordering ? 'Commande en cours…' : isAuthenticated() ? 'Commander' : 'Se connecter pour commander'}
               </button>

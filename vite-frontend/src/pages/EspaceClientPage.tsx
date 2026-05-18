@@ -107,7 +107,7 @@ export default function EspaceClientPage() {
 
           {!ordersLoading && !ordersError && orders.length > 0 && (
             <div className="flex flex-col gap-3">
-              {orders.map((order) => (
+              {orders.filter((o) => o.status !== 'Cancelled').map((order) => (
                 <Link
                   key={order.id}
                   to={`/espace-client/commandes/${order.id}`}
