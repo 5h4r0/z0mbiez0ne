@@ -25,10 +25,7 @@ import ScrollToTop from './ScrollToTop';
 
 function App() {
   useEffect(() => {
-    fetch('/api/auth/refresh', { method: 'POST' })
-      .then((r) => { if (!r.ok) throw new Error(); return r.json() as Promise<{ token: string }>; })
-      .then(({ token }) => { useAuthStore.setState({ token }); })
-      .catch(() => {});
+    useAuthStore.getState().refreshToken().catch(() => {});
   }, []);
 
   return (
