@@ -1,80 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 import ActivityCard from '../components/home/ActivityCard';
 import CategoryCard from '../components/home/CategoryCard';
 import SessionCard from '../components/home/SessionCard';
-import type { Activity, Category, Session } from '../types/api';
+import SkeletonGrid from '../components/SkeletonGrid';
+import { useFetch } from '../hooks/useFetch';
 import '../styles/HomePage.scss';
-
-function SkeletonCard() {
-  return (
-    <div className="skeleton-card">
-      <div className="skeleton-card__img" />
-      <div className="skeleton-card__body">
-        <div className="skeleton-card__line skeleton-card__line--medium" />
-        <div className="skeleton-card__line skeleton-card__line--full" />
-        <div className="skeleton-card__line skeleton-card__line--short" />
-      </div>
-    </div>
-  );
-}
-
-function SkeletonGrid() {
-  return (
-    <div className="home-section__grid">
-      {Array.from({ length: 4 }).map((_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
-        <SkeletonCard key={i} />
-      ))}
-    </div>
-  );
-}
+import { type Activity, type Category, parsePaginated, type Session } from '../types/api';
 
 export default function HomePage() {
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { data: sessionsRaw, loading: sessionsLoading, error: sessionsError } = useFetch<unknown>(
+    '/api/sessions?status=Scheduled&limit=4&sort=date&order=asc',
+  );
+  const { data: activitiesRaw, loading: activitiesLoading, error: activitiesError } = useFetch<unknown>(
+    '/api/activities?limit=4',
+  );
+  const { data: categoriesRaw, loading: categoriesLoading, error: categoriesError } = useFetch<unknown>(
+    '/api/categories?limit=4',
+  );
 
-  const [sessionsLoading, setSessionsLoading] = useState(true);
-  const [activitiesLoading, setActivitiesLoading] = useState(true);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
-
-  const [sessionsError, setSessionsError] = useState(false);
-  const [activitiesError, setActivitiesError] = useState(false);
-  const [categoriesError, setCategoriesError] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/sessions?status=Scheduled&limit=4&sort=date&order=asc')
-      .then((r) => r.json())
-      .then((data: unknown) => {
-        const rows = Array.isArray(data) ? data : ((data as { data?: Session[] }).data ?? []);
-        setSessions(rows as Session[]);
-      })
-      .catch(() => setSessionsError(true))
-      .finally(() => setSessionsLoading(false));
-  }, []);
-
-  useEffect(() => {
-    fetch('/api/activities?limit=4')
-      .then((r) => r.json())
-      .then((data: unknown) => {
-        const rows = Array.isArray(data) ? data : ((data as { data?: Activity[] }).data ?? []);
-        setActivities(rows as Activity[]);
-      })
-      .catch(() => setActivitiesError(true))
-      .finally(() => setActivitiesLoading(false));
-  }, []);
-
-  useEffect(() => {
-    fetch('/api/categories?limit=4')
-      .then((r) => r.json())
-      .then((data: unknown) => {
-        const rows = Array.isArray(data) ? data : ((data as { data?: Category[] }).data ?? []);
-        setCategories(rows as Category[]);
-      })
-      .catch(() => setCategoriesError(true))
-      .finally(() => setCategoriesLoading(false));
-  }, []);
+  const sessions = useMemo(
+    () => (sessionsRaw !== null ? parsePaginated<Session>(sessionsRaw).data : []),
+    [sessionsRaw],
+  );
+  const activities = useMemo(
+    () => (activitiesRaw !== null ? parsePaginated<Activity>(activitiesRaw).data : []),
+    [activitiesRaw],
+  );
+  const categories = useMemo(
+    () => (categoriesRaw !== null ? parsePaginated<Category>(categoriesRaw).data : []),
+    [categoriesRaw],
+  );
 
   return (
     <main>
@@ -98,7 +54,7 @@ export default function HomePage() {
         <div className="home-section">
           <h2 className="home-section__title">PROCHAINES SESSIONS</h2>
 
-          {sessionsLoading && <SkeletonGrid />}
+          {sessionsLoading && <SkeletonGrid count={4} gridClass="home-section__grid" />}
           {sessionsError && <p className="home-section__error">Les sessions ne sont pas disponibles pour le moment.</p>}
           {!sessionsLoading && !sessionsError && (
             <div className="home-section__grid">
@@ -119,7 +75,7 @@ export default function HomePage() {
         <div className="home-section">
           <h2 className="home-section__title">LES ÉPREUVES DE LA ZONE</h2>
 
-          {activitiesLoading && <SkeletonGrid />}
+          {activitiesLoading && <SkeletonGrid count={4} gridClass="home-section__grid" />}
           {activitiesError && (
             <p className="home-section__error">Les épreuves ne sont pas disponibles pour le moment.</p>
           )}
@@ -142,7 +98,7 @@ export default function HomePage() {
         <div className="home-section">
           <h2 className="home-section__title">EXPLOREZ NOS CATÉGORIES</h2>
 
-          {categoriesLoading && <SkeletonGrid />}
+          {categoriesLoading && <SkeletonGrid count={4} gridClass="home-section__grid" />}
           {categoriesError && (
             <p className="home-section__error">Les catégories ne sont pas disponibles pour le moment.</p>
           )}

@@ -1,58 +1,23 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import ActivityCard from '../components/home/ActivityCard';
 import Pagination from '../components/Pagination';
-import type { Activity, PaginatedResponse } from '../types/api';
+import SkeletonGrid from '../components/SkeletonGrid';
+import { useFetch } from '../hooks/useFetch';
 import '../styles/pages.scss';
-
-function parseActivities(raw: unknown): { data: Activity[]; totalPages: number } {
-  if (Array.isArray(raw)) return { data: raw as Activity[], totalPages: 1 };
-  const p = raw as PaginatedResponse<Activity>;
-  return { data: p.data ?? [], totalPages: p.totalPages ?? 1 };
-}
-
-function SkeletonGrid() {
-  return (
-    <div className="list-page__grid">
-      {Array.from({ length: 8 }).map((_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
-        <div key={i} className="skeleton-card">
-          <div className="skeleton-card__img" />
-          <div className="skeleton-card__body">
-            <div className="skeleton-card__line skeleton-card__line--medium" />
-            <div className="skeleton-card__line skeleton-card__line--full" />
-            <div className="skeleton-card__line skeleton-card__line--short" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+import { type Activity, parsePaginated } from '../types/api';
 
 export default function ActivitiesPage() {
   const [searchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
-
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
 
+  const { data: raw, loading, error } = useFetch<unknown>(`/api/activities?limit=12&page=${page}`);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-    fetch(`/api/activities?limit=12&page=${page}`)
-      .then((r) => r.json())
-      .then((raw: unknown) => {
-        const parsed = parseActivities(raw);
-        setActivities(parsed.data);
-        setTotalPages(parsed.totalPages);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [page]);
+  const { data: activities, totalPages } = useMemo(
+    () => (raw !== null ? parsePaginated<Activity>(raw) : { data: [], totalPages: 1 }),
+    [raw],
+  );
 
   const filtered = useMemo(
     () =>

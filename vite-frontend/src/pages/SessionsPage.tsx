@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import SessionCard from '../components/home/SessionCard';
 import Pagination from '../components/Pagination';
-import type { PaginatedResponse, Session } from '../types/api';
+import SkeletonGrid from '../components/SkeletonGrid';
+import { useFetch } from '../hooks/useFetch';
 import '../styles/pages.scss';
+import { parsePaginated, type Session } from '../types/api';
 
 type StatusFilter = 'all' | 'Scheduled' | 'Completed' | 'Cancelled';
 
@@ -14,54 +16,19 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   Cancelled: 'Annulées',
 };
 
-function parseSessions(raw: unknown): { data: Session[]; totalPages: number } {
-  if (Array.isArray(raw)) return { data: raw as Session[], totalPages: 1 };
-  const p = raw as PaginatedResponse<Session>;
-  return { data: p.data ?? [], totalPages: p.totalPages ?? 1 };
-}
-
-function SkeletonGrid() {
-  return (
-    <div className="list-page__grid">
-      {Array.from({ length: 8 }).map((_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
-        <div key={i} className="skeleton-card">
-          <div className="skeleton-card__img" />
-          <div className="skeleton-card__body">
-            <div className="skeleton-card__line skeleton-card__line--medium" />
-            <div className="skeleton-card__line skeleton-card__line--short" />
-            <div className="skeleton-card__line skeleton-card__line--full" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function SessionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
-
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
   const [status, setStatus] = useState<StatusFilter>('Scheduled');
 
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-    const statusParam = status === 'all' ? '' : `&status=${status}`;
-    fetch(`/api/sessions?limit=12&page=${page}&sort=date&order=asc${statusParam}`)
-      .then((r) => r.json())
-      .then((raw: unknown) => {
-        const parsed = parseSessions(raw);
-        setSessions(parsed.data);
-        setTotalPages(parsed.totalPages);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [page, status]);
+  const statusParam = status === 'all' ? '' : `&status=${status}`;
+  const url = `/api/sessions?limit=12&page=${page}&sort=date&order=asc${statusParam}`;
+  const { data: raw, loading, error } = useFetch<unknown>(url);
+
+  const { data: sessions, totalPages } = useMemo(
+    () => (raw !== null ? parsePaginated<Session>(raw) : { data: [], totalPages: 1 }),
+    [raw],
+  );
 
   function handleStatusChange(s: StatusFilter) {
     setStatus(s);

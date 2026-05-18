@@ -35,3 +35,9 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+export function parsePaginated<T>(raw: unknown): { data: T[]; totalPages: number } {
+  if (Array.isArray(raw)) return { data: raw as T[], totalPages: 1 };
+  const p = raw as PaginatedResponse<T>;
+  return { data: p.data ?? [], totalPages: p.totalPages ?? 1 };
+}
