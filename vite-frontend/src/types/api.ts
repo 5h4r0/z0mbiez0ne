@@ -3,6 +3,7 @@ export interface Session {
   activity_id: number;
   date: string;
   capacity: number;
+  available_capacity: number;
   unit_price: string;
   status: 'Scheduled' | 'Cancelled' | 'Completed';
   activity?: {

@@ -40,7 +40,11 @@ export default function SessionCard({ session }: Props) {
         <div className="p-4">
           <h3 className="font-bold text-base text-(--color-text) mb-2 truncate">{title}</h3>
 
-          <p className="text-[0.8rem] text-(--color-text-muted) mb-3">{session.capacity} places disponibles</p>
+          {session.available_capacity === 0 ? (
+            <p className="text-[0.8rem] text-yellow-400 font-normal mb-3">SOLD OUT</p>
+          ) : (
+            <p className="text-[0.8rem] text-(--color-text-muted) mb-3">{session.available_capacity} places disponibles</p>
+          )}
 
           <div className="flex justify-between items-center">
             <span className="text-(--color-red) font-bold text-[1.1rem]">€{price}</span>

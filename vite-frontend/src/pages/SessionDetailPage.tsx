@@ -96,7 +96,7 @@ export default function SessionDetailPage() {
           {[
             { label: 'Date', value: formatLongDate(session.date) },
             { label: 'Heure', value: formatTime(session.date) },
-            { label: 'Places disponibles', value: `${session.capacity}` },
+            { label: 'Places disponibles', value: `${session.available_capacity} / ${session.capacity}` },
             { label: 'Prix unitaire', value: `€${Number.parseFloat(session.unit_price).toFixed(2)}` },
           ].map(({ label, value }) => (
             <div key={label} className="bg-(--color-surface) border border-(--color-border) rounded-lg p-4">
@@ -119,6 +119,7 @@ export default function SessionDetailPage() {
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={session.available_capacity === 0}
                 className="bg-(--color-border) border-none text-(--color-text) w-8 h-8 rounded cursor-pointer text-base"
               >
                 −
@@ -128,7 +129,8 @@ export default function SessionDetailPage() {
               </span>
               <button
                 type="button"
-                onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                onClick={() => setQuantity((q) => Math.min(session.available_capacity, q + 1))}
+              disabled={session.available_capacity === 0}
                 className="bg-(--color-border) border-none text-(--color-text) w-8 h-8 rounded cursor-pointer text-base"
               >
                 +
@@ -143,6 +145,7 @@ export default function SessionDetailPage() {
             </div>
             <button
               type="button"
+              disabled={session.available_capacity === 0}
               onClick={() => {
                 addItem({
                   sessionId: session.id,
@@ -153,9 +156,9 @@ export default function SessionDetailPage() {
                 });
                 navigate('/panier');
               }}
-              className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold tracking-[0.06em] uppercase cursor-pointer transition-colors duration-200"
+              className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold tracking-[0.06em] uppercase cursor-pointer transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Ajouter au panier
+              {session.available_capacity === 0 ? 'Complet' : 'Ajouter au panier'}
             </button>
           </div>
         </div>
