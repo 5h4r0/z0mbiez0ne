@@ -193,7 +193,7 @@ export default function OrderDetailPage() {
               </div>
               <div className="text-right">
                 <div className="text-sm text-(--color-text-muted)">{line.tickets_qty} × €{line.session.unit_price.toFixed(2)}</div>
-                <div className="text-base font-bold text-(--color-red)">€{line.amount.toFixed(2)}</div>
+                <div className={`text-base font-bold ${paid || order.status === 'Confirmed' ? 'text-green-400' : 'text-(--color-red)'}`}>€{line.amount.toFixed(2)}</div>
               </div>
             </div>
           ))}
@@ -241,7 +241,7 @@ export default function OrderDetailPage() {
           </div>
         )}
 
-        {/* Confirmation paiement — affiché dès que paid=true ou status déjà Confirmed */}
+        {/* Bouton vert statique si Confirmed (reload ou après paiement) */}
         {(paid || order.status === 'Confirmed') && (
           <div className="mt-10">
             <button
@@ -251,9 +251,12 @@ export default function OrderDetailPage() {
             >
               Transaction acceptée
             </button>
-            <p className="text-green-400 font-bold text-sm leading-relaxed">
-              Votre commande est acceptée et en cours de traitement, vous recevrez un email de confirmation accompagné de votre facture dans quelques secondes.
-            </p>
+            {/* Message affiché uniquement juste après le paiement, pas au reload */}
+            {paid && (
+              <p className="text-green-400 font-bold text-sm leading-relaxed">
+                Votre commande est acceptée et en cours de traitement, vous recevrez un email de confirmation accompagné de votre facture dans quelques secondes.
+              </p>
+            )}
           </div>
         )}
       </div>
