@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthStore>()(
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firstname, lastname, email, password, confirm, role_id: 2 }),
+          body: JSON.stringify({ firstname, lastname, email, password, confirm, role_id: 1 }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message ?? 'Inscription échouée');
