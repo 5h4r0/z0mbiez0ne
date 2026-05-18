@@ -102,15 +102,12 @@ async function main() {
   ];
 
   await prisma.categories.createMany({
-    data: Array.from({ length: 5 }).map(() => {
-      const title = faker.helpers.arrayElement(CATEGORIES);
-      return {
-        title,
-        description: faker.lorem.sentences(2),
-        image_filename: `img-category-${getRandomInt(1, 999)}.jpg`,
-        slug: makeSlug(title),
-      };
-    }),
+    data: faker.helpers.shuffle([...CATEGORIES]).map((title) => ({
+      title,
+      description: faker.lorem.sentences(2),
+      image_filename: `category-${makeSlug(title)}.jpg`,
+      slug: makeSlug(title),
+    })),
     skipDuplicates: true,
   });
 
@@ -149,15 +146,12 @@ async function main() {
   ];
 
   await prisma.activities.createMany({
-    data: Array.from({ length: 10 }).map(() => {
-      const title = faker.helpers.arrayElement(ACTIVITIES);
-      return {
-        title,
-        description: faker.lorem.sentences(2),
-        image_filename: `img-activity-${getRandomInt(1, 999)}.jpg`,
-        slug: makeSlug(title),
-      };
-    }),
+    data: faker.helpers.shuffle([...ACTIVITIES]).map((title) => ({
+      title,
+      description: faker.lorem.sentences(2),
+      image_filename: `activity-${makeSlug(title)}.jpg`,
+      slug: makeSlug(title),
+    })),
     skipDuplicates: true,
   });
 
@@ -180,7 +174,7 @@ async function main() {
 
   // sessions
   await prisma.sessions.createMany({
-    data: Array.from({ length: 10 }).map(() => ({
+    data: Array.from({ length: 50 }).map(() => ({
       activity_id: faker.helpers.arrayElement(allActivities).id,
       date: faker.date.soon({ days: 30 }),
       capacity: getRandomInt(10, 50),
@@ -199,7 +193,7 @@ async function main() {
     select: { id: true },
   });
   await prisma.orders.createMany({
-    data: Array.from({ length: 5 }).map(() => ({
+    data: Array.from({ length: 10 }).map(() => ({
       user_id: faker.helpers.arrayElement(memberUsers).id,
       taxes: decimalFromCents(getRandomInt(0, 999)),
       total_amount: new Prisma.Decimal(getRandomInt(20, 99)),
@@ -218,19 +212,30 @@ async function main() {
   const allOrders = await prisma.orders.findMany({ select: { id: true } });
   const allSessions = await prisma.sessions.findMany({ select: { id: true } });
 
-  await prisma.orders_lines.createMany({
-    data: Array.from({ length: 15 }).map(() => {
-      const order = faker.helpers.arrayElement(allOrders);
-      const session = faker.helpers.arrayElement(allSessions);
-      return {
+  const usedPairs = new Set<string>();
+  const orderLinesData: {
+    order_id: number;
+    session_id: number;
+    tickets_qty: number;
+    amount: Prisma.Decimal;
+  }[] = [];
+
+  while (orderLinesData.length < 25) {
+    const order = faker.helpers.arrayElement(allOrders);
+    const session = faker.helpers.arrayElement(allSessions);
+    const key = `${order.id}-${session.id}`;
+    if (!usedPairs.has(key)) {
+      usedPairs.add(key);
+      orderLinesData.push({
         order_id: order.id,
         session_id: session.id,
         tickets_qty: getRandomInt(1, 5),
         amount: decimalFromCents(getRandomInt(100, 999)),
-      };
-    }),
-    skipDuplicates: true,
-  });
+      });
+    }
+  }
+
+  await prisma.orders_lines.createMany({ data: orderLinesData });
 }
 
 main()

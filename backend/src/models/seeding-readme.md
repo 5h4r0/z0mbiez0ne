@@ -51,15 +51,15 @@ npx tsx --env-file=.env src/models/seeding.ts
 
 4. Catégories  
 - Liste fixe de 10 catégories possibles  
-- Génération de 5 catégories  
+- Génération de 10 catégories  
 - Faker → description  
-- Image simulée → img-category-xxx.jpg  
+- Image : nom fichier → category-name.jpg  
 
 5. Activités  
 - Liste fixe de 30 activités  
-- Génération de 5 activités  
+- Génération de 30 activités  
 - Faker → description  
-- Image simulée → img-activity-xxx.jpg  
+- Image : nom fichier → activity-name.jpg  
 
 6. Jointure activités ↔ catégories  
 - Chaque activité est associée à 1 ou 2 catégories  
@@ -109,18 +109,18 @@ npx tsx --env-file=.env src/models/seeding.ts
 ├── Users Faker (10 membres aléatoires)  
 │   └── liés à Roles.id = 1  
 │  
-├── Catégories (5)  
+├── Catégories (10)  
 │  
-├── Activités (5)  
+├── Activités (30)  
 │   └── reliées aux Catégories via Activities_Categories (table de jointure)  
 │  
-├── Sessions (10)  
+├── Sessions (50)  
 │   └── contiennent infos de capacité, prix, date  
 │  
-├── Orders (5)  
+├── Orders (10)  
 │   └── liés à Users (clé étrangère users_id)  
 │  
-└── Orders_lines (15)  
+└── Orders_lines (25)  
     ├── liés à Orders (clé étrangère orders_id)  
     └── liés à Sessions (clé étrangère sessions_id)  
         → clé composite (orders_id + sessions_id) pour éviter doublons  
@@ -176,23 +176,23 @@ await prisma.users.createMany({
 
 // 4. Générer catégories, activités, sessions
 await prisma.categories.createMany({
-  data: Array.from({ length: 5 }).map(() => ({
+  data: Array.from({ length: 10 }).map(() => ({
     title: faker.commerce.department(),
     description: faker.lorem.paragraph(),
-    image_filename: `photo_${getRandomInt(1, 999)}.jpg`
+    image_filename: `activity-${makeSlug(title)}.jpg`
   }))
 })
 
 await prisma.activities.createMany({
-  data: Array.from({ length: 5 }).map(() => ({
+  data: Array.from({ length: 30 }).map(() => ({
     title: faker.commerce.productName(),
     description: faker.lorem.sentences(2),
-    image_filename: `activity_${getRandomInt(1, 999)}.jpg`
+    image_filename: `category-${makeSlug(title)}.jpg`
   }))
 })
 
 await prisma.sessions.createMany({
-  data: Array.from({ length: 10 }).map(() => ({
+  data: Array.from({ length: 50 }).map(() => ({
     date: faker.date.soon(),
     capacity: getRandomInt(10, 50),
     unit_price: new Prisma.Decimal(faker.number.int({ min: 20, max: 50 })),
@@ -202,7 +202,7 @@ await prisma.sessions.createMany({
 
 // 5. Générer orders et orders_lines
 await prisma.orders.createMany({
-  data: Array.from({ length: 5 }).map(() => ({
+  data: Array.from({ length: 10 }).map(() => ({
     users_id: getRandomInt(1, 10),
     taxes: new Prisma.Decimal(faker.number.float({ min: 0, max: 20, multipleOf: 0.01 })),
     total_amount: new Prisma.Decimal(faker.number.int({ min: 20, max: 200 })),
@@ -213,7 +213,7 @@ await prisma.orders.createMany({
 })
 
 await prisma.orders_lines.createMany({
-  data: Array.from({ length: 15 }).map(() => ({
+  data: Array.from({ length: 25 }).map(() => ({
     orders_id: getRandomInt(1, 5),
     sessions_id: getRandomInt(1, 10),
     tickets_qty: getRandomInt(1, 5),

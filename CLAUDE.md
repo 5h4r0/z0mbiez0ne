@@ -23,11 +23,21 @@
 backend/          → API REST Express 5 + Prisma + PostgreSQL
 vite-frontend/    → React 19 + Vite + React Router 7 + Zustand
 docker/           → docker-compose, Dockerfiles
+conception/       → docs de conception, ERD, mockups, specs
 ```
 
 ---
 
 ## Commands
+
+### Racine (workspaces)
+```bash
+npm run dev           # démarre backend + frontend en parallèle
+npm run dev:back      # backend seul
+npm run dev:front     # frontend seul
+npm run build         # build backend + frontend
+npm run install:all   # installe les dépendances des deux workspaces
+```
 
 ### Backend
 ```bash
@@ -35,7 +45,10 @@ npm run dev           # dev server avec hot-reload (tsx --watch)
 npm run build         # compile TypeScript → dist/
 npm run start         # prod (dist/, .env)
 npm run start:prod    # prod (.env.production)
+npm run deploy:prod   # build + start:prod
+npm run clean         # supprime dist/
 npm run lint          # Biome check
+npm run lint:prod     # Biome check (config prod)
 npm run fix           # Biome check --write
 
 # Base de données (Prisma)
@@ -45,6 +58,9 @@ npm run db:deploy     # migrate deploy (CI/prod — pas de prompt)
 npm run db:seed       # seed données de test
 npm run db:studio     # Prisma Studio (UI BDD)
 npm run db:gen        # régénère le client Prisma après modif schema
+npm run db:pull       # introspection BDD → schema
+npm run db:format     # formate le schema.prisma
+npm run db:sql        # applique postgres_schema.psql via psql
 ```
 
 ### Frontend
@@ -53,6 +69,7 @@ npm run dev           # Vite dev server (localhost:5173)
 npm run build         # tsc + vite build → dist/
 npm run preview       # prévisualiser le build
 npm run lint          # Biome check
+npm run lint:prod     # Biome check (config prod)
 npm run fix           # Biome check --write
 ```
 
@@ -89,18 +106,29 @@ docker compose up --build     # rebuild les images avant démarrage
 
 ### Modèle de données (Prisma)
 
-Entités principales : `roles`, `users`, `RefreshToken`, `categories`, `activities`, `sessions`, `orders`, `order_lines`
+Entités principales : `roles`, `users`, `RefreshToken`, `categories`, `activities`, `activities_categories` (jointure M-N), `sessions`, `orders`, `orders_lines`
 
 Enums : `OrderStatus` (Pending / Confirmed / Cancelled / Refunded), `SessionStatus` (Scheduled / Cancelled / Completed)
 
-Soft delete : `deleted_at` sur `users` (et à appliquer sur les autres entités sensibles).
+Soft delete : `deleted_at` sur `users`, `categories`, `activities`, `sessions`, `orders` (NULL = actif).
 
 ### Frontend — React 19 + Vite
 
-- **Routing** : React Router 7
-- **State global** : Zustand
+- **Routing** : `react-router` v7 (pas `react-router-dom`)
+- **State global** : Zustand — store actuel : thème (`isDark`) uniquement, à étoffer
 - **Pas de SSR** — SPA pure, fetches vers l'API backend
 - **Auth** : token JWT stocké côté client, refresh via cookie httpOnly
+
+### Pages frontend
+
+| Page           | Chemin                          | État                        |
+|----------------|---------------------------------|-----------------------------|
+| MainPage       | `/`                             | ✅ Fonctionnelle (scaffold) |
+| AllActivities  | `/activities`                   | ✅ Composant                |
+| AllSessions    | `/Sessions`                     | ✅ Composant                |
+| BasketPage     | `/panier`                       | ⛔ Vide + commentée         |
+| ContactPage    | `/contact`                      | ⛔ Vide + commentée         |
+| NotFoundPage   | `/404`                          | ⛔ Vide + commentée         |
 
 ### I18n
 
@@ -114,6 +142,7 @@ Soft delete : `deleted_at` sur `users` (et à appliquer sur les autres entités 
 - **Prisma** — pas Drizzle / Kysely
 - **PostgreSQL** — pas MySQL
 - **argon2** — hachage mots de passe (pas bcrypt)
+- **date-fns** — manipulation des dates (backend)
 - **JWT** — pas de session serveur (stateless)
 - **Biome** — pas ESLint + Prettier
 - **NPM** — pas pnpm/yarn (monorepo workspaces)
@@ -195,21 +224,21 @@ Même variables, avec :
 
 ---
 
-## État du projet (2026-05-16)
+## État du projet (2026-05-18)
 
 **Livré :**
 - Backend API REST complet : auth JWT, activities, categories, sessions, orders, order_lines, users, roles ✅
-- Prisma schema + migrations (3 migrations) ✅
+- Prisma schema + migrations ✅
 - Seeding données de test ✅
 - Frontend scaffold : React Router, Zustand store, composants de base ✅
 
 **En cours / pending :**
-- Frontend pages : BasketPage, ContactPage, NotFoundPage vides
+- Frontend pages : BasketPage, ContactPage, NotFoundPage vides et commentées dans le routing
+- Zustand store à enrichir (auth, panier…)
 - I18n `/fr` / `/en` non implémenté
 - Déploiement VPS — à définir (Ionos ou autre) → voir `DEPLOY.md`
 - Docker prod — Dockerfiles à rédiger
 - Tests — plan défini, implémentation pending
-
 
 ---
 

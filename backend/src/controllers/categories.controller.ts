@@ -1,27 +1,33 @@
 import { Prisma } from '@prisma/client';
 import type { Request, Response } from 'express';
+import z from 'zod';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 import { makeSlug } from '../utils/slugify.js';
 
 /** get all */
-export const getCategories = async (_req: Request, res: Response): Promise<void> => {
+export const getCategories = async (req: Request, res: Response): Promise<void> => {
+  const paginationSchema = z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(12),
+  });
+
   try {
-    const categories = await prisma.categories.findMany({
-      include: {
-        activities_categories: {
-          select: {
-            activity: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-              },
-            },
-          },
+    const { page, limit } = await paginationSchema.parseAsync(req.query);
+    const skip = (page - 1) * limit;
+
+    const include = {
+      activities_categories: {
+        select: {
+          activity: { select: { id: true, title: true, slug: true } },
         },
       },
-    });
+    };
+
+    const [categories, total] = await Promise.all([
+      prisma.categories.findMany({ include, take: limit, skip }),
+      prisma.categories.count(),
+    ]);
 
     res.status(200).json({
       success: true,
@@ -34,10 +40,18 @@ export const getCategories = async (_req: Request, res: Response): Promise<void>
         activities_count: c.activities_categories.length,
         activities: c.activities_categories.map((ac) => ac.activity),
       })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
+    }
   }
 };
 
@@ -80,6 +94,50 @@ export const getCategory = async (req: Request, res: Response): Promise<void> =>
     }
   } catch (error) {
     console.error(`Error fetching category ${id}:`, error);
+    res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
+  }
+};
+
+/** get one by slug */
+export const getCategoryBySlug = async (req: Request, res: Response): Promise<void> => {
+  const slugParam = req.params.slug;
+  if (typeof slugParam !== 'string' || !slugParam) {
+    res.status(400).json({ success: false, message: 'Invalid slug' });
+    return;
+  }
+
+  try {
+    const category = await prisma.categories.findFirst({
+      where: { slug: slugParam },
+      include: {
+        activities_categories: {
+          select: {
+            activity: {
+              select: { id: true, title: true, slug: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!category) {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'category', slugParam) });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: category.id,
+        title: category.title,
+        slug: category.slug,
+        description: category.description,
+        image_filename: category.image_filename,
+        activities: category.activities_categories.map((ac) => ac.activity),
+      },
+    });
+  } catch (error) {
+    console.error(`Error fetching category by slug ${slugParam}:`, error);
     res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
   }
 };

@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale'; // -> use US locale
 import type { Request, Response } from 'express';
 import z from 'zod';
-import { getPagination } from '../helpers/index.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
@@ -27,48 +26,56 @@ const formatSession = (s: {
   status: s.status,
 });
 
+const querySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(12),
+  status: z.nativeEnum(SessionStatus).optional(),
+  activity_slug: z.string().optional(),
+  sort: z.enum(['date', 'id']).optional(),
+  order: z.enum(['asc', 'desc']).optional(),
+});
+
 /** get all sessions */
 export const getSessions = async (req: Request, res: Response) => {
-  const { take, skip } = getPagination(req);
-  // schema to validate pagination query
-  const paginationSchema = z.object({
-    take: z.string().optional(),
-    skip: z.string().optional(),
-  });
-
   try {
-    await paginationSchema.parseAsync(req.query);
+    const query = await querySchema.parseAsync(req.query);
+    const { page, limit } = query;
+    const skip = (page - 1) * limit;
 
-    // args for prisma findMany
-    const args = {
-      include: {
-        orders_lines: {
-          include: {
-            order: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    email: true,
-                    firstname: true,
-                    lastname: true,
-                  },
-                },
+    const where: Prisma.sessionsWhereInput = {};
+    if (query.status) where.status = query.status;
+    if (query.activity_slug) where.activity = { slug: query.activity_slug };
+
+    const orderBy: Prisma.sessionsOrderByWithRelationInput = {
+      [query.sort ?? 'date']: query.order ?? 'asc',
+    };
+
+    const include = {
+      activity: {
+        select: { id: true, title: true, slug: true, image_filename: true },
+      },
+      orders_lines: {
+        include: {
+          order: {
+            include: {
+              user: {
+                select: { id: true, email: true, firstname: true, lastname: true },
               },
             },
           },
         },
       },
-      ...(take !== undefined ? { take } : {}),
-      ...(skip !== undefined ? { skip } : {}),
     };
 
-    // query sessions with relations
-    const sessions = await prisma.sessions.findMany(args);
+    const [sessions, total] = await Promise.all([
+      prisma.sessions.findMany({ where, orderBy, include, take: limit, skip }),
+      prisma.sessions.count({ where }),
+    ]);
 
-    // format sessions with flattened users
     const formatted = sessions.map((s) => ({
       id: s.id,
+      activity_id: s.activity_id,
+      activity: s.activity ?? null,
       date: formatDate(new Date(s.date)),
       capacity: s.capacity,
       unit_price: Number(s.unit_price),
@@ -76,7 +83,14 @@ export const getSessions = async (req: Request, res: Response) => {
       users: s.orders_lines.map((ol) => ol.order.user),
     }));
 
-    res.status(200).json({ success: true, data: formatted });
+    res.status(200).json({
+      success: true,
+      data: formatted,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
@@ -98,6 +112,14 @@ export const getSession = async (req: Request, res: Response) => {
     const args = {
       where: { id: Number(id) }, // required for findUnique
       include: {
+        activity: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            image_filename: true,
+          },
+        },
         orders_lines: {
           include: {
             order: {
@@ -129,6 +151,15 @@ export const getSession = async (req: Request, res: Response) => {
       success: true,
       data: {
         id: session.id,
+        activity_id: session.activity_id,
+        activity: session.activity
+          ? {
+              id: session.activity.id,
+              title: session.activity.title,
+              slug: session.activity.slug,
+              image_filename: session.activity.image_filename,
+            }
+          : null,
         date: formatDate(session.date),
         capacity: session.capacity,
         unit_price: Number(session.unit_price),
