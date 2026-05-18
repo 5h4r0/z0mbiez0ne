@@ -84,8 +84,14 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
           // include session details alongside each line
           include: {
             session: {
-              select: { id: true, date: true, capacity: true, unit_price: true, status: true },
-              include: { activity: { select: { title: true } } },
+              select: {
+                id: true,
+                date: true,
+                capacity: true,
+                unit_price: true,
+                status: true,
+                activity: { select: { title: true } },
+              },
             },
           },
         },
@@ -136,8 +142,14 @@ export const getMyOrders = async (req: Request, res: Response): Promise<void> =>
         orders_lines: {
           include: {
             session: {
-              select: { id: true, date: true, capacity: true, unit_price: true, status: true },
-              include: { activity: { select: { title: true } } },
+              select: {
+                id: true,
+                date: true,
+                capacity: true,
+                unit_price: true,
+                status: true,
+                activity: { select: { title: true } },
+              },
             },
           },
         },
@@ -292,6 +304,8 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 };
 
 /** update */
+// TODO: intégrer Stripe pour le paiement réel — gérer les cas d'échec,
+// refus de carte, 3DS, remboursement. Prévoir mode test avec carte Stripe test.
 export const updateOrder = async (req: Request, res: Response): Promise<void> => {
   const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
   const bodySchema = z.object({
