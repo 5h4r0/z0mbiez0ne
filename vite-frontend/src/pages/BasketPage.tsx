@@ -22,7 +22,7 @@ export default function BasketPage() {
 
   async function handleOrder() {
     if (!isAuthenticated() || !user) {
-      navigate('/espace-client?redirectTo=/panier');
+      navigate('/dashboard?redirectTo=/panier');
       return;
     }
 
@@ -45,7 +45,7 @@ export default function BasketPage() {
       if (!res.ok) throw new Error(data.message ?? 'La commande a échoué');
 
       clearBasket();
-      navigate(`/espace-client/commandes/${data.data?.id}`);
+      navigate(`/dashboard/commandes/${data.data?.id}`);
     } catch (err) {
       setOrderError((err as Error).message);
     } finally {

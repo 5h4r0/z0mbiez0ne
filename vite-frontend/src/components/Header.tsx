@@ -62,7 +62,7 @@ export default function Header() {
           </NavLink>
 
           <NavLink
-            to="/espace-client"
+            to="/dashboard"
             className={({ isActive }) =>
               `text-[0.8rem] font-semibold tracking-[0.04em] px-4 py-1.5 rounded no-underline border-none transition-colors duration-200 text-white ${
                 isActive ? 'bg-(--color-red-hover)' : 'bg-(--color-red)'
@@ -103,7 +103,7 @@ export default function Header() {
             </NavLink>
           ))}
           <NavLink
-            to="/espace-client"
+            to="/dashboard"
             onClick={() => setMenuOpen(false)}
             className="text-(--color-red) no-underline font-semibold"
           >

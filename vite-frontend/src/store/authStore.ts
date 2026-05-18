@@ -42,7 +42,7 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
   const refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
   if (!refreshRes.ok) {
     await logout();
-    window.location.href = '/espace-client';
+    window.location.href = '/dashboard';
     return res;
   }
 
@@ -104,9 +104,13 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       refreshToken: async () => {
+        if (!get().user) {
+          set({ isHydrating: false });
+          return;
+        }
         try {
           const res = await fetch('/api/auth/refresh', { method: 'POST' });
-          if (!res.ok) return;
+          if (!res.ok) { set({ token: null, user: null }); return; }
           const { token } = (await res.json()) as { token: string };
           set({ token });
         } finally {

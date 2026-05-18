@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { apiFetch, useAuthStore } from '../store/authStore';
-import '../styles/pages.scss';
+import { apiFetch, useAuthStore } from '../../store/authStore';
+import '../../styles/pages.scss';
 
 type OrderLine = {
   id: number;
@@ -80,7 +80,7 @@ export default function OrderDetailPage() {
       if (!res.ok) throw new Error(data.message ?? 'Erreur lors de l\'annulation');
       setOrder((o) => o ? { ...o, status: 'Cancelled' } : o);
       setConfirmCancel(false);
-      navigate('/espace-client');
+      navigate('/dashboard');
     } catch (err) {
       setCancelError((err as Error).message);
       setConfirmCancel(false);
@@ -139,7 +139,7 @@ export default function OrderDetailPage() {
       <div className="static-page">
         <div className="static-page__inner">
           <p className="text-(--color-text-muted) mb-6">Cette commande est introuvable ou vous n'y avez pas accès.</p>
-          <Link to="/espace-client" className="text-(--color-red) no-underline">← Retour au dashboard</Link>
+          <Link to="/dashboard" className="text-(--color-red) no-underline">← Retour au dashboard</Link>
         </div>
       </div>
     );
@@ -152,7 +152,7 @@ export default function OrderDetailPage() {
   return (
     <div className="static-page">
       <div className="static-page__inner max-w-2xl">
-        <Link to="/espace-client" className="text-(--color-text-muted) text-sm no-underline hover:text-(--color-red) transition-colors duration-200 mb-6 inline-block">
+        <Link to="/dashboard" className="text-(--color-text-muted) text-sm no-underline hover:text-(--color-red) transition-colors duration-200 mb-6 inline-block">
           ← Retour au dashboard
         </Link>
 
