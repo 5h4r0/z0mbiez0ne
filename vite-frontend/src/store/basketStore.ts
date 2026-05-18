@@ -11,7 +11,7 @@ export interface BasketItem {
 
 interface BasketStore {
   items: BasketItem[];
-  addItem: (item: Omit<BasketItem, 'quantity'>) => void;
+  addItem: (item: BasketItem) => void;
   removeItem: (sessionId: number) => void;
   updateQuantity: (sessionId: number, quantity: number) => void;
   clearBasket: () => void;
@@ -30,11 +30,11 @@ export const useBasketStore = create<BasketStore>()(
           if (existing) {
             return {
               items: state.items.map((i) =>
-                i.sessionId === incoming.sessionId ? { ...i, quantity: i.quantity + 1 } : i,
+                i.sessionId === incoming.sessionId ? { ...i, quantity: i.quantity + incoming.quantity } : i,
               ),
             };
           }
-          return { items: [...state.items, { ...incoming, quantity: 1 }] };
+          return { items: [...state.items, incoming] };
         }),
 
       removeItem: (sessionId) =>

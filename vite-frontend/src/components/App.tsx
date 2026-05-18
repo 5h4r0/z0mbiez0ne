@@ -6,6 +6,7 @@ import CguPage from '../pages/CguPage';
 import ConfidentialitePage from '../pages/ConfidentialitePage';
 import ContactPage from '../pages/ContactPage';
 import DynamicDetailPage from '../pages/DynamicDetailPage';
+import EspaceClientPage from '../pages/EspaceClientPage';
 import FaqPage from '../pages/FaqPage';
 import HomePage from '../pages/HomePage';
 import MentionsLegalesPage from '../pages/MentionsLegalesPage';
@@ -38,6 +39,7 @@ function App() {
           <Route path="/confidentialite" element={<ConfidentialitePage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/panier" element={<BasketPage />} />
+          <Route path="/espace-client" element={<EspaceClientPage />} />
           <Route path="/sessions/:id" element={<SessionDetailPage />} />
           {/* Détail dynamique : session (slug-id), activité ou catégorie */}
           <Route path="/:slug" element={<DynamicDetailPage />} />
