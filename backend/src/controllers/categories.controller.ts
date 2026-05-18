@@ -84,6 +84,50 @@ export const getCategory = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+/** get one by slug */
+export const getCategoryBySlug = async (req: Request, res: Response): Promise<void> => {
+  const slugParam = req.params.slug;
+  if (typeof slugParam !== 'string' || !slugParam) {
+    res.status(400).json({ success: false, message: 'Invalid slug' });
+    return;
+  }
+
+  try {
+    const category = await prisma.categories.findFirst({
+      where: { slug: slugParam },
+      include: {
+        activities_categories: {
+          select: {
+            activity: {
+              select: { id: true, title: true, slug: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!category) {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'category', slugParam) });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: category.id,
+        title: category.title,
+        slug: category.slug,
+        description: category.description,
+        image_filename: category.image_filename,
+        activities: category.activities_categories.map((ac) => ac.activity),
+      },
+    });
+  } catch (error) {
+    console.error(`Error fetching category by slug ${slugParam}:`, error);
+    res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'category') });
+  }
+};
+
 /** create */
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
   const { title, description, image_filename } = req.body;

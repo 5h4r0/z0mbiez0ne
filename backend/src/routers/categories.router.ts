@@ -7,6 +7,7 @@ export const router = Router();
 
 // public routes
 router.get('/categories', categoriesController.getCategories);
+router.get('/categories/by-slug/:slug', categoriesController.getCategoryBySlug);
 router.get('/categories/:id', categoriesController.getCategory);
 
 // admin-only routes

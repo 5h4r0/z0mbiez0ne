@@ -27,21 +27,40 @@ const formatSession = (s: {
   status: s.status,
 });
 
+const querySchema = z.object({
+  limit: z.string().optional(),
+  offset: z.string().optional(),
+  page: z.string().optional(),
+  status: z.nativeEnum(SessionStatus).optional(),
+  activity_slug: z.string().optional(),
+  sort: z.enum(['date', 'id']).optional(),
+  order: z.enum(['asc', 'desc']).optional(),
+});
+
 /** get all sessions */
 export const getSessions = async (req: Request, res: Response) => {
-  const { take, skip } = getPagination(req);
-  // schema to validate pagination query
-  const paginationSchema = z.object({
-    take: z.string().optional(),
-    skip: z.string().optional(),
-  });
-
   try {
-    await paginationSchema.parseAsync(req.query);
+    const query = await querySchema.parseAsync(req.query);
 
-    // args for prisma findMany
-    const args = {
+    const { take, skip: skipFromOffset } = getPagination(req);
+    const skipFromPage = query.page && take ? (Number(query.page) - 1) * take : undefined;
+    const skip = skipFromOffset ?? skipFromPage;
+
+    const where: Prisma.sessionsWhereInput = {};
+    if (query.status) where.status = query.status;
+    if (query.activity_slug) where.activity = { slug: query.activity_slug };
+
+    const orderBy: Prisma.sessionsOrderByWithRelationInput = {
+      [query.sort ?? 'date']: query.order ?? 'asc',
+    };
+
+    const sessions = await prisma.sessions.findMany({
+      where,
+      orderBy,
       include: {
+        activity: {
+          select: { id: true, title: true, slug: true, image_filename: true },
+        },
         orders_lines: {
           include: {
             order: {
@@ -61,14 +80,12 @@ export const getSessions = async (req: Request, res: Response) => {
       },
       ...(take !== undefined ? { take } : {}),
       ...(skip !== undefined ? { skip } : {}),
-    };
+    });
 
-    // query sessions with relations
-    const sessions = await prisma.sessions.findMany(args);
-
-    // format sessions with flattened users
     const formatted = sessions.map((s) => ({
       id: s.id,
+      activity_id: s.activity_id,
+      activity: s.activity ?? null,
       date: formatDate(new Date(s.date)),
       capacity: s.capacity,
       unit_price: Number(s.unit_price),
@@ -98,6 +115,14 @@ export const getSession = async (req: Request, res: Response) => {
     const args = {
       where: { id: Number(id) }, // required for findUnique
       include: {
+        activity: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            image_filename: true,
+          },
+        },
         orders_lines: {
           include: {
             order: {
@@ -129,6 +154,15 @@ export const getSession = async (req: Request, res: Response) => {
       success: true,
       data: {
         id: session.id,
+        activity_id: session.activity_id,
+        activity: session.activity
+          ? {
+              id: session.activity.id,
+              title: session.activity.title,
+              slug: session.activity.slug,
+              image_filename: session.activity.image_filename,
+            }
+          : null,
         date: formatDate(session.date),
         capacity: session.capacity,
         unit_price: Number(session.unit_price),
