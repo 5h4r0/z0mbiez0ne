@@ -1,46 +1,22 @@
-import { useEffect, useState } from "react"
-import { Link } from "react-router"
-
-interface ICategory {
-  id: number;
-  title: string;
-  description: string;
-  slug: string;
-}
+import { useFetch } from '../hooks/useFetch';
+import { type Category, parsePaginated } from '../types/api';
+import SkeletonGrid from './SkeletonGrid';
 
 export default function AllCategories() {
-  const [categoriesList, setCategoriesList] = useState<ICategory[]>([]);
-  const [fetchError, setFetchError] = useState<null | string>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: raw, loading, error } = useFetch<unknown>('/api/categories');
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories');
-        const data = await response.json();
-        setCategoriesList(data.data ?? []);
-        setIsLoading(false);
-      } catch (error) {
-        console.error(error);
-        setFetchError('Impossible de charger les catégories');
-        setIsLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+  if (loading) return <SkeletonGrid />;
+  if (error) return <p>Impossible de charger les catégories.</p>;
 
-  if (isLoading) return <p>Chargement...</p>;
-  if (fetchError) return <p>Erreur : {fetchError}</p>;
+  const { data: categories } = parsePaginated<Category>(raw ?? []);
 
   return (
     <section>
       <h2>Catégories</h2>
       <div className="card-list">
-        {categoriesList.map((category) => (
+        {categories.map((category) => (
           <article key={category.id} className="card">
-            <h3>
-              <Link to={`/categories/${category.slug}`}>{category.title}</Link>
-            </h3>
+            <h3>{category.title}</h3>
             {category.description && <p>{category.description}</p>}
           </article>
         ))}
