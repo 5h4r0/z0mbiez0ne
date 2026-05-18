@@ -17,7 +17,9 @@ function formatTime(iso: string): string {
 }
 
 export default function SessionCard({ session }: Props) {
-  const imgSrc = `https://placehold.co/400x250/141414/888?text=Session+${session.id}`;
+  const imgSrc = session.activity?.image_filename
+    ? `/images/thumbs/${session.activity.image_filename}`
+    : `https://placehold.co/400x250/141414/888?text=Session+${session.id}`;
   const title = session.activity?.title ?? 'Session';
   const href = `/sessions/${session.id}`;
   const price = Number.parseFloat(session.unit_price).toFixed(2);

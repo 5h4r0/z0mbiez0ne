@@ -8,7 +8,9 @@ interface Props {
 }
 
 export default function ActivityCard({ activity }: Props) {
-  const imgSrc = `https://placehold.co/400x250/141414/888?text=${encodeURIComponent(activity.title)}`;
+  const imgSrc = activity.image_filename
+    ? `/images/thumbs/${activity.image_filename}`
+    : `https://placehold.co/400x250/141414/888?text=${encodeURIComponent(activity.title)}`;
 
   return (
     <article className="bg-(--color-surface) border border-(--color-border) rounded-lg overflow-hidden flex flex-col transition-colors duration-200 hover:bg-(--color-surface-hover)">

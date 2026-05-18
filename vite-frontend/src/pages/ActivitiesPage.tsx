@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import ActivityCard from '../components/home/ActivityCard';
 import Pagination from '../components/Pagination';
 import type { Activity, PaginatedResponse } from '../types/api';
@@ -29,12 +30,15 @@ function SkeletonGrid() {
 }
 
 export default function ActivitiesPage() {
+  const [searchParams] = useSearchParams();
+  const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
+
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
+
 
   useEffect(() => {
     setLoading(true);
@@ -88,7 +92,9 @@ export default function ActivitiesPage() {
                 <ActivityCard key={a.id} activity={a} index={i} />
               ))}
             </div>
-            {search.trim() === '' && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
+            {search.trim() === '' && (
+              <Pagination page={page} totalPages={totalPages} buildHref={(p) => `?page=${p}`} />
+            )}
           </>
         )}
       </div>

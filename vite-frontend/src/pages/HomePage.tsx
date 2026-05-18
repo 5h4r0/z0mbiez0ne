@@ -4,7 +4,7 @@ import ActivityCard from '../components/home/ActivityCard';
 import CategoryCard from '../components/home/CategoryCard';
 import SessionCard from '../components/home/SessionCard';
 import type { Activity, Category, Session } from '../types/api';
-import './HomePage.scss';
+import '../styles/HomePage.scss';
 
 function SkeletonCard() {
   return (
@@ -115,7 +115,7 @@ export default function HomePage() {
       </section>
 
       {/* ——— Activités ——— */}
-      <section className="bg-[var(--color-surface)]">
+      <section className="bg-(--color-surface)">
         <div className="home-section">
           <h2 className="home-section__title">LES ÉPREUVES DE LA ZONE</h2>
 
