@@ -11,6 +11,7 @@ import FaqPage from '../pages/FaqPage';
 import HomePage from '../pages/HomePage';
 import MentionsLegalesPage from '../pages/MentionsLegalesPage';
 import NotFoundPage from '../pages/NotFoundPage';
+import OrderDetailPage from '../pages/OrderDetailPage';
 import PlanPage from '../pages/PlanPage';
 import SessionDetailPage from '../pages/SessionDetailPage';
 import SessionsPage from '../pages/SessionsPage';
@@ -40,6 +41,7 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/panier" element={<BasketPage />} />
           <Route path="/espace-client" element={<EspaceClientPage />} />
+          <Route path="/espace-client/commandes/:id" element={<OrderDetailPage />} />
           <Route path="/sessions/:id" element={<SessionDetailPage />} />
           {/* Détail dynamique : session (slug-id), activité ou catégorie */}
           <Route path="/:slug" element={<DynamicDetailPage />} />
