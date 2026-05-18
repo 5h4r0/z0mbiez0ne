@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { apiFetch } from '../store/authStore';
+import { apiFetch, useAuthStore } from '../store/authStore';
 import '../styles/pages.scss';
 
 type OrderLine = {
@@ -49,6 +49,7 @@ function formatSessionDate(iso: string): string {
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const isHydrating = useAuthStore((s) => s.isHydrating);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,7 +118,7 @@ export default function OrderDetailPage() {
     return () => { cancelled = true; };
   }, [id]);
 
-  if (loading) {
+  if (isHydrating || loading) {
     return (
       <div className="static-page">
         <div className="static-page__inner max-w-2xl">
@@ -145,7 +146,6 @@ export default function OrderDetailPage() {
   const totalTickets = order.lines.reduce((s, l) => s + l.tickets_qty, 0);
   const pageTitle = order.lines[0]?.activity_title ?? `Commande #${order.id}`;
   const isPending = order.status === 'Pending';
-  const isConfirmed = order.status === 'Confirmed';
 
   return (
     <div className="static-page">
@@ -166,7 +166,7 @@ export default function OrderDetailPage() {
           {[
             { label: 'Date', value: formatShortDate(order.created_at) },
             { label: 'Billets', value: `${totalTickets}` },
-            { label: 'Total TTC', value: `€${order.total_amount.toFixed(2)}`, highlight: isConfirmed || paid },
+            { label: 'Total TTC', value: `€${order.total_amount.toFixed(2)}`, highlight: paid || order.status === 'Confirmed' },
             { label: 'TVA', value: `${(order.taxes * 100).toFixed(0)} %` },
           ].map(({ label, value, highlight }) => (
             <div key={label} className="bg-(--color-surface) border border-(--color-border) rounded-lg p-4">
@@ -187,7 +187,7 @@ export default function OrderDetailPage() {
                 <div className="text-sm font-bold text-(--color-text) mb-0.5">
                   {line.activity_title ?? `Session #${line.session_id}`}
                 </div>
-                <div className={`text-xs ${isConfirmed || paid ? 'text-green-400' : 'text-(--color-text-muted)'}`}>
+                <div className={`text-xs ${paid || order.status === 'Confirmed' ? 'text-green-400' : 'text-(--color-text-muted)'}`}>
                   {formatSessionDate(line.session.date_iso)}
                 </div>
               </div>
@@ -199,44 +199,27 @@ export default function OrderDetailPage() {
           ))}
         </div>
 
-        {/* Actions — uniquement si Pending */}
-        {isPending && (
+        {/* Bouton payer + annuler — uniquement si Pending et pas encore payé */}
+        {isPending && !paid && (
           <div className="mt-10 flex flex-col gap-4">
-            {/* Payer */}
             <div>
               {payError && <p className="text-(--color-red) text-sm mb-3">{payError}</p>}
-              {paid ? (
-                <div>
-                  <button
-                    type="button"
-                    disabled
-                    className="px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border border-green-500 bg-green-500/10 text-green-400 cursor-not-allowed opacity-100 mb-3"
-                  >
-                    Transaction acceptée
-                  </button>
-                  <p className="text-green-400 font-bold text-sm leading-relaxed">
-                    Votre commande est acceptée et en cours de traitement, vous recevrez un email de confirmation accompagné de votre facture dans quelques secondes.
-                  </p>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handlePay}
-                  disabled={paying}
-                  className="px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 bg-(--color-red) hover:bg-(--color-red-hover) text-white border-(--color-red)"
-                >
-                  {paying ? 'Traitement…' : 'Payer la commande'}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handlePay}
+                disabled={paying}
+                className="px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 bg-(--color-red) hover:bg-(--color-red-hover) text-white border-(--color-red)"
+              >
+                {paying ? 'Traitement…' : 'Payer la commande'}
+              </button>
             </div>
 
-            {/* Annuler */}
             <div>
               {cancelError && <p className="text-(--color-red) text-sm mb-3">{cancelError}</p>}
               <button
                 type="button"
                 onClick={handleCancel}
-                disabled={cancelling || paid}
+                disabled={cancelling}
                 className={`px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 ${
                   confirmCancel
                     ? 'bg-(--color-red) hover:bg-(--color-red-hover) text-white border-(--color-red)'
@@ -258,11 +241,20 @@ export default function OrderDetailPage() {
           </div>
         )}
 
-        {/* Message post-paiement si status déjà Confirmed au chargement */}
-        {isConfirmed && !paid && (
-          <p className="mt-10 text-green-400 font-bold text-sm leading-relaxed">
-            Votre commande est acceptée et en cours de traitement, vous recevrez un email de confirmation accompagné de votre facture dans quelques secondes.
-          </p>
+        {/* Confirmation paiement — affiché dès que paid=true ou status déjà Confirmed */}
+        {(paid || order.status === 'Confirmed') && (
+          <div className="mt-10">
+            <button
+              type="button"
+              disabled
+              className="px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border border-green-500 bg-green-500/10 text-green-400 cursor-not-allowed opacity-100 mb-3"
+            >
+              Transaction acceptée
+            </button>
+            <p className="text-green-400 font-bold text-sm leading-relaxed">
+              Votre commande est acceptée et en cours de traitement, vous recevrez un email de confirmation accompagné de votre facture dans quelques secondes.
+            </p>
+          </div>
         )}
       </div>
     </div>
