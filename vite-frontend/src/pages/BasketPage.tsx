@@ -1,8 +1,18 @@
 import { Link } from 'react-router';
+import { useBasketStore } from '../store/basketStore';
 import '../styles/pages.scss';
 
 export default function BasketPage() {
-  const items: never[] = [];
+  const { items, removeItem, updateQuantity, clearBasket, totalPrice } = useBasketStore();
+
+  function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('fr-FR', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
 
   return (
     <div className="static-page">
@@ -40,28 +50,81 @@ export default function BasketPage() {
             </Link>
           </div>
         ) : (
-          /* Layout prévu pour items — non affiché (panier toujours vide pour l'instant) */
           <div>
-            <div className="flex flex-col gap-3 mb-8">
-              {items.map((_item, i) => (
+            <div className="flex flex-col gap-3 mb-6">
+              {items.map((item) => (
                 <div
-                  // biome-ignore lint/suspicious/noArrayIndexKey: placeholder skeleton, no stable id
-                  key={i}
-                  className="bg-(--color-surface) border border-(--color-border) rounded-lg p-4"
+                  key={item.sessionId}
+                  className="bg-(--color-surface) border border-(--color-border) rounded-lg p-4 flex flex-wrap gap-4 justify-between items-center"
                 >
-                  Item placeholder
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-(--color-text) truncate">{item.activityTitle}</p>
+                    <p className="text-sm text-(--color-text-muted)">{formatDate(item.date)}</p>
+                    <p className="text-sm text-(--color-text-muted)">€{item.unitPrice.toFixed(2)} / place</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      aria-label="Réduire la quantité"
+                      onClick={() =>
+                        item.quantity > 1
+                          ? updateQuantity(item.sessionId, item.quantity - 1)
+                          : removeItem(item.sessionId)
+                      }
+                      className="bg-(--color-border) border-none text-(--color-text) w-8 h-8 rounded cursor-pointer text-base"
+                    >
+                      −
+                    </button>
+                    <span className="text-[1.1rem] font-bold text-(--color-text) min-w-6 text-center">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="Augmenter la quantité"
+                      onClick={() => updateQuantity(item.sessionId, item.quantity + 1)}
+                      className="bg-(--color-border) border-none text-(--color-text) w-8 h-8 rounded cursor-pointer text-base"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <span className="font-bold text-(--color-red) text-[1.1rem] min-w-16 text-right">
+                      €{(item.unitPrice * item.quantity).toFixed(2)}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Supprimer ${item.activityTitle}`}
+                      onClick={() => removeItem(item.sessionId)}
+                      className="bg-transparent border-none text-(--color-text-muted) hover:text-(--color-red) cursor-pointer text-lg transition-colors duration-200"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-(--color-border) pt-6 flex justify-between items-center">
+            <div className="flex justify-end mb-8">
+              <button
+                type="button"
+                onClick={clearBasket}
+                className="bg-transparent border-none text-(--color-text-muted) hover:text-(--color-red) cursor-pointer text-sm underline transition-colors duration-200"
+              >
+                Vider le panier
+              </button>
+            </div>
+
+            <div className="border-t border-(--color-border) pt-6 flex justify-between items-center flex-wrap gap-4">
               <div>
                 <span className="text-(--color-text-muted)">Total : </span>
-                <span className="text-2xl font-bold text-(--color-red)">€0.00</span>
+                <span className="text-2xl font-bold text-(--color-red)">€{totalPrice().toFixed(2)}</span>
               </div>
               <button
                 type="button"
-                className="bg-(--color-red) text-white border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em]"
+                onClick={() => console.log('TODO: commander', items)}
+                className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em] transition-colors duration-200"
               >
                 Commander
               </button>
