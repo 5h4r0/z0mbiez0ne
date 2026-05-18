@@ -55,6 +55,32 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState('');
+
+  async function handleCancel() {
+    if (!confirmCancel) { setConfirmCancel(true); return; }
+    setCancelling(true);
+    setCancelError('');
+    try {
+      const res = await fetch(`/api/orders/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: 'Cancelled' }),
+      });
+      const data = await res.json() as { success: boolean; message?: string };
+      if (!res.ok) throw new Error(data.message ?? 'Erreur lors de l\'annulation');
+      setOrder((o) => o ? { ...o, status: 'Cancelled' } : o);
+      setConfirmCancel(false);
+    } catch (err) {
+      setCancelError((err as Error).message);
+      setConfirmCancel(false);
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   useEffect(() => {
     if (!id || !token) { setError(true); setLoading(false); return; }
     let cancelled = false;
@@ -142,6 +168,35 @@ export default function OrderDetailPage() {
             </div>
           ))}
         </div>
+
+        {order.status === 'Pending' && (
+          <div className="mt-10">
+            {cancelError && (
+              <p className="text-(--color-red) text-sm mb-3">{cancelError}</p>
+            )}
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={cancelling}
+              className={`px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 ${
+                confirmCancel
+                  ? 'bg-(--color-red) hover:bg-(--color-red-hover) text-white border-(--color-red)'
+                  : 'bg-transparent border-(--color-border) text-(--color-text-muted) hover:text-(--color-red) hover:border-(--color-red)'
+              }`}
+            >
+              {cancelling ? 'Annulation…' : confirmCancel ? 'CONFIRMER L\'ANNULATION' : 'Annuler la commande'}
+            </button>
+            {confirmCancel && (
+              <button
+                type="button"
+                onClick={() => setConfirmCancel(false)}
+                className="block mt-2 text-sm text-(--color-text-muted) hover:text-(--color-text) bg-transparent border-none cursor-pointer p-0 transition-colors duration-200"
+              >
+                ← Retour
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
