@@ -3,47 +3,33 @@ import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
 import z from 'zod';
-import { getPagination } from '../helpers/index.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
-import { getRandomInt } from '../utils/index.js';
 import { makeSlug } from '../utils/slugify.js';
 
 /** get all */
 export const getActivities = async (req: Request, res: Response) => {
-  const { take, skip } = getPagination(req);
-
-  // schema to validate pagination query
   const paginationSchema = z.object({
-    take: z.string().optional(),
-    skip: z.string().optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(12),
   });
 
   try {
-    await paginationSchema.parseAsync(req.query);
+    const { page, limit } = await paginationSchema.parseAsync(req.query);
+    const skip = (page - 1) * limit;
 
-    // base args with categories (via pivot) and sessions -> orders_lines -> order -> user (clean)
-    const baseArgs = {
-      include: {
-        activities_categories: {
-          // -> pivot table
-          include: { category: true }, // -> real categories
-        },
-        sessions: {
-          include: {
-            orders_lines: {
-              include: {
-                order: {
-                  include: {
-                    user: {
-                      // -> keep only safe fields
-                      select: {
-                        id: true,
-                        email: true,
-                        firstname: true,
-                        lastname: true,
-                      },
-                    },
+    const include = {
+      activities_categories: {
+        include: { category: true },
+      },
+      sessions: {
+        include: {
+          orders_lines: {
+            include: {
+              order: {
+                include: {
+                  user: {
+                    select: { id: true, email: true, firstname: true, lastname: true },
                   },
                 },
               },
@@ -53,34 +39,37 @@ export const getActivities = async (req: Request, res: Response) => {
       },
     };
 
-    // add pagination without spread, no if
-    let args: typeof baseArgs & { take?: number; skip?: number } = Object.assign({}, baseArgs);
-    args = take !== undefined ? Object.assign({}, args, { take }) : args;
-    args = skip !== undefined ? Object.assign({}, args, { skip }) : args;
+    const [activities, total] = await Promise.all([
+      prisma.activities.findMany({ include, take: limit, skip }),
+      prisma.activities.count(),
+    ]);
 
-    // query activities with nested data
-    const activities = await prisma.activities.findMany(args);
-
-    // format and flatten: categories + sessions dates + users
     const formatted = activities.map((a) => ({
       id: a.id,
       title: a.title,
       description: a.description,
-      categories: a.activities_categories.map((ac) => ac.category), // -> flatten categories
+      categories: a.activities_categories.map((ac) => ac.category),
       slug: a.slug,
       image_filename: a.image_filename,
       updated_at: a.updated_at,
       sessions: a.sessions.map((s) => ({
         id: s.id,
-        date: format(new Date(s.date), 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS }), // -> strict us business
+        date: format(new Date(s.date), 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS }),
         capacity: s.capacity,
         unit_price: s.unit_price,
         status: s.status,
-        users: s.orders_lines.map((ol) => ol.order.user), // -> flattened, cleaned users
+        users: s.orders_lines.map((ol) => ol.order.user),
       })),
     }));
 
-    res.status(200).json({ success: true, data: formatted });
+    res.status(200).json({
+      success: true,
+      data: formatted,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
@@ -156,11 +145,73 @@ export const getActivity = async (req: Request, res: Response) => {
   }
 };
 
+/** get one by slug */
+export const getActivityBySlug = async (req: Request, res: Response) => {
+  const paramsSchema = z.object({ slug: z.string().min(1) });
+
+  try {
+    const { slug } = await paramsSchema.parseAsync(req.params);
+
+    const activity = await prisma.activities.findFirst({
+      where: { slug },
+      include: {
+        activities_categories: { include: { category: true } },
+        sessions: {
+          include: {
+            orders_lines: {
+              include: {
+                order: {
+                  include: {
+                    user: {
+                      select: { id: true, email: true, firstname: true, lastname: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (activity === null) {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'activity', slug) });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: activity.id,
+        title: activity.title,
+        slug: activity.slug,
+        description: activity.description,
+        image_filename: activity.image_filename,
+        categories: activity.activities_categories.map((ac) => ac.category),
+        sessions: activity.sessions.map((s) => ({
+          id: s.id,
+          date: s.date,
+          capacity: s.capacity,
+          unit_price: s.unit_price,
+          status: s.status,
+          users: s.orders_lines.map((ol) => ol.order.user),
+        })),
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'activity') });
+    }
+  }
+};
+
 /** create */
 export const createActivity = async (req: Request, res: Response): Promise<void> => {
   const { title, description, activities_categories } = req.body;
   const slug = makeSlug(title);
-  const image_filename = `img-activity-${getRandomInt(1, 999)}.jpg`;
+  const image_filename = `activity-${slug}.jpg`;
 
   try {
     const created = await prisma.activities.create({

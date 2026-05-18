@@ -7,6 +7,7 @@ export const router = Router();
 
 // public routes
 router.get('/activities', activitiesController.getActivities);
+router.get('/activities/by-slug/:slug', activitiesController.getActivityBySlug);
 router.get('/activities/:id', activitiesController.getActivity);
 
 // admin-only routes
