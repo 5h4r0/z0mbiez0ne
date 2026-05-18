@@ -21,6 +21,7 @@ interface AuthStore {
     confirm: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
+  refreshToken: () => Promise<void>;
   isAuthenticated: () => boolean;
 }
 
@@ -98,6 +99,13 @@ export const useAuthStore = create<AuthStore>()(
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }).catch(() => {});
         set({ token: null, user: null });
+      },
+
+      refreshToken: async () => {
+        const res = await fetch('/api/auth/refresh', { method: 'POST' });
+        if (!res.ok) return;
+        const { token } = (await res.json()) as { token: string };
+        set({ token });
       },
 
       isAuthenticated: () => !!get().token,
