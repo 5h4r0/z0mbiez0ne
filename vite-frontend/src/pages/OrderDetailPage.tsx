@@ -58,6 +58,12 @@ export default function OrderDetailPage() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState('');
 
+  // TODO: intégrer Stripe pour le paiement réel — gérer les cas d'échec,
+  // refus de carte, 3DS, remboursement. Prévoir mode test avec carte Stripe test.
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState('');
+  const [paid, setPaid] = useState(false);
+
   async function handleCancel() {
     if (!confirmCancel) { setConfirmCancel(true); return; }
     setCancelling(true);
@@ -77,6 +83,26 @@ export default function OrderDetailPage() {
       setConfirmCancel(false);
     } finally {
       setCancelling(false);
+    }
+  }
+
+  async function handlePay() {
+    setPaying(true);
+    setPayError('');
+    try {
+      const res = await apiFetch(`/api/orders/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Confirmed' }),
+      });
+      const data = await res.json() as { success: boolean; message?: string };
+      if (!res.ok) throw new Error(data.message ?? 'Erreur lors du paiement');
+      setOrder((o) => o ? { ...o, status: 'Confirmed' } : o);
+      setPaid(true);
+    } catch (err) {
+      setPayError((err as Error).message);
+    } finally {
+      setPaying(false);
     }
   }
 
@@ -110,23 +136,26 @@ export default function OrderDetailPage() {
       <div className="static-page">
         <div className="static-page__inner">
           <p className="text-(--color-text-muted) mb-6">Cette commande est introuvable ou vous n'y avez pas accès.</p>
-          <Link to="/espace-client" className="text-(--color-red) no-underline">← Mon espace</Link>
+          <Link to="/espace-client" className="text-(--color-red) no-underline">← Retour au dashboard</Link>
         </div>
       </div>
     );
   }
 
   const totalTickets = order.lines.reduce((s, l) => s + l.tickets_qty, 0);
+  const pageTitle = order.lines[0]?.activity_title ?? `Commande #${order.id}`;
+  const isPending = order.status === 'Pending';
+  const isConfirmed = order.status === 'Confirmed';
 
   return (
     <div className="static-page">
       <div className="static-page__inner max-w-2xl">
         <Link to="/espace-client" className="text-(--color-text-muted) text-sm no-underline hover:text-(--color-red) transition-colors duration-200 mb-6 inline-block">
-          ← Mon espace
+          ← Retour au dashboard
         </Link>
 
         <div className="flex items-start justify-between gap-4 flex-wrap mb-8">
-          <h1 className="static-page__title mb-0">Commande #{order.id}</h1>
+          <h1 className="static-page__title mb-0">{pageTitle}</h1>
           <span className={`text-xs font-semibold px-2.5 py-1 rounded border ${STATUS_CLASS[order.status] ?? STATUS_CLASS.Cancelled}`}>
             {STATUS_LABEL[order.status] ?? order.status}
           </span>
@@ -137,12 +166,12 @@ export default function OrderDetailPage() {
           {[
             { label: 'Date', value: formatShortDate(order.created_at) },
             { label: 'Billets', value: `${totalTickets}` },
-            { label: 'Total TTC', value: `€${order.total_amount.toFixed(2)}` },
+            { label: 'Total TTC', value: `€${order.total_amount.toFixed(2)}`, highlight: isConfirmed || paid },
             { label: 'TVA', value: `${(order.taxes * 100).toFixed(0)} %` },
-          ].map(({ label, value }) => (
+          ].map(({ label, value, highlight }) => (
             <div key={label} className="bg-(--color-surface) border border-(--color-border) rounded-lg p-4">
               <div className="text-xs text-(--color-text-muted) uppercase tracking-widest mb-1">{label}</div>
-              <div className="text-sm font-bold text-(--color-text)">{value}</div>
+              <div className={`text-sm font-bold ${highlight ? 'text-green-400' : 'text-(--color-text)'}`}>{value}</div>
             </div>
           ))}
         </div>
@@ -158,7 +187,9 @@ export default function OrderDetailPage() {
                 <div className="text-sm font-bold text-(--color-text) mb-0.5">
                   {line.activity_title ?? `Session #${line.session_id}`}
                 </div>
-                <div className="text-xs text-(--color-text-muted)">{formatSessionDate(line.session.date_iso)}</div>
+                <div className={`text-xs ${isConfirmed || paid ? 'text-green-400' : 'text-(--color-text-muted)'}`}>
+                  {formatSessionDate(line.session.date_iso)}
+                </div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-(--color-text-muted)">{line.tickets_qty} × €{line.session.unit_price.toFixed(2)}</div>
@@ -168,33 +199,70 @@ export default function OrderDetailPage() {
           ))}
         </div>
 
-        {order.status === 'Pending' && (
-          <div className="mt-10">
-            {cancelError && (
-              <p className="text-(--color-red) text-sm mb-3">{cancelError}</p>
-            )}
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={cancelling}
-              className={`px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 ${
-                confirmCancel
-                  ? 'bg-(--color-red) hover:bg-(--color-red-hover) text-white border-(--color-red)'
-                  : 'bg-transparent border-(--color-border) text-(--color-text-muted) hover:text-(--color-red) hover:border-(--color-red)'
-              }`}
-            >
-              {cancelling ? 'Annulation…' : confirmCancel ? 'CONFIRMER L\'ANNULATION' : 'Annuler la commande'}
-            </button>
-            {confirmCancel && (
+        {/* Actions — uniquement si Pending */}
+        {isPending && (
+          <div className="mt-10 flex flex-col gap-4">
+            {/* Payer */}
+            <div>
+              {payError && <p className="text-(--color-red) text-sm mb-3">{payError}</p>}
+              {paid ? (
+                <div>
+                  <button
+                    type="button"
+                    disabled
+                    className="px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border border-green-500 bg-green-500/10 text-green-400 cursor-not-allowed opacity-100 mb-3"
+                  >
+                    Transaction acceptée
+                  </button>
+                  <p className="text-green-400 font-bold text-sm leading-relaxed">
+                    Votre commande est acceptée et en cours de traitement, vous recevrez un email de confirmation accompagné de votre facture dans quelques secondes.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePay}
+                  disabled={paying}
+                  className="px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 bg-(--color-red) hover:bg-(--color-red-hover) text-white border-(--color-red)"
+                >
+                  {paying ? 'Traitement…' : 'Payer la commande'}
+                </button>
+              )}
+            </div>
+
+            {/* Annuler */}
+            <div>
+              {cancelError && <p className="text-(--color-red) text-sm mb-3">{cancelError}</p>}
               <button
                 type="button"
-                onClick={() => setConfirmCancel(false)}
-                className="block mt-2 text-sm text-(--color-text-muted) hover:text-(--color-text) bg-transparent border-none cursor-pointer p-0 transition-colors duration-200"
+                onClick={handleCancel}
+                disabled={cancelling || paid}
+                className={`px-5 py-2.5 rounded text-sm font-bold tracking-[0.06em] uppercase border cursor-pointer transition-colors duration-200 disabled:opacity-50 ${
+                  confirmCancel
+                    ? 'bg-(--color-red) hover:bg-(--color-red-hover) text-white border-(--color-red)'
+                    : 'bg-transparent border-(--color-border) text-(--color-text-muted) hover:text-(--color-red) hover:border-(--color-red)'
+                }`}
               >
-                ← Retour
+                {cancelling ? 'Annulation…' : confirmCancel ? 'CONFIRMER L\'ANNULATION' : 'Annuler la commande'}
               </button>
-            )}
+              {confirmCancel && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmCancel(false)}
+                  className="block mt-2 text-sm text-(--color-text-muted) hover:text-(--color-text) bg-transparent border-none cursor-pointer p-0 transition-colors duration-200"
+                >
+                  ← Retour
+                </button>
+              )}
+            </div>
           </div>
+        )}
+
+        {/* Message post-paiement si status déjà Confirmed au chargement */}
+        {isConfirmed && !paid && (
+          <p className="mt-10 text-green-400 font-bold text-sm leading-relaxed">
+            Votre commande est acceptée et en cours de traitement, vous recevrez un email de confirmation accompagné de votre facture dans quelques secondes.
+          </p>
         )}
       </div>
     </div>
