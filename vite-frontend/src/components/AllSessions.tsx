@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useState } from "react"
+import { Link } from "react-router"
+
 
 interface Isessions {
   id: number;
@@ -13,21 +14,23 @@ interface Isessions {
 export default function Sessions() {
   const [sessionsList, setSessionsList] = useState<Isessions[]>([]);
   const [fetchError, setFetchError] = useState<null | string>(null);
-  const [isLoading, setIsLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchSessions = async () => {
       try {
         const response = await fetch('/api/sessions', {
-          headers: {},
+          headers: {
+          }
         });
         const sessionsFromAPI = await response.json();
 
-        console.log('sessionsFromAPI', sessionsFromAPI.data);
+        console.log("sessionsFromAPI", sessionsFromAPI.data);
 
         setSessionsList(sessionsFromAPI.data ?? []);
         setIsLoading(false);
-      } catch (error) {
+      }
+      catch (error) {
         console.log(error);
         setFetchError('Cannot get sessions');
         setIsLoading(false);

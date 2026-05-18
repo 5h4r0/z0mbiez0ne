@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useState } from "react"
+import { Link } from "react-router"
 
 interface ICategory {
   id: number;
