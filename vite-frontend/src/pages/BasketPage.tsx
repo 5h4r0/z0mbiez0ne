@@ -6,7 +6,7 @@ import '../styles/pages.scss';
 
 export default function BasketPage() {
   const { items, removeItem, updateQuantity, clearBasket, totalPrice } = useBasketStore();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isHydrating } = useAuthStore();
   const navigate = useNavigate();
   const [orderError, setOrderError] = useState('');
   const [ordering, setOrdering] = useState(false);
@@ -172,7 +172,7 @@ export default function BasketPage() {
                 disabled={ordering}
                 className="bg-yellow-500 hover:bg-yellow-400 text-black border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em] transition-colors duration-200 disabled:opacity-50"
               >
-                {ordering ? 'Commande en cours…' : isAuthenticated() ? 'Commander' : 'Se connecter pour commander'}
+                {ordering ? 'Commande en cours…' : (isAuthenticated() || isHydrating) ? 'Commander' : 'Se connecter pour commander'}
               </button>
             </div>
           </div>
