@@ -10,7 +10,6 @@ export interface AuthUser {
 }
 
 interface AuthStore {
-  token: string | null;
   user: AuthUser | null;
   isHydrating: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -26,40 +25,36 @@ interface AuthStore {
   isAuthenticated: () => boolean;
 }
 
-// Wraps fetch with automatic JWT refresh on 401.
-// Safe to call outside React components (no hook required).
+// Flag module-level — évite les boucles infinies si plusieurs 401 simultanés
+let isRefreshing = false;
+
 export async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  const { token, logout } = useAuthStore.getState();
+  const res = await fetch(url, { ...options, credentials: 'include' });
 
-  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-  const headers = { ...(options.headers as Record<string, string> | undefined), ...authHeaders };
+  if (res.status !== 401 || isRefreshing) return res;
 
-  const res = await fetch(url, { ...options, headers });
+  isRefreshing = true;
+  try {
+    const refreshRes = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
 
-  if (res.status !== 401) return res;
+    if (!refreshRes.ok) {
+      await useAuthStore.getState().logout();
+      window.location.href = '/dashboard';
+      return res;
+    }
 
-  // Try to refresh
-  const refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
-  if (!refreshRes.ok) {
-    await logout();
-    window.location.href = '/dashboard';
-    return res;
+    return fetch(url, { ...options, credentials: 'include' });
+  } finally {
+    isRefreshing = false;
   }
-
-  const { token: newToken } = (await refreshRes.json()) as { token: string };
-  useAuthStore.setState({ token: newToken });
-
-  // Retry original request with new token
-  return fetch(url, {
-    ...options,
-    headers: { ...(options.headers as Record<string, string> | undefined), Authorization: `Bearer ${newToken}` },
-  });
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
-      token: null,
       user: null,
       isHydrating: true,
 
@@ -68,16 +63,15 @@ export const useAuthStore = create<AuthStore>()(
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
+          credentials: 'include',
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message ?? 'Connexion échouée');
 
-        const token = data.token as string;
-        const profileRes = await fetch('/api/auth/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const profileRes = await fetch('/api/auth/profile', { credentials: 'include' });
+        if (!profileRes.ok) throw new Error('Impossible de récupérer le profil');
         const user = (await profileRes.json()) as AuthUser;
-        set({ token, user });
+        set({ user });
       },
 
       register: async ({ firstname, lastname, email, password, confirm }) => {
@@ -85,43 +79,49 @@ export const useAuthStore = create<AuthStore>()(
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ firstname, lastname, email, password, confirm, role_id: 1 }),
+          credentials: 'include',
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message ?? 'Inscription échouée');
 
-        const token = data.token as string;
         const user = data.data as AuthUser;
-        set({ token, user });
+        set({ user });
       },
 
       logout: async () => {
-        const { token } = get();
         await fetch('/api/auth/logout', {
           method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
         }).catch(() => {});
-        set({ token: null, user: null });
+        set({ user: null });
       },
 
+      // Appelé dans App.tsx au démarrage — toujours tenter, ne pas conditionner à user
       refreshToken: async () => {
-        if (!get().user) {
-          set({ isHydrating: false });
-          return;
-        }
         try {
-          const res = await fetch('/api/auth/refresh', { method: 'POST' });
+          const res = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            credentials: 'include',
+          });
           if (!res.ok) {
-            if (res.status === 401) set({ token: null, user: null });
+            set({ user: null, isHydrating: false });
             return;
           }
-          const { token } = (await res.json()) as { token: string };
-          set({ token });
-        } finally {
-          set({ isHydrating: false });
+
+          const profileRes = await fetch('/api/auth/profile', { credentials: 'include' });
+          if (!profileRes.ok) {
+            set({ user: null, isHydrating: false });
+            return;
+          }
+
+          const user = (await profileRes.json()) as AuthUser;
+          set({ user, isHydrating: false });
+        } catch {
+          set({ user: null, isHydrating: false });
         }
       },
 
-      isAuthenticated: () => !!get().token,
+      isAuthenticated: () => !!get().user,
     }),
     { name: 'zz-auth', partialize: (state) => ({ user: state.user }) },
   ),
