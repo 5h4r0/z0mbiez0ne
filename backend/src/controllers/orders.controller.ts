@@ -231,7 +231,10 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
           // check remaining capacity: capacity - already booked tickets for this session
           const agg = await tx.orders_lines.aggregate({
-            where: { session_id },
+            where: {
+              session_id,
+              order: { status: { notIn: ['Cancelled', 'Refunded'] } },
+            },
             _sum: { tickets_qty: true },
           });
           const booked = agg._sum.tickets_qty ?? 0;

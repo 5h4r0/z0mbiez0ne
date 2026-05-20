@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 680 860" xmlns="http://www.w3.org/2000/svg" width="680" height="860">
+<title>Wireframe — /les-epreuves — liste des activités</title>
+<desc>Page liste : navbar, header titre + recherche, grille 4 cols de cards activité, pagination.</desc>
+<defs><style>text { font-family: ui-sans-serif, system-ui, Arial, sans-serif; }</style></defs>
+
+<rect width="680" height="860" fill="#f5f4f0" rx="8"/>
+
+<!-- NAVBAR -->
+<rect x="0" y="0" width="680" height="40" fill="#0a0a0a" rx="6"/>
+<rect x="0" y="34" width="680" height="6" fill="#0a0a0a"/>
+<line x1="0" y1="40" x2="680" y2="40" stroke="#222" stroke-width="0.5"/>
+<text x="20" y="25" font-size="12" font-weight="500" fill="#c8a84b">the </text>
+<text x="43" y="25" font-size="12" font-weight="500" fill="#E24B4A">zØmbie</text>
+<text x="96" y="25" font-size="12" font-weight="500" fill="#c8a84b"> zØne</text>
+<rect x="230" y="18" width="2" height="8" rx="1" fill="#E24B4A"/>
+<text x="240" y="25" font-size="10" fill="#E24B4A">Activités</text>
+<line x1="240" y1="27" x2="272" y2="27" stroke="#E24B4A" stroke-width="0.8"/>
+<text x="284" y="25" font-size="10" fill="#666">Sessions</text>
+<text x="334" y="25" font-size="10" fill="#666">Catégories</text>
+<text x="396" y="25" font-size="10" fill="#666">Contact</text>
+<rect x="440" y="14" width="32" height="14" rx="2" fill="#1c1c1c" stroke="#444" stroke-width="0.5"/>
+<text x="445" y="24" font-size="9" fill="#888">🛒 0</text>
+<rect x="478" y="13" width="64" height="15" rx="3" fill="#E24B4A"/>
+<text x="510" y="24" font-size="9" fill="white" text-anchor="middle">Mon compte</text>
+
+<!-- PAGE HEADER -->
+<rect x="0" y="40" width="680" height="130" fill="#111"/>
+<line x1="0" y1="170" x2="680" y2="170" stroke="#333" stroke-width="0.5"/>
+<text x="340" y="90" font-size="18" font-weight="500" fill="#eee" text-anchor="middle" letter-spacing="0.06em">LES ÉPREUVES DE LA ZONE</text>
+<text x="340" y="106" font-size="8" fill="#555" text-anchor="middle">/api/activities?limit=12&amp;page=1</text>
+<!-- search input -->
+<rect x="218" y="118" width="244" height="28" rx="4" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+<text x="232" y="136" font-size="9" fill="#555">🔍  Rechercher une épreuve…</text>
+<text x="340" y="156" font-size="8" fill="#444" text-anchor="middle">filtre côté client · sans rechargement · désactive pagination si actif</text>
+
+<!-- GRILLE ACTIVITÉS — 12 cards (3 lignes × 4) -->
+
+<!-- ligne 1 -->
+<!-- card 1 détaillée -->
+<rect x="12" y="180" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="12" y="180" width="153" height="64" rx="5" fill="#222"/>
+<rect x="12" y="226" width="153" height="18" fill="#222"/>
+<text x="88" y="208" font-size="8" fill="#555" text-anchor="middle">[ img · h-40 · object-cover ]</text>
+<text x="20" y="240" font-size="9" font-weight="500" fill="#eee">Survie en zone contaminée</text>
+<text x="20" y="253" font-size="8" fill="#666">Expérience immersive de survie post-apo…</text>
+<text x="20" y="264" font-size="8" fill="#555">⏱ 20 min.</text>
+<line x1="12" y1="272" x2="165" y2="272" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="106" y="276" width="52" height="14" rx="2" stroke="#777" stroke-width="0.5" fill="none"/>
+<text x="132" y="287" font-size="7.5" fill="#999" text-anchor="middle" letter-spacing="0.04em">DÉCOUVRIR</text>
+<text x="20" y="288" font-size="8" fill="#555">Catégorie A · Catégorie B</text>
+<text x="20" y="302" font-size="9" font-weight="500" fill="#E24B4A">→ Voir les sessions</text>
+
+<!-- cards 2-4 ligne 1 -->
+<rect x="174" y="180" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="174" y="180" width="153" height="64" rx="5" fill="#222"/>
+<rect x="174" y="226" width="153" height="18" fill="#222"/>
+<text x="182" y="240" font-size="9" font-weight="500" fill="#eee">Escape Room Apocalypse</text>
+<text x="182" y="253" font-size="8" fill="#666">Résolvez les énigmes avant les zombies…</text>
+<text x="182" y="265" font-size="8" fill="#555">⏱ 20 min.</text>
+<rect x="268" y="276" width="52" height="14" rx="2" stroke="#777" stroke-width="0.5" fill="none"/>
+<text x="294" y="287" font-size="7.5" fill="#999" text-anchor="middle" letter-spacing="0.04em">DÉCOUVRIR</text>
+
+<rect x="336" y="180" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="336" y="180" width="153" height="64" rx="5" fill="#222"/>
+<rect x="336" y="226" width="153" height="88" fill="#1a1a1a"/>
+<text x="344" y="270" font-size="8" fill="#333">…</text>
+
+<rect x="498" y="180" width="170" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="498" y="180" width="170" height="64" rx="5" fill="#222"/>
+<rect x="498" y="226" width="170" height="88" fill="#1a1a1a"/>
+
+<!-- ligne 2 -->
+<rect x="12" y="326" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="12" y="326" width="153" height="64" rx="5" fill="#222"/>
+<rect x="12" y="372" width="153" height="88" fill="#1a1a1a"/>
+
+<rect x="174" y="326" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="174" y="326" width="153" height="64" rx="5" fill="#222"/>
+<rect x="174" y="372" width="153" height="88" fill="#1a1a1a"/>
+
+<rect x="336" y="326" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="336" y="326" width="153" height="64" rx="5" fill="#222"/>
+<rect x="336" y="372" width="153" height="88" fill="#1a1a1a"/>
+
+<rect x="498" y="326" width="170" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="498" y="326" width="170" height="64" rx="5" fill="#222"/>
+<rect x="498" y="372" width="170" height="88" fill="#1a1a1a"/>
+
+<!-- ligne 3 -->
+<rect x="12" y="472" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="12" y="472" width="153" height="64" rx="5" fill="#222"/>
+<rect x="12" y="518" width="153" height="88" fill="#1a1a1a"/>
+
+<rect x="174" y="472" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="174" y="472" width="153" height="64" rx="5" fill="#222"/>
+<rect x="174" y="518" width="153" height="88" fill="#1a1a1a"/>
+
+<rect x="336" y="472" width="153" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="336" y="472" width="153" height="64" rx="5" fill="#222"/>
+<rect x="336" y="518" width="153" height="88" fill="#1a1a1a"/>
+
+<rect x="498" y="472" width="170" height="134" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="498" y="472" width="170" height="64" rx="5" fill="#222"/>
+<rect x="498" y="518" width="170" height="88" fill="#1a1a1a"/>
+
+<!-- PAGINATION -->
+<line x1="0" y1="618" x2="680" y2="618" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="0" y="618" width="680" height="56" fill="#111"/>
+<text x="340" y="640" font-size="8" fill="#444" text-anchor="middle">pagination · masquée si recherche active</text>
+<rect x="268" y="646" width="28" height="18" rx="3" stroke="#444" stroke-width="0.5" fill="none"/>
+<text x="282" y="659" font-size="9" fill="#666" text-anchor="middle">‹</text>
+<rect x="300" y="646" width="28" height="18" rx="3" fill="none" stroke="#E24B4A" stroke-width="0.5"/>
+<text x="314" y="659" font-size="9" fill="#E24B4A" text-anchor="middle">1</text>
+<rect x="332" y="646" width="28" height="18" rx="3" stroke="#444" stroke-width="0.5" fill="none"/>
+<text x="346" y="659" font-size="9" fill="#666" text-anchor="middle">2</text>
+<rect x="364" y="646" width="28" height="18" rx="3" stroke="#444" stroke-width="0.5" fill="none"/>
+<text x="378" y="659" font-size="9" fill="#666" text-anchor="middle">3</text>
+<rect x="396" y="646" width="28" height="18" rx="3" stroke="#444" stroke-width="0.5" fill="none"/>
+<text x="410" y="659" font-size="9" fill="#666" text-anchor="middle">›</text>
+
+<!-- NOTES TECHNIQUES -->
+<rect x="0" y="674" width="680" height="186" fill="#f0efec"/>
+<line x1="0" y1="674" x2="680" y2="674" stroke="#ccc" stroke-width="0.5"/>
+<text x="12" y="692" font-size="8" fill="#888" font-weight="500">Notes techniques</text>
+<text x="12" y="707" font-size="8" fill="#999">page-wrapper · padding-top: 64px (hauteur navbar fixe)</text>
+<text x="12" y="719" font-size="8" fill="#999">list-page__header · padding: 80px 24px 0 · max-width: 1400px · text-align: center</text>
+<text x="12" y="731" font-size="8" fill="#999">search-input · max-width: 400px · filtre côté client (useState) · désactive Pagination si search actif</text>
+<text x="12" y="743" font-size="8" fill="#999">list-page__grid · grid 4 cols (→ 2 cols ≤1024px → 1 col ≤640px) · gap: 24px · margin-bottom: 48px</text>
+<text x="12" y="755" font-size="8" fill="#999">activity card · img h-40 object-cover · titre truncate · description line-clamp-2 · icône Clock 14px</text>
+<text x="12" y="767" font-size="8" fill="#999">activity card · btn Découvrir (border outline) · lien vers /:slug via activity.slug</text>
+<text x="12" y="779" font-size="8" fill="#999">pagination · composant Pagination · buildHref: p => ?page=p · masquée si search.trim() !== ""</text>
+<text x="12" y="791" font-size="8" fill="#999">états : loading → SkeletonGrid · error → message · empty → "Aucune épreuve ne correspond"</text>
+<text x="12" y="803" font-size="8" fill="#999">données : /api/activities?limit=12&amp;page=N — paginées côté serveur (12/page)</text>
+<text x="12" y="815" font-size="8" fill="#999">route : /les-epreuves — active dans la navbar (NavLink isActive)</text>
+<text x="12" y="827" font-size="8" fill="#999">responsive · header dark bg · grille s'adapte en 2 cols tablet, 1 col mobile</text>
+<text x="12" y="848" font-size="8" fill="#555">02-activites-liste.svg · z0mbiez0ne · Stéphane Rochard</text>
+</svg>
