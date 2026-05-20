@@ -9,8 +9,6 @@ import { prisma } from '../models/index.js';
 const ACCESS_EXPIRES_MS = 15 * 60 * 1000;
 const REFRESH_EXPIRES_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** Register */
-
 const passwordBlacklist: string[] = process.env.PASSWORDS_BLACKLIST
   ? process.env.PASSWORDS_BLACKLIST.split(',').map((o) => o.trim())
   : [];
@@ -48,29 +46,23 @@ export async function registerUser(req: Request, res: Response) {
     if (!role) return res.status(400).json({ status: 'error', message: 'Invalid role' });
 
     const password_hash = await hashPassword(password);
-
     const newUser = await prisma.users.create({
       data: { firstname, lastname, email, role_id, password_hash },
       select: { id: true, firstname: true, lastname: true, email: true, role_id: true },
     });
 
     const accessToken = generateAccessToken(newUser.id, newUser.role_id);
-    const refreshToken = generateRefreshToken(newUser.id);
+    const { jwt: refreshJwt, tokenId } = generateRefreshToken(newUser.id);
 
-    setRefreshCookie(res, refreshToken);
+    await persistRefreshToken(newUser.id, tokenId);
+    setAccessCookie(res, accessToken);
+    setRefreshCookie(res, refreshJwt);
 
-    res.status(201).json({
-      status: 'success',
-      data: newUser,
-      token: accessToken,
-      type: 'Bearer',
-    });
+    res.status(201).json({ status: 'success', data: newUser });
   } catch (error) {
     handleError(res, error, 'Failed to register user');
   }
 }
-
-/** Login */
 
 const loginBodySchema = z.object({
   email: z.email({ message: 'invalid email address' }),
@@ -88,14 +80,14 @@ export async function loginUser(req: Request, res: Response) {
     if (!isMatching) throw new UnauthorizedError('email and password do not match');
 
     const accessToken = generateAccessToken(user.id, user.role_id);
-    const refreshToken = generateRefreshToken(user.id);
+    const { jwt: refreshJwt, tokenId } = generateRefreshToken(user.id);
 
-    setRefreshCookie(res, refreshToken);
+    await persistRefreshToken(user.id, tokenId);
+    setAccessCookie(res, accessToken);
+    setRefreshCookie(res, refreshJwt);
 
     res.status(200).json({
       status: 'success',
-      token: accessToken,
-      type: 'Bearer',
       expiresInMS: ACCESS_EXPIRES_MS,
       message: `user ${email} logged in successfully`,
     });
@@ -104,40 +96,69 @@ export async function loginUser(req: Request, res: Response) {
   }
 }
 
-/** Logout */
-export async function logoutUser(_req: Request, res: Response) {
-  res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+export async function logoutUser(req: Request, res: Response) {
+  try {
+    const raw = req.cookies?.refreshToken;
+    if (raw) {
+      const { userId } = verifyRefreshToken(raw);
+      await prisma.refreshToken.deleteMany({ where: { user_id: userId } });
+    }
+  } catch {
+    // silencieux — token invalide ou BDD indisponible
+  } finally {
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+  }
   res.status(200).json({ status: 'success', message: 'logged out' });
 }
 
-/** Refresh */
 export async function refreshAccessToken(req: Request, res: Response) {
   try {
-    const raw = req.cookies?.refreshToken || req.body?.refreshToken;
+    const raw = req.cookies?.refreshToken;
     if (!raw) throw new UnauthorizedError('refresh token not provided');
 
-    const { userId } = verifyRefreshToken(raw);
+    const { userId, tokenId } = verifyRefreshToken(raw);
+
+    const stored = await prisma.refreshToken.findUnique({
+      where: { token_id: tokenId },
+    });
+
+    if (!stored || stored.user_id !== userId || stored.expired_at < new Date()) {
+      throw new UnauthorizedError('refresh token invalid or expired');
+    }
+
+    const valid = await comparePassword(tokenId, stored.token_hash);
+    if (!valid) throw new UnauthorizedError('refresh token hash mismatch');
+
+    // DELETE atomique — count 0 = token déjà consommé (race condition)
+    const deleted = await prisma.refreshToken.deleteMany({
+      where: { id: stored.id, user_id: userId },
+    });
+    if (deleted.count === 0) throw new UnauthorizedError('refresh token already used');
+
+    // Nettoyage tokens expirés (housekeeping silencieux)
+    prisma.refreshToken
+      .deleteMany({
+        where: { user_id: userId, expired_at: { lt: new Date() } },
+      })
+      .catch(() => {});
 
     const user = await prisma.users.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedError('user not found');
 
     const accessToken = generateAccessToken(user.id, user.role_id);
-    const refreshToken = generateRefreshToken(user.id);
+    const { jwt: newRefreshJwt, tokenId: newTokenId } = generateRefreshToken(user.id);
 
-    setRefreshCookie(res, refreshToken);
+    await persistRefreshToken(user.id, newTokenId);
+    setAccessCookie(res, accessToken);
+    setRefreshCookie(res, newRefreshJwt);
 
-    res.status(200).json({
-      status: 'success',
-      token: accessToken,
-      type: 'Bearer',
-      expiresInMS: ACCESS_EXPIRES_MS,
-    });
+    res.status(200).json({ status: 'success', expiresInMS: ACCESS_EXPIRES_MS });
   } catch (error) {
     handleError(res, error, 'failed to refresh token');
   }
 }
 
-/** Get authenticated user profile */
 export async function getAuthenticatedUser(req: Request, res: Response) {
   try {
     if (!req.user) throw new UnauthorizedError('not authenticated');
@@ -152,12 +173,38 @@ export async function getAuthenticatedUser(req: Request, res: Response) {
   }
 }
 
-function setRefreshCookie(res: Response, token: string) {
+// ─── Helpers ────────────────────────────────────────────────
+
+async function persistRefreshToken(userId: number, tokenId: string): Promise<void> {
+  const token_hash = await hashPassword(tokenId);
+  await prisma.refreshToken.create({
+    data: {
+      token_id: tokenId,
+      token_hash,
+      user_id: userId,
+      issued_at: new Date(),
+      expired_at: new Date(Date.now() + REFRESH_EXPIRES_MS),
+    },
+  });
+}
+
+function setAccessCookie(res: Response, token: string): void {
+  res.cookie('accessToken', token, {
+    httpOnly: true,
+    secure: config.server.secure,
+    sameSite: 'strict',
+    path: '/',
+    maxAge: ACCESS_EXPIRES_MS,
+  });
+}
+
+function setRefreshCookie(res: Response, token: string): void {
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    maxAge: REFRESH_EXPIRES_MS,
     secure: config.server.secure,
+    sameSite: 'strict',
     path: '/api/auth/refresh',
+    maxAge: REFRESH_EXPIRES_MS,
   });
 }
 

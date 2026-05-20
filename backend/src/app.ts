@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import { config } from './config/config.js';
@@ -32,11 +33,19 @@ app.get('/health', (_, res) => {
   });
 });
 
+// cookie parser — avant express.json() et toutes les routes
+app.use(cookieParser());
+
 // json parser
 app.use(express.json());
 
 // cors
-app.use(cors({ origin: config.server.allowedOrigins }));
+app.use(
+  cors({
+    origin: config.server.allowedOrigins,
+    credentials: true,
+  }),
+);
 
 // api router
 app.use('/api', apiRouter);

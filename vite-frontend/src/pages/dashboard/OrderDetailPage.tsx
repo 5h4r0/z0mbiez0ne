@@ -49,8 +49,13 @@ function formatSessionDate(iso: string): string {
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const isHydrating = useAuthStore((s) => s.isHydrating);
+  const { isHydrating, user } = useAuthStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isHydrating) return;
+    if (!user) navigate('/dashboard', { replace: true });
+  }, [isHydrating, user, navigate]);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
