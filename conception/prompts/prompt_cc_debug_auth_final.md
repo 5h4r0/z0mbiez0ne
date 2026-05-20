@@ -622,3 +622,19 @@ npm run lint --prefix vite-frontend
 ```
 fix: 🐛 auth — httpOnly cookies, credentials, CORS, refresh rotation atomique, bfcache guard
 ```
+
+---
+
+## Bugs résolus post-session (2026-05-20 — aprem)
+
+### #15 — `prisma.refresh_token` au lieu de `prisma.refreshToken`
+**`backend/src/controllers/auth.controller.ts`**
+5 occurrences en snake_case — le client Prisma génère du camelCase.
+Remplacer toutes les occurrences de `prisma.refresh_token` par `prisma.refreshToken`.
+
+### #16 — Colonnes `token_id` / `token_hash` absentes en BDD
+Schéma Prisma mis à jour mais migration non appliquée en prod/dev.
+Résolu via :
+```bash
+cd backend && npm run db:deploy && npm run db:gen
+```
