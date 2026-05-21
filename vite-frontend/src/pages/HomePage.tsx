@@ -38,10 +38,13 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero__bg" />
         <div className="hero__content">
-          <p className="hero__pretitle">Malvenue dans la</p>
-          <h1 className="hero__title">zØmbie zØne</h1>
+          <img className="hero__img" src="/images/sections/hero_text.webp" alt="Malvenue dans la z0mbie z0ne" />
+
+          {/* <p className="hero__pretitle">Malvenue dans la</p>
+          <h1 className="hero__title">zØmbie zØne</h1> */}
+
           <p className="hero__subtitle">
-            Vous avez déjà des ennuis, alors laissez-nous vous aider à votre propre salvation.
+            Vous avez déjà des ennuis<br />Laissez-nous vous aider à votre propre salvation
           </p>
           <Link to="/sessions" className="hero__cta">
             S'inscrire et venir !

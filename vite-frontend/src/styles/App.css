@@ -1,13 +1,12 @@
 @import "tailwindcss";
 
-/* Alias "bebas-neue-regular" → Bebas Neue (Google Fonts) */
+
 @font-face {
-  font-family: 'bebas-neue-regular';
-  src: url('https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9Wdhyzbi.woff2') format('woff2'),
-       local('Bebas Neue'), local('Bebas Neue Regular');
-  font-weight: 400;
+  font-family: 'anglican_text'; /* Nom que vous utiliserez dans votre CSS */
+  src: url('/fonts/anglican_text.woff2') format('woff2');
+  font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: swap; /* Recommandé pour éviter un texte invisible au chargement */
 }
 
 :root {

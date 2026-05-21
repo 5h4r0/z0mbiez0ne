@@ -17,14 +17,15 @@
   min-height: 600px;
   // max-height: 900px;
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  // align-items: center;
   justify-content: center;
   overflow: hidden;
 
   &__bg {
     position: absolute;
     inset: 0;
-    background-image: url('/images/hero-background-malvenue-dans-la-z0mbie-z0ne.jpg');
+    background-image: url('/images/sections/hero-background-malvenue-dans-la-z0mbie-z0ne.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -42,13 +43,13 @@
     z-index: 1;
     text-align: center;
     padding: 0 24px;
-    max-width: 900px;
+    // max-width: 900px;
   }
 
   &__pretitle {
-    font-family: 'bebas-neue-regular', sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 900;
-    font-size: clamp(1.2rem, 3vw, 2.2rem);
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
     color: #fff;
     text-transform: uppercase;
     letter-spacing: 0.15em;
@@ -57,7 +58,7 @@
   }
 
   &__title {
-    font-family: 'bebas-neue-regular', sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 900;
     font-size: clamp(3.5rem, 9vw, 8rem);
     color: var(--color-red);
@@ -67,14 +68,20 @@
     animation: fadeUp 0.8s 0.15s ease both;
   }
 
+  &__img {
+    margin-top: 5vh;
+  }
+
   &__subtitle {
-    font-family: 'Montserrat', sans-serif;
-    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-family: Montserrat, sans-serif;
+    font-size: clamp(1.2rem, 3vw, 2.1rem);
+    // font-family: "anglican_text", sans-serif;
+    // font-size: clamp(3rem, 3vw, 4rem);
     color: rgba(255, 255, 255, 0.8);
     font-style: italic;
-    max-width: 560px;
-    margin: 0 auto 36px;
-    line-height: 1.6;
+    /* max-width: 560px; */
+    margin: 0 auto 48px;
+    line-height: 1.2;
     animation: fadeUp 0.8s 0.3s ease both;
   }
 
@@ -107,7 +114,7 @@
   margin: 0 auto;
 
   &__title {
-    font-family: 'bebas-neue-regular', sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     font-size: clamp(1.4rem, 3vw, 2rem);
     color: var(--color-text);
@@ -202,7 +209,7 @@
   &__bg {
     position: absolute;
     inset: 0;
-    background-image: url('/images/section-background-trouvez-votre-chemin_epreuves.jpg');
+    background-image: url('/images/sections/section-background-trouvez-votre-chemin_epreuves.jpg');
     background-size: cover;
     background-position: center;
 
@@ -218,12 +225,13 @@
     position: relative;
     z-index: 1;
     max-width: 700px;
-    margin: 0 auto;
+    margin: 0 auto 20vh;
+    // margin: 0 auto;
   }
 
   &__title {
-    font-family: 'bebas-neue-regular', sans-serif;
-    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
     font-size: clamp(1.2rem, 3vw, 2rem);
     color: #fff;
     margin-bottom: 32px;

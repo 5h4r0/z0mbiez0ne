@@ -51,12 +51,12 @@ export default function TarifsPage() {
               className={`bg-(--color-surface) border rounded-lg p-8 px-6 relative flex flex-col ${plan.popular ? 'border-(--color-red)' : 'border-(--color-border)'}`}
             >
               {plan.popular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-(--color-red) text-white text-[0.7rem] font-bold tracking-widest uppercase px-3 py-[3px] rounded-full">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-(--color-red) text-white text-[0.7rem] font-bold tracking-widest uppercase px-3 py-0.75 rounded-full">
                   Le plus populaire
                 </span>
               )}
 
-              <h2 className="font-['bebas-neue-regular',sans-serif] font-bold text-[0.95rem] text-(--color-text) tracking-[0.06em] mb-4">
+              <h2 className="font-montserrat font-bold text-[0.95rem] text-(--color-text) tracking-[0.06em] mb-4">
                 {plan.name}
               </h2>
 

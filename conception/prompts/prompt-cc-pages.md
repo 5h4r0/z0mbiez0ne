@@ -4,7 +4,7 @@
 
 Suite de la homepage déjà livrée. Le design system est en place :
 - Variables CSS dans `App.css` (`--color-bg`, `--color-surface`, `--color-red`, `--color-gold`, etc.)
-- Google Fonts `Bebas Neue` + `Montserrat` dans `index.html`
+- Google Fonts `Montserrat` dans `index.html`
 - Header et Footer déjà faits (`src/components/Header.tsx`, `src/components/Footer.tsx`)
 - Types API dans `src/types/api.ts` (`Session`, `Activity`, `Category`)
 - Cards réutilisables dans `src/components/home/`
@@ -77,7 +77,7 @@ Si le backend renvoie une shape différente, adapter sans casser le typage.
 
 ### `SessionsPage` — `/sessions`
 
-- Titre de page `PROCHAINES SESSIONS` (Bebas Neue)
+- Titre de page `PROCHAINES SESSIONS`
 - Filtre par statut (pills cliquables) : Toutes / Scheduled / Completed / Cancelled
 - Grid 4 col → 2 → 1, cards `SessionCard` réutilisées depuis `components/home/`
 - Pagination : boutons Précédent / Suivant + numéros de page, 12 items/page
@@ -106,7 +106,7 @@ Si le backend renvoie une shape différente, adapter sans casser le typage.
 ### `ActivityDetailPage` — `/:activitySlug`
 
 Layout :
-- **Hero** pleine largeur (60vh) : `image_filename` en background, overlay sombre, titre en Bebas Neue centré
+- **Hero** pleine largeur (60vh) : `image_filename` en background, overlay sombre, titre centré
 - **Corps** (max-width 900px centré) :
   - Description complète
   - Métadonnées : durée fictive `20 min.`, icône Clock (lucide-react)
@@ -143,7 +143,7 @@ Layout :
 
 ## Pages statiques (contenu fictif cohérent avec l'univers)
 
-Style commun : fond `--color-bg`, max-width 900px centré, padding généreux, titres Bebas Neue, corps Montserrat. Pas de hero image.
+Style commun : fond `--color-bg`, max-width 900px centré, padding généreux, titres et corps Montserrat. Pas de hero image.
 
 ### `PlanPage` — `/plan`
 
@@ -211,7 +211,7 @@ Style commun : fond `--color-bg`, max-width 900px centré, padding généreux, t
 ## `NotFoundPage` — `*`
 
 - Full page centrée, fond `--color-bg`
-- Grand `404` en Bebas Neue, couleur `--color-red`, très grand
+- Grand `404` en couleur `--color-red`, très grand
 - Sous-titre : *"Cette page a été dévorée par les zombies."*
 - Bouton `Retourner à l'accueil` → `/`
 - Animation CSS : léger flicker sur le 404 (keyframe opacity)

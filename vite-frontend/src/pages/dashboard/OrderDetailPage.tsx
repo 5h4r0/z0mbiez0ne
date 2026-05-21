@@ -184,7 +184,7 @@ export default function OrderDetailPage() {
         </div>
 
         {/* Lines */}
-        <h2 className="font-['bebas-neue-regular',sans-serif] text-[1.1rem] tracking-widest text-(--color-text) mb-4">
+        <h2 className="font-montserrat text-[1.1rem] tracking-widest text-(--color-text) mb-4">
           DÉTAIL DES BILLETS
         </h2>
         <div className="flex flex-col gap-3">

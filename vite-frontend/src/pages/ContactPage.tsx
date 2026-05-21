@@ -16,7 +16,7 @@ const inputCls =
 const labelCls = 'block text-[0.8rem] font-semibold text-(--color-text-muted) uppercase tracking-[0.06em] mb-1.5';
 
 const sectionHeadCls =
-  "font-['bebas-neue-regular',sans-serif] font-bold text-sm text-(--color-text) tracking-widest mb-4";
+  "font-montserrat font-bold text-sm text-(--color-text) tracking-widest mb-4";
 
 export default function ContactPage() {
   const [form, setForm] = useState<FormData>(INITIAL);

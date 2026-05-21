@@ -77,7 +77,7 @@ export default function BasketPage() {
               <circle cx="30" cy="120" r="2" fill="#2a0a0a" />
             </svg>
 
-            <p className="font-['bebas-neue-regular',sans-serif] text-base text-(--color-text) mb-3">
+            <p className="font-montserrat text-base text-(--color-text) mb-3">
               Votre panier est vide.
             </p>
             <p className="text-(--color-text-muted) text-sm italic mb-8">Les zombies, eux, n'attendent pas.</p>
