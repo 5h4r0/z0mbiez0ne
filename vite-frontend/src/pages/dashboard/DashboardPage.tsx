@@ -82,7 +82,7 @@ export default function EspaceClientPage() {
           </p>
           <p className="text-(--color-text-muted) text-sm mb-10">{user.email}</p>
 
-          <h2 className="font-['bebas-neue-regular',sans-serif] text-[1.1rem] tracking-widest text-(--color-text) mb-5">
+          <h2 className="font-montserrat text-[1.1rem] tracking-widest text-(--color-text) mb-5">
             MES COMMANDES
           </h2>
 

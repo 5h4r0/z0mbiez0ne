@@ -107,7 +107,7 @@ export default function SessionDetailPage() {
         </div>
 
         <div className="bg-(--color-surface) border border-(--color-border) rounded-lg p-8">
-          <h2 className="font-['bebas-neue-regular',sans-serif] font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-6">
+          <h2 className="font-montserrat font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-6">
             RÉSERVER VOS PLACES
           </h2>
 

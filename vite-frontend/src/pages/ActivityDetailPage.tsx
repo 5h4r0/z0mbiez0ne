@@ -106,7 +106,7 @@ export default function ActivityDetailPage() {
           <span>Durée : 20 min.</span>
         </div>
 
-        <h2 className="font-['bebas-neue-regular',sans-serif] font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-6">
+        <h2 className="font-montserrat font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-6">
           SESSIONS DISPONIBLES
         </h2>
 

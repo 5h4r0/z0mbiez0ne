@@ -148,15 +148,15 @@ const passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD ?? "hastur", 1
 await prisma.users.upsert({
   where: { email: process.env.ADMIN_EMAIL ?? "steph@sharo.fr" },
   update: {
-    firstname: "Stéphane",
-    lastname: "Jeankev",
+    firstname: "Jean-Michel",
+    lastname: "Marketing",
     password_hash: passwordHash,
     roles_id: 2
   },
   create: {
     email: "steph@sharo.fr",
-    firstname: "Stéphane",
-    lastname: "Jeankev",
+    firstname: "Jean-Michel",
+    lastname: "Marketing",
     password_hash: passwordHash,
     roles_id: 2
   }

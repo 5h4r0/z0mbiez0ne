@@ -1,5 +1,10 @@
 // Shared page styles
 
+.zzlogo {
+  width: 20vh;
+  margin-top: 55px;
+}
+
 // ——— Page wrapper ———
 .page-wrapper {
   padding-top: 64px; // fixed header height
@@ -54,11 +59,12 @@
   }
 
   &__title {
-    font-family: 'bebas-neue-regular', sans-serif;
+    font-family: "Montserrat", sans-serif;
     font-weight: 700;
-    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
     color: #fff;
     line-height: 1.2;
+    letter-spacing: -.05rem;
   }
 }
 
@@ -79,11 +85,10 @@
   }
 
   &__title {
-    font-family: 'bebas-neue-regular', sans-serif;
-    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
     font-size: clamp(1.4rem, 3vw, 2rem);
     color: var(--color-text);
-    letter-spacing: 0.1em;
     margin-bottom: 40px;
   }
 
@@ -257,20 +262,20 @@
   }
 
   &__title {
-    font-family: 'bebas-neue-regular', sans-serif;
-    font-weight: 700;
+    // font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
     font-size: clamp(1.4rem, 3vw, 2rem);
     color: var(--color-text);
-    letter-spacing: 0.1em;
+    letter-spacing: -0.025em;
     margin-bottom: 48px;
   }
 
   &__section-title {
-    font-family: 'bebas-neue-regular', sans-serif;
-    font-weight: 700;
+    // font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
     font-size: 1rem;
     color: var(--color-text);
-    letter-spacing: 0.08em;
+    letter-spacing: -0.025em;
     margin: 36px 0 16px;
   }
 
