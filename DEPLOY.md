@@ -4,6 +4,30 @@ Procédure de déploiement et pièges connus.
 
 ---
 
+## TODO
+### Ce qui manque concrètement pour passer en prod
+Manquant côté fichiers :
+
+docker-compose.prod.yml — référencé partout dans le doc mais absent du repo
+Dockerfile backend — absent
+Dockerfile frontend (Nginx) — absent
+Config Nginx — absent (routing /api → backend, / → frontend, SSL)
+
+### Manquant côté procédure
+
+Génération et renouvellement SSL Let's Encrypt (Certbot ou Traefik — lequel ?)
+Stratégie de backup PostgreSQL prod
+Rollback en cas d'échec de migration
+
+### Cohérence à vérifier
+
+Le doc parle de "Ionos ou équivalent, à définir" — c'est défini maintenant ? kadath.fr existe déjà donc il y a un hébergeur.
+
+C'est un livrable complet — les Dockerfiles + docker-compose.prod.yml + config Nginx sont la vraie charge de travail.
+
+
+---
+
 ## Environnements
 
 | Domaine                        | Rôle       | Base de données          |

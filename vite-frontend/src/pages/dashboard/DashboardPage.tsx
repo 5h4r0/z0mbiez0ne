@@ -46,6 +46,13 @@ export default function EspaceClientPage() {
   const [ordersError, setOrdersError] = useState(false);
 
   useEffect(() => {
+    if (isHydrating || !user) return;
+    apiFetch('/api/auth/profile')
+      .then((r) => { if (!r.ok) useAuthStore.getState().logout(); })
+      .catch(() => {});
+  }, [isHydrating, user]);
+
+  useEffect(() => {
     if (!user) return;
     let cancelled = false;
     setOrdersLoading(true);

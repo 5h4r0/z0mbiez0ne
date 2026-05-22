@@ -68,6 +68,12 @@
     animation: fadeUp 0.8s 0.15s ease both;
   }
 
+  h1 {
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+  }
+
   &__img {
     margin-top: 5vh;
   }
