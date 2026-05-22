@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { ROLE_IDS } from '../lib/roles.js';
 
 export interface AuthUser {
   id: number;
@@ -78,13 +79,15 @@ export const useAuthStore = create<AuthStore>()(
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firstname, lastname, email, password, confirm, role_id: 1 }),
+          body: JSON.stringify({ firstname, lastname, email, password, confirm, role_id: ROLE_IDS.member }),
           credentials: 'include',
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message ?? 'Inscription échouée');
 
-        const user = data.data as AuthUser;
+        const profileRes = await fetch('/api/auth/profile', { credentials: 'include' });
+        if (!profileRes.ok) throw new Error('Impossible de récupérer le profil');
+        const user = (await profileRes.json()) as AuthUser;
         set({ user });
       },
 

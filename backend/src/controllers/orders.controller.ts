@@ -77,8 +77,18 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = await paramsSchema.parseAsync(req.params);
 
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'not authenticated' });
+      return;
+    }
+
+    const isAdmin = req.user.roleName === 'admin';
+
     const order = await prisma.orders.findUnique({
-      where: { id: Number(id) },
+      where: {
+        id: Number(id),
+        ...(!isAdmin && { user_id: req.user.id }),
+      },
       include: {
         orders_lines: {
           // include session details alongside each line
