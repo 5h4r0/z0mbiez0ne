@@ -1,4 +1,4 @@
-# CLAUDE_AI_overcharged
+# CLAUDE_AI_overloaded
 
 ## /!\ Attention : à utiliser à la demande de Steph 
 > Référence de session pour claude.ai — décisions validées, règles projet, patterns approuvés.
