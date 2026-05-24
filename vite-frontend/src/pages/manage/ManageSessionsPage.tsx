@@ -115,6 +115,7 @@ export default function ManageSessionsPage() {
             data={items}
             onEdit={() => {}}
             onDelete={handleDeleteClick}
+            rowClassName={(row) => row.status === 'Scheduled' ? 'manage-text-success' : ''}
           />
           <ManagePagination
             page={page}
