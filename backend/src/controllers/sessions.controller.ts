@@ -72,16 +72,23 @@ export const getSessions = async (req: Request, res: Response) => {
       prisma.sessions.count({ where }),
     ]);
 
-    const formatted = sessions.map((s) => ({
-      id: s.id,
-      activity_id: s.activity_id,
-      activity: s.activity ?? null,
-      date: formatDate(new Date(s.date)),
-      capacity: s.capacity,
-      unit_price: Number(s.unit_price),
-      status: s.status,
-      users: s.orders_lines.map((ol) => ol.order.user),
-    }));
+    const formatted = sessions.map((s) => {
+      const bookedQty = s.orders_lines
+        .filter((ol) => ol.order.status !== 'Cancelled' && ol.order.status !== 'Refunded')
+        .reduce((sum, ol) => sum + ol.tickets_qty, 0);
+      return {
+        id: s.id,
+        activity_id: s.activity_id,
+        activity: s.activity ?? null,
+        date: formatDate(new Date(s.date)),
+        date_iso: s.date.toISOString(),
+        capacity: s.capacity,
+        available_capacity: s.capacity - bookedQty,
+        unit_price: Number(s.unit_price),
+        status: s.status,
+        users: s.orders_lines.map((ol) => ol.order.user),
+      };
+    });
 
     res.status(200).json({
       success: true,
@@ -147,6 +154,10 @@ export const getSession = async (req: Request, res: Response) => {
       return;
     }
 
+    const bookedQty = session.orders_lines
+      .filter((ol) => ol.order.status !== 'Cancelled' && ol.order.status !== 'Refunded')
+      .reduce((sum, ol) => sum + ol.tickets_qty, 0);
+
     res.status(200).json({
       success: true,
       data: {
@@ -161,7 +172,9 @@ export const getSession = async (req: Request, res: Response) => {
             }
           : null,
         date: formatDate(session.date),
+        date_iso: session.date.toISOString(),
         capacity: session.capacity,
+        available_capacity: session.capacity - bookedQty,
         unit_price: Number(session.unit_price),
         status: session.status,
         users: session.orders_lines.map((ol) => ol.order.user),

@@ -2,7 +2,7 @@
 
 ## Rôle : administrateur
 
-### Connexion au back-office d'aministration
+### Connexion au back-office d'administration
 
 | Action | Détail |
 |--------|--------|
@@ -16,8 +16,6 @@
 
 - Le champ identifiant *"Email address"* réclame l'adresse email enregistrée, le champ *"Password"* masque la frappe de celui-ci en affichant des astériques (comportement habituel de ce type de champ).
 
-- Une case à cocher permet de choisir de rester loggué 2h sans activité. Celle-ci est décochée par défaut.
-
 - À l'ouverture de la page, le focus de saisie est mis sur le champ *"Email address"*.
 
 - Dans chaque champ est écrit en plus clair l'information requise : *"Email address"*, *"password"* (placeholder).
@@ -26,7 +24,7 @@
 
 - Si l'identifiant et le mot de passe sont stockés dans le navigateur, les 2 champs sont déjà remplis.
 
-- L'administrateur doit ensuite : soit valider le formulaire de connection avec la touche [ENTER], soit cliquer avec la souris sur le bouton *"Sign-in"* en fin de formulaire.
+- L'administrateur doit ensuite : soit valider le formulaire de connexion avec la touche [ENTER], soit cliquer avec la souris sur le bouton *"Sign-in"* en fin de formulaire.
 
 - En cas d'erreur de saisie de l'adresse email d'identification ou cas d'erreur de saisir du mot de passe, le texte *"Authentication failed. Please check your entry and try again."* s'affiche en rouge au-dessus du boutton *"Sign-in"*.
 
@@ -36,7 +34,7 @@
 
 - Une fois le formulaire de changement de mot de passe validé, s'affiche à la place de celui-ci le message *"An email has been sent to you with a link to set a new password"*.
 
-- En cas d'authentification réussie, le navigateur charge la route /admin/, affichant le dashboard d'administration.
+- En cas d'authentification réussie, le navigateur charge la route `/manage`, affichant le dashboard d'administration.
 
 - L'admin pourra enregistrer son mot de passe après la proposition du navigateur, fonctionnalité de celui-ci qui ne sera pas désactivée.
 

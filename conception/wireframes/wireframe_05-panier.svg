@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 680 620" xmlns="http://www.w3.org/2000/svg" width="680" height="620">
+<title>Wireframe — /panier — état rempli</title>
+<desc>Page panier avec 2 sessions : Survie en zone contaminée ×3 et Escape Room Apocalypse ×5. Total, vider, bouton commander.</desc>
+<defs><style>text { font-family: ui-sans-serif, system-ui, Arial, sans-serif; }</style></defs>
+
+<rect width="680" height="620" fill="#f5f4f0" rx="8"/>
+
+<!-- NAVBAR -->
+<rect x="0" y="0" width="680" height="40" fill="#0a0a0a" rx="6"/>
+<rect x="0" y="34" width="680" height="6" fill="#0a0a0a"/>
+<line x1="0" y1="40" x2="680" y2="40" stroke="#222" stroke-width="0.5"/>
+<text x="20" y="25" font-size="12" font-weight="500" fill="#c8a84b">the </text>
+<text x="43" y="25" font-size="12" font-weight="500" fill="#E24B4A">zØmbie</text>
+<text x="96" y="25" font-size="12" font-weight="500" fill="#c8a84b"> zØne</text>
+<text x="240" y="25" font-size="10" fill="#666">Activités</text>
+<text x="290" y="25" font-size="10" fill="#666">Sessions</text>
+<text x="340" y="25" font-size="10" fill="#666">Catégories</text>
+<text x="400" y="25" font-size="10" fill="#666">Contact</text>
+<!-- panier actif -->
+<rect x="440" y="13" width="34" height="15" rx="2" fill="#1c1c1c" stroke="#E24B4A" stroke-width="0.5"/>
+<text x="445" y="24" font-size="9" fill="#E24B4A">🛒 8</text>
+<rect x="480" y="13" width="64" height="15" rx="3" fill="#E24B4A"/>
+<text x="512" y="24" font-size="9" fill="white" text-anchor="middle">Mon compte</text>
+
+<!-- PAGE BODY — static-page / static-page__inner max-w-225 -->
+<rect x="0" y="40" width="680" height="448" fill="white"/>
+
+<text x="116" y="88" font-size="15" font-weight="500" fill="#1a1a1a" letter-spacing="0.06em">VOTRE PANIER</text>
+
+<!-- ── ROW 1 — Survie en zone contaminée × 3 ── -->
+<rect x="116" y="104" width="452" height="54" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<!-- infos -->
+<text x="130" y="122" font-size="9" font-weight="500" fill="#eee">Survie en zone contaminée</text>
+<text x="130" y="134" font-size="8" fill="#888">sam. 14 juin · 14h00</text>
+<text x="130" y="146" font-size="8" fill="#888">€29,90 / place</text>
+<!-- contrôle qté -->
+<rect x="342" y="117" width="22" height="22" rx="3" fill="#2a2a2a"/>
+<text x="353" y="132" font-size="12" fill="#ccc" text-anchor="middle">−</text>
+<text x="376" y="132" font-size="12" font-weight="500" fill="#eee" text-anchor="middle">3</text>
+<rect x="390" y="117" width="22" height="22" rx="3" fill="#2a2a2a"/>
+<text x="401" y="132" font-size="12" fill="#ccc" text-anchor="middle">+</text>
+<!-- prix ligne -->
+<text x="442" y="132" font-size="13" font-weight="500" fill="#E24B4A">€89,70</text>
+<!-- supprimer -->
+<text x="532" y="132" font-size="14" fill="#555">✕</text>
+<text x="480" y="148" font-size="7.5" fill="#444" text-anchor="middle">3 × €29,90</text>
+
+<!-- ── ROW 2 — Escape Room Apocalypse × 5 ── -->
+<rect x="116" y="168" width="452" height="54" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<text x="130" y="186" font-size="9" font-weight="500" fill="#eee">Escape Room Apocalypse</text>
+<text x="130" y="198" font-size="8" fill="#888">dim. 15 juin · 11h00</text>
+<text x="130" y="210" font-size="8" fill="#888">€39,90 / place</text>
+<rect x="342" y="181" width="22" height="22" rx="3" fill="#2a2a2a"/>
+<text x="353" y="196" font-size="12" fill="#ccc" text-anchor="middle">−</text>
+<text x="376" y="196" font-size="12" font-weight="500" fill="#eee" text-anchor="middle">5</text>
+<rect x="390" y="181" width="22" height="22" rx="3" fill="#2a2a2a"/>
+<text x="401" y="196" font-size="12" fill="#ccc" text-anchor="middle">+</text>
+<text x="442" y="196" font-size="13" font-weight="500" fill="#E24B4A">€199,50</text>
+<text x="532" y="196" font-size="14" fill="#555">✕</text>
+<text x="480" y="212" font-size="7.5" fill="#444" text-anchor="middle">5 × €39,90</text>
+
+<!-- vider le panier -->
+<text x="568" y="242" font-size="9" fill="#666" text-anchor="end" text-decoration="underline">Vider le panier</text>
+
+<!-- séparateur total -->
+<line x1="116" y1="254" x2="568" y2="254" stroke="#e0e0e0" stroke-width="0.5"/>
+
+<!-- TOTAL + CTA -->
+<text x="130" y="284" font-size="10" fill="#888">Total :</text>
+<text x="184" y="286" font-size="22" font-weight="500" fill="#E24B4A">€289,20</text>
+<text x="184" y="300" font-size="7.5" fill="#888">€89,70 + €199,50</text>
+
+<!-- bouton — état non connecté -->
+<rect x="380" y="268" width="188" height="36" rx="4" fill="#E24B4A"/>
+<text x="474" y="291" font-size="9" fill="white" text-anchor="middle" letter-spacing="0.04em">SE CONNECTER POUR COMMANDER</text>
+
+<!-- annotation état connecté -->
+<rect x="380" y="310" width="188" height="28" rx="4" fill="none" stroke="#E24B4A" stroke-width="0.5" stroke-dasharray="3,2"/>
+<text x="474" y="329" font-size="8" fill="#E24B4A" text-anchor="middle">COMMANDER  ← si connecté</text>
+
+<!-- annotations flux -->
+<text x="340" y="364" font-size="8" fill="#888" text-anchor="middle">si non connecté → navigate('/espace-client?redirectTo=/panier')</text>
+<text x="340" y="376" font-size="8" fill="#888" text-anchor="middle">si connecté → POST /api/orders { user_id, lines: [{session_id, tickets_qty}] } → clearBasket → navigate('/espace-client')</text>
+<text x="340" y="390" font-size="8" fill="#555" text-anchor="middle">transaction Prisma Serializable · vérif capacité restante par session avant insertion</text>
+
+<!-- NOTES TECHNIQUES -->
+<rect x="0" y="488" width="680" height="132" fill="#f0efec"/>
+<line x1="0" y1="488" x2="680" y2="488" stroke="#ccc" stroke-width="0.5"/>
+<text x="12" y="506" font-size="8" fill="#888" font-weight="500">Notes techniques</text>
+<text x="12" y="520" font-size="8" fill="#999">route : /panier → BasketPage · state Zustand persist ('zz-basket') · items: BasketItem[]</text>
+<text x="12" y="532" font-size="8" fill="#999">BasketItem : { sessionId, activityTitle, date, unitPrice, quantity }</text>
+<text x="12" y="544" font-size="8" fill="#999">qty controls : updateQuantity(sessionId, qty) · si qty passe à 0 → removeItem · max visuel: 10</text>
+<text x="12" y="556" font-size="8" fill="#999">total : totalPrice() = items.reduce(sum + unitPrice × quantity) · affiché live</text>
+<text x="12" y="568" font-size="8" fill="#999">commander : isAuthenticated() ? POST /api/orders : navigate /espace-client?redirectTo=/panier</text>
+<text x="12" y="580" font-size="8" fill="#999">navbar : totalItems() = 8 (3+5) · badge rouge sur icône 🛒</text>
+<text x="12" y="600" font-size="8" fill="#555">05-panier.svg · z0mbiez0ne · Stéphane Rochard</text>
+</svg>

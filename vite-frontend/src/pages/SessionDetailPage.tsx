@@ -86,7 +86,7 @@ export default function SessionDetailPage() {
             ← Retour à {activity?.title ?? "l'épreuve"}
           </Link>
           <h1 className="detail-hero__title">
-            {activity?.title ?? 'Session'} — Session du {formatLongDate(session.date)}
+            {activity?.title ?? 'Session'} — Session du {formatLongDate(session.date_iso)}
           </h1>
         </div>
       </div>
@@ -94,9 +94,9 @@ export default function SessionDetailPage() {
       <div className="detail-body">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mb-10">
           {[
-            { label: 'Date', value: formatLongDate(session.date) },
-            { label: 'Heure', value: formatTime(session.date) },
-            { label: 'Places disponibles', value: `${session.capacity}` },
+            { label: 'Date', value: formatLongDate(session.date_iso) },
+            { label: 'Heure', value: formatTime(session.date_iso) },
+            { label: 'Places disponibles', value: `${session.available_capacity} / ${session.capacity}` },
             { label: 'Prix unitaire', value: `€${Number.parseFloat(session.unit_price).toFixed(2)}` },
           ].map(({ label, value }) => (
             <div key={label} className="bg-(--color-surface) border border-(--color-border) rounded-lg p-4">
@@ -107,7 +107,7 @@ export default function SessionDetailPage() {
         </div>
 
         <div className="bg-(--color-surface) border border-(--color-border) rounded-lg p-8">
-          <h2 className="font-['bebas-neue-regular',sans-serif] font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-6">
+          <h2 className="font-montserrat font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-6">
             RÉSERVER VOS PLACES
           </h2>
 
@@ -119,6 +119,7 @@ export default function SessionDetailPage() {
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={session.available_capacity === 0}
                 className="bg-(--color-border) border-none text-(--color-text) w-8 h-8 rounded cursor-pointer text-base"
               >
                 −
@@ -128,7 +129,8 @@ export default function SessionDetailPage() {
               </span>
               <button
                 type="button"
-                onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                onClick={() => setQuantity((q) => Math.min(session.available_capacity, q + 1))}
+              disabled={session.available_capacity === 0}
                 className="bg-(--color-border) border-none text-(--color-text) w-8 h-8 rounded cursor-pointer text-base"
               >
                 +
@@ -143,19 +145,20 @@ export default function SessionDetailPage() {
             </div>
             <button
               type="button"
+              disabled={session.available_capacity === 0}
               onClick={() => {
                 addItem({
                   sessionId: session.id,
                   activityTitle: activity?.title ?? 'Session',
-                  date: session.date,
+                  date: session.date_iso,
                   unitPrice: Number.parseFloat(session.unit_price),
                   quantity,
                 });
                 navigate('/panier');
               }}
-              className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold tracking-[0.06em] uppercase cursor-pointer transition-colors duration-200"
+              className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold tracking-[0.06em] uppercase cursor-pointer transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Ajouter au panier
+              {session.available_capacity === 0 ? 'Complet' : 'Ajouter au panier'}
             </button>
           </div>
         </div>

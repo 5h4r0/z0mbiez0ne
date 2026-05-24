@@ -21,8 +21,8 @@ const decimalFromCents = (cents: number) => new Prisma.Decimal((cents / 100).toF
 
 /** env vars with fallbacks */
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'steph@sharo.fr';
-const ADMIN_FIRSTNAME = process.env.ADMIN_FIRSTNAME ?? 'Stéphane';
-const ADMIN_LASTNAME = process.env.ADMIN_LASTNAME ?? 'Jeankev';
+const ADMIN_FIRSTNAME = process.env.ADMIN_FIRSTNAME ?? 'Jean-Michel';
+const ADMIN_LASTNAME = process.env.ADMIN_LASTNAME ?? 'Marketing';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'hastur';
 
 async function main() {

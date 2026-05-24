@@ -96,7 +96,9 @@ docker compose up --build     # rebuild les images avant démarrage
 
 ### Backend — Express 5 + Prisma
 
-- **Auth** : JWT access token (15min) + refresh token (7j, httpOnly cookie)
+- **Auth** : JWT access token (15min, cookie httpOnly) + refresh token (7j, cookie httpOnly)
+- **cookie-parser** : requis et monté dans `app.ts` avant toutes les routes
+- **CORS** : `credentials: true` obligatoire dans la config cors
 - **Rôles** : `admin`, `user` — middleware `requireRole`
 - **Validation** : Zod sur tous les inputs entrants
 - **Erreurs** : classes custom dans `src/lib/errors.ts`
@@ -117,7 +119,9 @@ Soft delete : `deleted_at` sur `users`, `categories`, `activities`, `sessions`, 
 - **Routing** : `react-router` v7 (pas `react-router-dom`)
 - **State global** : Zustand — store actuel : thème (`isDark`) uniquement, à étoffer
 - **Pas de SSR** — SPA pure, fetches vers l'API backend
-- **Auth** : token JWT stocké côté client, refresh via cookie httpOnly
+- **Auth** : accessToken et refreshToken exclusivement en cookie httpOnly — jamais localStorage, jamais sessionStorage
+- **`credentials: 'include'`** : obligatoire sur tous les fetch auth (login, logout, refresh)
+- **Guard réseau** : les pages protégées vérifient la session via call réseau au montage (protection bfcache)
 
 ### Pages frontend
 
@@ -158,8 +162,39 @@ Soft delete : `deleted_at` sur `users`, `categories`, `activities`, `sessions`, 
 - **Colonnes explicites** — pas de `SELECT *` (Prisma : utiliser `select`)
 - **Soft delete** sur les données sensibles — `deleted_at` (NULL = actif)
 - **Zod** sur tous les inputs entrants (body, params, query)
-- Toujours travailler sur la branche `dev`
+- Toujours travailler sur la branche `customer-account-dev`
 - Jamais commiter sur `main` directement
+
+---
+
+## Règles auth & sécurité (non négociables)
+
+### JWT — stockage des tokens
+- **Jamais** de token en `localStorage` ou `sessionStorage` → vulnérable XSS
+- **accessToken** : cookie `httpOnly`, `secure`, `sameSite: 'strict'`, `path: '/'`, durée 15min
+- **refreshToken** : cookie `httpOnly`, `secure`, `sameSite: 'strict'`, `path: '/api/auth/refresh'`, durée 7j
+- Le frontend ne lit jamais les tokens (httpOnly = inaccessible JS) — le browser les joint automatiquement
+
+### JWT — implémentation backend (Express)
+- `cookie-parser` monté dans `app.ts` **avant** toutes les routes
+- Config CORS : `credentials: true` + origines explicites (pas `*`)
+- `setRefreshCookie` : toujours les 4 flags — `httpOnly`, `secure`, `sameSite: 'strict'`, `path`
+- `refreshAccessToken` : utiliser la table `RefreshToken` en BDD — rotation à chaque refresh, révocation à la déconnexion
+- Stocker le **hash** du refreshToken en BDD (argon2), pas le token brut
+
+### JWT — implémentation frontend (React/Zustand)
+- `credentials: 'include'` sur **tous** les fetch auth : login, logout, refresh
+- `refreshToken()` dans le store : ne pas conditionner à `user` — toujours tenter le refresh au démarrage
+- `apiFetch` intercepteur 401 : retry après refresh, redirect vers `/dashboard` si refresh échoue
+- Pages protégées : call réseau au montage pour valider la session (pas seulement `!!token` en mémoire)
+
+### CSRF
+- `sameSite: 'strict'` suffit si frontend et backend sont sur le même domaine (zombiezone.kadath.fr)
+- Si cross-domain un jour : ajouter anti-CSRF token (double submit cookie pattern)
+
+### bfcache (back-forward cache)
+- Le bouton "précédent" restaure la page depuis la mémoire **sans re-exécuter le JS**
+- Protection : `Cache-Control: no-store` sur les réponses des routes protégées + guard réseau au montage des pages auth
 
 ---
 
@@ -185,8 +220,8 @@ Soft delete : `deleted_at` sur `users`, `categories`, `activities`, `sessions`, 
 ## Branches Git
 
 ```
-main   → production
-dev    → développement (branche de travail)
+main                 → production
+customer-account-dev → branche de travail active
 ```
 
 ---

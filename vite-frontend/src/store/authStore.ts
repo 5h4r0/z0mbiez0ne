@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { ROLE_IDS } from '../lib/roles.js';
 
 export interface AuthUser {
   id: number;
@@ -10,8 +11,8 @@ export interface AuthUser {
 }
 
 interface AuthStore {
-  token: string | null;
   user: AuthUser | null;
+  isHydrating: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: {
     firstname: string;
@@ -21,57 +22,110 @@ interface AuthStore {
     confirm: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
+  refreshToken: () => Promise<void>;
   isAuthenticated: () => boolean;
+}
+
+// Flag module-level — évite les boucles infinies si plusieurs 401 simultanés
+let isRefreshing = false;
+
+export async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const res = await fetch(url, { ...options, credentials: 'include' });
+
+  if (res.status !== 401 || isRefreshing) return res;
+
+  isRefreshing = true;
+  try {
+    const refreshRes = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!refreshRes.ok) {
+      await useAuthStore.getState().logout();
+      window.location.href = '/dashboard';
+      return res;
+    }
+
+    return fetch(url, { ...options, credentials: 'include' });
+  } finally {
+    isRefreshing = false;
+  }
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
-      token: null,
       user: null,
+      isHydrating: true,
 
       login: async (email, password) => {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
+          credentials: 'include',
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message ?? 'Connexion échouée');
 
-        const token = data.token as string;
-        const profileRes = await fetch('/api/auth/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const profileRes = await fetch('/api/auth/profile', { credentials: 'include' });
+        if (!profileRes.ok) throw new Error('Impossible de récupérer le profil');
         const user = (await profileRes.json()) as AuthUser;
-        set({ token, user });
+        set({ user });
       },
 
       register: async ({ firstname, lastname, email, password, confirm }) => {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firstname, lastname, email, password, confirm, role_id: 1 }),
+          body: JSON.stringify({ firstname, lastname, email, password, confirm, role_id: ROLE_IDS.member }),
+          credentials: 'include',
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message ?? 'Inscription échouée');
 
-        const token = data.token as string;
-        const user = data.data as AuthUser;
-        set({ token, user });
+        const profileRes = await fetch('/api/auth/profile', { credentials: 'include' });
+        if (!profileRes.ok) throw new Error('Impossible de récupérer le profil');
+        const user = (await profileRes.json()) as AuthUser;
+        set({ user });
       },
 
       logout: async () => {
-        const { token } = get();
         await fetch('/api/auth/logout', {
           method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
         }).catch(() => {});
-        set({ token: null, user: null });
+        set({ user: null });
       },
 
-      isAuthenticated: () => !!get().token,
+      // Appelé dans App.tsx au démarrage — toujours tenter, ne pas conditionner à user
+      refreshToken: async () => {
+        try {
+          const res = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            credentials: 'include',
+          });
+          if (!res.ok) {
+            set({ user: null, isHydrating: false });
+            return;
+          }
+
+          const profileRes = await fetch('/api/auth/profile', { credentials: 'include' });
+          if (!profileRes.ok) {
+            set({ user: null, isHydrating: false });
+            return;
+          }
+
+          const user = (await profileRes.json()) as AuthUser;
+          set({ user, isHydrating: false });
+        } catch {
+          set({ user: null, isHydrating: false });
+        }
+      },
+
+      isAuthenticated: () => !!get().user,
     }),
-    { name: 'zz-auth' },
+    { name: 'zz-auth', partialize: (state) => ({ user: state.user }) },
   ),
 );

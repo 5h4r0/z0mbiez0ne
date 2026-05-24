@@ -13,9 +13,8 @@ const NAV_LINKS = [
 function ZombieLogo() {
   return (
     <Link to="/" className="no-underline">
-      <span className="font-['bebas-neue-regular',sans-serif] font-bold text-2xl text-(--color-gold) tracking-[0.01em] whitespace-nowrap">
-        the <span className="text-(--color-red)">zØmbie</span> zØne
-      </span>
+      <img src="/images/zz_logo.webp" alt="z0mbie z0ne logo ;)" className="zzlogo" />
+      {/* <span className="font-montserrat font-bold text-2xl text-(--color-gold) tracking-[0.01em] whitespace-nowrap">the <span className="text---color-red)">zØmbie</span> zØne</span> */}
     </Link>
   );
 }
@@ -62,7 +61,7 @@ export default function Header() {
           </NavLink>
 
           <NavLink
-            to="/espace-client"
+            to="/dashboard"
             className={({ isActive }) =>
               `text-[0.8rem] font-semibold tracking-[0.04em] px-4 py-1.5 rounded no-underline border-none transition-colors duration-200 text-white ${
                 isActive ? 'bg-(--color-red-hover)' : 'bg-(--color-red)'
@@ -87,7 +86,7 @@ export default function Header() {
       {/* Mobile menu */}
       {menuOpen && (
         <nav
-          className="bg-[rgba(10,10,10,0.98)] border-t border-(--color-border) px-6 py-4 flex flex-col gap-4"
+          className="bg-[rgba(10,10,10,0.98)] border-t border-(--color-border) px-6 py-10 flex flex-col gap-4"
           aria-label="Menu mobile"
         >
           {NAV_LINKS.map(({ label, to }) => (
@@ -103,7 +102,7 @@ export default function Header() {
             </NavLink>
           ))}
           <NavLink
-            to="/espace-client"
+            to="/dashboard"
             onClick={() => setMenuOpen(false)}
             className="text-(--color-red) no-underline font-semibold"
           >

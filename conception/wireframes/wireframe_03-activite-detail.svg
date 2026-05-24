@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 680 820" xmlns="http://www.w3.org/2000/svg" width="680" height="820">
+<title>Wireframe — /:slug — détail activité</title>
+<desc>Page détail activité : navbar, hero image avec titre, corps description + durée, liste des sessions planifiées avec bouton Réserver.</desc>
+<defs><style>text { font-family: ui-sans-serif, system-ui, Arial, sans-serif; }</style></defs>
+
+<rect width="680" height="820" fill="#f5f4f0" rx="8"/>
+
+<!-- NAVBAR -->
+<rect x="0" y="0" width="680" height="40" fill="#0a0a0a" rx="6"/>
+<rect x="0" y="34" width="680" height="6" fill="#0a0a0a"/>
+<line x1="0" y1="40" x2="680" y2="40" stroke="#222" stroke-width="0.5"/>
+<text x="20" y="25" font-size="12" font-weight="500" fill="#c8a84b">the </text>
+<text x="43" y="25" font-size="12" font-weight="500" fill="#E24B4A">zØmbie</text>
+<text x="96" y="25" font-size="12" font-weight="500" fill="#c8a84b"> zØne</text>
+<text x="240" y="25" font-size="10" fill="#E24B4A">Activités</text>
+<line x1="240" y1="27" x2="272" y2="27" stroke="#E24B4A" stroke-width="0.8"/>
+<text x="284" y="25" font-size="10" fill="#666">Sessions</text>
+<text x="334" y="25" font-size="10" fill="#666">Catégories</text>
+<text x="396" y="25" font-size="10" fill="#666">Contact</text>
+<rect x="440" y="14" width="32" height="14" rx="2" fill="#1c1c1c" stroke="#444" stroke-width="0.5"/>
+<text x="445" y="24" font-size="9" fill="#888">🛒 0</text>
+<rect x="478" y="13" width="64" height="15" rx="3" fill="#E24B4A"/>
+<text x="510" y="24" font-size="9" fill="white" text-anchor="middle">Mon compte</text>
+
+<!-- DETAIL HERO — height: 60vh ~220px -->
+<rect x="0" y="40" width="680" height="220" fill="#1a0808"/>
+<rect x="0" y="40" width="680" height="220" fill="#0d0505" opacity="0.6"/>
+<text x="340" y="95" font-size="8" fill="#333" text-anchor="middle">[ /images/banners/nom-fichier.jpg · background-size:cover · background-position:center ]</text>
+<text x="340" y="107" font-size="8" fill="#333" text-anchor="middle">overlay gradient-to-top: rgba(0,0,0,0.85) 0% → rgba(0,0,0,0.3) 100%</text>
+<!-- contenu positionné en bas (align-items: flex-end) -->
+<text x="48" y="216" font-size="9" fill="rgba(255,255,255,0.6)">← Toutes les épreuves</text>
+<text x="48" y="248" font-size="20" font-weight="700" fill="white">Survie en zone contaminée</text>
+<line x1="0" y1="258" x2="680" y2="258" stroke="#111" stroke-width="1"/>
+<text x="340" y="250" font-size="7" fill="#2a2a2a" text-anchor="middle">detail-hero__content · padding: 40px 48px · max-width: 1400px</text>
+
+<!-- DETAIL BODY — max-width: 900px centré -->
+<rect x="0" y="258" width="680" height="418" fill="white"/>
+
+<!-- description -->
+<text x="100" y="294" font-size="10" fill="#888" text-anchor="middle">↑ padding-top: 48px</text>
+<rect x="100" y="300" width="480" height="8" rx="2" fill="#e8e6e2"/>
+<rect x="100" y="314" width="440" height="8" rx="2" fill="#e8e6e2"/>
+<rect x="100" y="328" width="460" height="8" rx="2" fill="#e8e6e2"/>
+<rect x="100" y="342" width="300" height="8" rx="2" fill="#e8e6e2"/>
+<text x="390" y="340" font-size="8" fill="#bbb">description longue · leading-7 · color-text-muted</text>
+
+<!-- durée -->
+<text x="100" y="370" font-size="9" fill="#888">⏱  Durée : 20 min.</text>
+
+<!-- titre sessions -->
+<text x="100" y="408" font-size="11" font-weight="500" fill="#1a1a1a" letter-spacing="0.06em">SESSIONS DISPONIBLES</text>
+<line x1="100" y1="414" x2="580" y2="414" stroke="#e0e0e0" stroke-width="0.5"/>
+
+<!-- session row 1 — détaillée -->
+<rect x="100" y="422" width="480" height="42" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<text x="116" y="438" font-size="9" font-weight="500" fill="#eee">samedi 14 juin à 14h00</text>
+<text x="116" y="452" font-size="8" fill="#888">12 places</text>
+<text x="390" y="447" font-size="11" font-weight="500" fill="#E24B4A">€29,90</text>
+<rect x="468" y="430" width="100" height="22" rx="3" fill="#E24B4A"/>
+<text x="518" y="445" font-size="8" fill="white" text-anchor="middle" letter-spacing="0.04em">RÉSERVER</text>
+<text x="580" y="451" font-size="7" fill="#555">→ /sessions/:id</text>
+
+<!-- session row 2 -->
+<rect x="100" y="472" width="480" height="42" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<text x="116" y="488" font-size="9" font-weight="500" fill="#eee">dimanche 15 juin à 11h00</text>
+<text x="116" y="502" font-size="8" fill="#888">8 places</text>
+<text x="390" y="497" font-size="11" font-weight="500" fill="#E24B4A">€29,90</text>
+<rect x="468" y="480" width="100" height="22" rx="3" fill="#E24B4A"/>
+<text x="518" y="495" font-size="8" fill="white" text-anchor="middle" letter-spacing="0.04em">RÉSERVER</text>
+
+<!-- session row 3 -->
+<rect x="100" y="522" width="480" height="42" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<text x="116" y="538" font-size="9" font-weight="500" fill="#eee">lundi 16 juin à 18h00</text>
+<text x="116" y="552" font-size="8" fill="#888">20 places</text>
+<text x="390" y="547" font-size="11" font-weight="500" fill="#E24B4A">€29,90</text>
+<rect x="468" y="530" width="100" height="22" rx="3" fill="#E24B4A"/>
+<text x="518" y="545" font-size="8" fill="white" text-anchor="middle" letter-spacing="0.04em">RÉSERVER</text>
+
+<!-- session rows 4-5 -->
+<rect x="100" y="572" width="480" height="42" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<rect x="100" y="622" width="480" height="42" rx="5" fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5"/>
+<text x="340" y="648" font-size="8" fill="#333" text-anchor="middle">max 6 sessions · /api/sessions?activity_slug=:slug&amp;status=Scheduled&amp;limit=6</text>
+
+<line x1="0" y1="676" x2="680" y2="676" stroke="#e0e0e0" stroke-width="0.5"/>
+
+<!-- NOTES TECHNIQUES -->
+<rect x="0" y="676" width="680" height="144" fill="#f0efec"/>
+<text x="12" y="694" font-size="8" fill="#888" font-weight="500">Notes techniques</text>
+<text x="12" y="708" font-size="8" fill="#999">route : /:slug → DynamicDetailPage (détecte type via /api/activities/by-slug/:slug)</text>
+<text x="12" y="720" font-size="8" fill="#999">detail-hero · height: 60vh · min-height: 400px · align-items: flex-end · bg-image cover</text>
+<text x="12" y="732" font-size="8" fill="#999">detail-hero__back · ← Toutes les épreuves · lien /les-epreuves · color white/70</text>
+<text x="12" y="744" font-size="8" fill="#999">detail-body · max-width: 900px · margin: 0 auto · padding: 48px 24px 80px</text>
+<text x="12" y="756" font-size="8" fill="#999">sessions · flex-col · gap-3 · chaque row : flex justify-between flex-wrap · bg surface border rounded-lg px-5 py-4</text>
+<text x="12" y="768" font-size="8" fill="#999">session row : date + heure (capitalize) · N places · €prix (red bold) · btn RÉSERVER → /sessions/:id</text>
+<text x="12" y="780" font-size="8" fill="#999">états loading : skeleton (div h-60vh + lignes) · error : "Cette épreuve n'existe pas ou a été dévorée"</text>
+<text x="12" y="800" font-size="8" fill="#555">03-activite-detail.svg · z0mbiez0ne · Stéphane Rochard</text>
+</svg>

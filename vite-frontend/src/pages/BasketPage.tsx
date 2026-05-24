@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useAuthStore } from '../store/authStore';
+import { apiFetch, useAuthStore } from '../store/authStore';
 import { useBasketStore } from '../store/basketStore';
 import '../styles/pages.scss';
 
 export default function BasketPage() {
   const { items, removeItem, updateQuantity, clearBasket, totalPrice } = useBasketStore();
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, user, isHydrating } = useAuthStore();
   const navigate = useNavigate();
   const [orderError, setOrderError] = useState('');
   const [ordering, setOrdering] = useState(false);
@@ -22,19 +22,16 @@ export default function BasketPage() {
 
   async function handleOrder() {
     if (!isAuthenticated() || !user) {
-      navigate('/espace-client?redirectTo=/panier');
+      navigate('/dashboard?redirectTo=/panier');
       return;
     }
 
     setOrderError('');
     setOrdering(true);
     try {
-      const res = await fetch('/api/orders', {
+      const res = await apiFetch('/api/orders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user.id,
           lines: items.map((item) => ({
@@ -44,11 +41,11 @@ export default function BasketPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; message?: string; data?: { id: number } };
       if (!res.ok) throw new Error(data.message ?? 'La commande a échoué');
 
       clearBasket();
-      navigate('/espace-client');
+      navigate(`/dashboard/commandes/${data.data?.id}`);
     } catch (err) {
       setOrderError((err as Error).message);
     } finally {
@@ -80,7 +77,7 @@ export default function BasketPage() {
               <circle cx="30" cy="120" r="2" fill="#2a0a0a" />
             </svg>
 
-            <p className="font-['bebas-neue-regular',sans-serif] text-base text-(--color-text) mb-3">
+            <p className="font-montserrat text-base text-(--color-text) mb-3">
               Votre panier est vide.
             </p>
             <p className="text-(--color-text-muted) text-sm italic mb-8">Les zombies, eux, n'attendent pas.</p>
@@ -173,9 +170,9 @@ export default function BasketPage() {
                 type="button"
                 onClick={handleOrder}
                 disabled={ordering}
-                className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em] transition-colors duration-200 disabled:opacity-50"
+                className="bg-yellow-500 hover:bg-yellow-400 text-black border-none px-8 py-3 rounded text-sm font-bold cursor-pointer uppercase tracking-[0.06em] transition-colors duration-200 disabled:opacity-50"
               >
-                {ordering ? 'Commande en cours…' : isAuthenticated() ? 'Commander' : 'Se connecter pour commander'}
+                {ordering ? 'Commande en cours…' : (isAuthenticated() || isHydrating) ? 'Commander' : 'Se connecter pour commander'}
               </button>
             </div>
           </div>
