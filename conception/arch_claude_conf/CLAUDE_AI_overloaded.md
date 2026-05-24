@@ -9,7 +9,7 @@
 ## Accès au repo
 
 ```bash
-# Vérifier d'abord si le clone existe déjà dans la session bash courante
+# Vérifier d'abord si le clone existe déjà dans la session bash courante - example branche customer-account-dev
 test -d /tmp/zz && echo "exists" || git clone --depth 1 -b customer-account-dev https://github.com/5h4r0/z0mbiez0ne.git /tmp/zz
 ```
 
@@ -41,6 +41,24 @@ Skills utiles pour ce projet :
 - Toujours préfixer les fichiers de code avec leur chemin relatif au monorepo
 - Appliquer les bonnes pratiques d'office (sécurité, perf, archi, UX, naming)
 - En fin de réponse sur un sujet important : proposer de mettre à jour ce fichier
+
+---
+
+## Zod — règle absolue : lire le controller, pas le schema Prisma
+
+Quand on écrit un schéma Zod pour parser une réponse API :
+- **Toujours lire le controller concerné** avant d'écrire le schéma
+- **Jamais inférer depuis schema.prisma** — le controller transforme les données :
+  - `Decimal` Prisma → `number` (ex: unit_price, total_amount)
+  - `Date` Prisma → `string` formatée par date-fns (ex: session.date)
+  - Relations → aplaties ou restructurées (ex: role object → role string)
+  - Champs calculés absents du modèle (ex: available_capacity)
+- Le contrat API = la sortie du controller, pas le modèle BDD
+
+Violation détectée le 2026-05-24 :
+- manageSessionSchema : unit_price z.string() au lieu de z.number()
+- manageSessionSchema : date attendue ISO, reçue string formatée date-fns
+- manageUserSchema : role z.object({id, name}) au lieu de z.string()
 
 ---
 
