@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Route, Routes } from 'react-router';
 import ActivitiesPage from '../pages/ActivitiesPage';
 import BasketPage from '../pages/BasketPage';
@@ -6,7 +7,8 @@ import CguPage from '../pages/CguPage';
 import ConfidentialitePage from '../pages/ConfidentialitePage';
 import ContactPage from '../pages/ContactPage';
 import DynamicDetailPage from '../pages/DynamicDetailPage';
-import EspaceClientPage from '../pages/EspaceClientPage';
+import DashboardPage from '../pages/dashboard/DashboardPage';
+import OrderDetailPage from '../pages/dashboard/OrderDetailPage';
 import FaqPage from '../pages/FaqPage';
 import HomePage from '../pages/HomePage';
 import MentionsLegalesPage from '../pages/MentionsLegalesPage';
@@ -15,12 +17,17 @@ import PlanPage from '../pages/PlanPage';
 import SessionDetailPage from '../pages/SessionDetailPage';
 import SessionsPage from '../pages/SessionsPage';
 import TarifsPage from '../pages/TarifsPage';
+import { useAuthStore } from '../store/authStore';
 import Footer from './Footer';
 import Header from './Header';
 import '../styles/App.css';
 import ScrollToTop from './ScrollToTop';
 
 function App() {
+  useEffect(() => {
+    useAuthStore.getState().refreshToken().catch(() => {});
+  }, []);
+
   return (
     <div className="app">
       <ScrollToTop />
@@ -39,7 +46,8 @@ function App() {
           <Route path="/confidentialite" element={<ConfidentialitePage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/panier" element={<BasketPage />} />
-          <Route path="/espace-client" element={<EspaceClientPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard/commandes/:id" element={<OrderDetailPage />} />
           <Route path="/sessions/:id" element={<SessionDetailPage />} />
           {/* Détail dynamique : session (slug-id), activité ou catégorie */}
           <Route path="/:slug" element={<DynamicDetailPage />} />

@@ -77,14 +77,31 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = await paramsSchema.parseAsync(req.params);
 
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'not authenticated' });
+      return;
+    }
+
+    const isAdmin = req.user.roleName === 'admin';
+
     const order = await prisma.orders.findUnique({
-      where: { id: Number(id) },
+      where: {
+        id: Number(id),
+        ...(!isAdmin && { user_id: req.user.id }),
+      },
       include: {
         orders_lines: {
           // include session details alongside each line
           include: {
             session: {
-              select: { id: true, date: true, capacity: true, unit_price: true, status: true },
+              select: {
+                id: true,
+                date: true,
+                capacity: true,
+                unit_price: true,
+                status: true,
+                activity: { select: { title: true } },
+              },
             },
           },
         },
@@ -105,9 +122,11 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
           session_id: ol.session_id,
           tickets_qty: ol.tickets_qty,
           amount: Number(ol.amount),
+          activity_title: ol.session.activity?.title ?? null,
           session: {
             id: ol.session.id,
             date: formatDate(ol.session.date),
+            date_iso: ol.session.date.toISOString(),
             capacity: ol.session.capacity,
             unit_price: Number(ol.session.unit_price),
             status: ol.session.status,
@@ -121,6 +140,57 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
     } else {
       res.status(500).json({ success: false, message: buildErrorMessage('internal_error', 'order') });
     }
+  }
+};
+
+/** get my orders (authenticated user) */
+export const getMyOrders = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orders = await prisma.orders.findMany({
+      where: { user_id: req.user.id },
+      include: {
+        orders_lines: {
+          include: {
+            session: {
+              select: {
+                id: true,
+                date: true,
+                capacity: true,
+                unit_price: true,
+                status: true,
+                activity: { select: { title: true } },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: orders.map((o) => ({
+        ...formatOrder(o),
+        lines: o.orders_lines.map((ol) => ({
+          id: ol.id,
+          session_id: ol.session_id,
+          tickets_qty: ol.tickets_qty,
+          amount: Number(ol.amount),
+          activity_title: ol.session.activity?.title ?? null,
+          session: {
+            id: ol.session.id,
+            date: formatDate(ol.session.date),
+            date_iso: ol.session.date.toISOString(),
+            capacity: ol.session.capacity,
+            unit_price: Number(ol.session.unit_price),
+            status: ol.session.status,
+          },
+        })),
+      })),
+    });
+  } catch (error) {
+    console.error('error fetching user orders:', error);
+    res.status(500).json({ success: false, message: 'error fetching user orders' });
   }
 };
 
@@ -171,7 +241,10 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
           // check remaining capacity: capacity - already booked tickets for this session
           const agg = await tx.orders_lines.aggregate({
-            where: { session_id },
+            where: {
+              session_id,
+              order: { status: { notIn: ['Cancelled', 'Refunded'] } },
+            },
             _sum: { tickets_qty: true },
           });
           const booked = agg._sum.tickets_qty ?? 0;
@@ -218,6 +291,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
           session: {
             id: ol.session.id,
             date: formatDate(ol.session.date),
+            date_iso: ol.session.date.toISOString(),
             capacity: ol.session.capacity,
             unit_price: Number(ol.session.unit_price),
             status: ol.session.status,
@@ -243,6 +317,8 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 };
 
 /** update */
+// TODO: intégrer Stripe pour le paiement réel — gérer les cas d'échec,
+// refus de carte, 3DS, remboursement. Prévoir mode test avec carte Stripe test.
 export const updateOrder = async (req: Request, res: Response): Promise<void> => {
   const paramsSchema = z.object({ id: z.string().regex(/^\d+$/, 'id must be a number') });
   const bodySchema = z.object({

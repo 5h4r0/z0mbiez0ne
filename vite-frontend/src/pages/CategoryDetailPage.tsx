@@ -87,7 +87,7 @@ export default function CategoryDetailPage() {
       <div className="detail-body">
         <p className="text-base leading-7 text-(--color-text-muted) mb-12">{category.description}</p>
 
-        <h2 className="font-['bebas-neue-regular',sans-serif] font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-8">
+        <h2 className="font-montserrat font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-8">
           LES ÉPREUVES DE CETTE CATÉGORIE
         </h2>
 

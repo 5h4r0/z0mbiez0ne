@@ -19,15 +19,15 @@ export default function NotFoundPage() {
         .notfound-404 { animation: flicker 4s infinite; }
       `}</style>
 
-      <p className="notfound-404 font-black text-[clamp(6rem,20vw,14rem)] text-(--color-red) leading-none mb-4 select-none font-['bebas-neue-regular',sans-serif]">
+      <p className="notfound-404 font-black text-[clamp(6rem,20vw,14rem)] text-(--color-red) leading-none mb-4 select-none font-montserrat">
         404
       </p>
 
-      <p className="font-bold text-[clamp(1rem,3vw,1.4rem)] text-(--color-text) mb-6 tracking-[0.05em] font-['bebas-neue-regular',sans-serif]">
+      <p className="font-bold text-[clamp(1rem,3vw,1.4rem)] text-(--color-text) mb-6 tracking-wider font-montserrat">
         Zone introuvable
       </p>
 
-      <p className="text-(--color-text-muted) text-base italic mb-10 max-w-[400px]">
+      <p className="text-(--color-text-muted) text-base italic mb-10 max-w-400">
         Cette page a été dévorée par les zombies.
       </p>
 

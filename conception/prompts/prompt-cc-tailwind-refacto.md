@@ -14,7 +14,7 @@ en conservant les classes SCSS existantes dans `pages.scss` et `HomePage.scss`
   - `--color-bg` `--color-surface` `--color-surface-hover` `--color-border`
   - `--color-red` `--color-red-hover` `--color-gold`
   - `--color-text` `--color-text-muted`
-- Police display : `Bebas Neue` — utilisée via `font-family: 'bebas-neue-regular', sans-serif`
+- Police display : `Montserrat`
 - Police body : `Montserrat`
 
 > Tailwind v4 supporte les variables CSS directement :

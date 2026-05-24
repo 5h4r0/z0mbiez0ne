@@ -1,15 +1,5 @@
 import { Link } from 'react-router';
 
-function ZombieLogoFooter() {
-  return (
-    <Link to="/" className="no-underline inline-block mb-3">
-      <span className="font-['bebas-neue-regular',sans-serif] font-bold text-base text-(--color-gold) tracking-[0.01em] whitespace-nowrap">
-        the <span className="text-(--color-red)">zØmbie</span> zØne
-      </span>
-    </Link>
-  );
-}
-
 function FooterLink({ to, children }: { to: string; children: React.ReactNode }) {
   return (
     <Link
@@ -48,7 +38,7 @@ export default function Footer() {
       <div className="max-w-350 mx-auto px-6 pt-16 pb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
         {/* Col 1 — Brand */}
         <div>
-          <ZombieLogoFooter />
+          <Link to="/" className="no-underline inline-block mb-3"><h3>the zØmbie zØne</h3></Link>
           <p className="text-[0.85rem] text-(--color-text-muted) mb-1.5 leading-relaxed">
             Parc à zombies réservé aux vivants
           </p>
