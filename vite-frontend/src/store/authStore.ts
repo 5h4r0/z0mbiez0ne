@@ -29,6 +29,9 @@ interface AuthStore {
 // Flag module-level — évite les boucles infinies si plusieurs 401 simultanés
 let isRefreshing = false;
 
+// Déduplique les appels concurrents à refreshToken (StrictMode, double-mount)
+let refreshPromise: Promise<void> | null = null;
+
 export async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const res = await fetch(url, { ...options, credentials: 'include' });
 
@@ -100,28 +103,33 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       // Appelé dans App.tsx au démarrage — toujours tenter, ne pas conditionner à user
-      refreshToken: async () => {
-        try {
-          const res = await fetch('/api/auth/refresh', {
-            method: 'POST',
-            credentials: 'include',
-          });
-          if (!res.ok) {
-            set({ user: null, isHydrating: false });
-            return;
-          }
+      refreshToken: () => {
+        if (refreshPromise) return refreshPromise;
+        refreshPromise = (async () => {
+          set({ isHydrating: true });
+          try {
+            const res = await fetch('/api/auth/refresh', {
+              method: 'POST',
+              credentials: 'include',
+            });
+            if (!res.ok) {
+              set({ user: null, isHydrating: false });
+              return;
+            }
 
-          const profileRes = await fetch('/api/auth/profile', { credentials: 'include' });
-          if (!profileRes.ok) {
-            set({ user: null, isHydrating: false });
-            return;
-          }
+            const profileRes = await fetch('/api/auth/profile', { credentials: 'include' });
+            if (!profileRes.ok) {
+              set({ user: null, isHydrating: false });
+              return;
+            }
 
-          const user = (await profileRes.json()) as AuthUser;
-          set({ user, isHydrating: false });
-        } catch {
-          set({ user: null, isHydrating: false });
-        }
+            const user = (await profileRes.json()) as AuthUser;
+            set({ user, isHydrating: false });
+          } catch {
+            set({ user: null, isHydrating: false });
+          }
+        })().finally(() => { refreshPromise = null; });
+        return refreshPromise;
       },
 
       isAuthenticated: () => !!get().user,
