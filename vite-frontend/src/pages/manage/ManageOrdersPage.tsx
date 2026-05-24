@@ -20,6 +20,12 @@ const STATUS_LABEL: Record<string, string> = {
   Refunded: 'Remboursée',
 };
 
+const STATUS_CLASS: Record<string, string> = {
+  Confirmed: 'manage-text-success',
+  Pending: 'manage-text-warning',
+  Refunded: 'manage-text-danger',
+};
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -58,7 +64,7 @@ export default function ManageOrdersPage() {
 
   const columns: Column<ManageOrder>[] = [
     { header: 'ID', accessor: 'id' },
-    { header: 'Statut', render: (row) => STATUS_LABEL[row.status] ?? row.status },
+    { header: 'Statut', render: (row) => STATUS_LABEL[row.status] ?? row.status, cellClassName: (row) => STATUS_CLASS[row.status] ?? '' },
     { header: 'Total', render: (row) => `€${Number(row.total_amount).toFixed(2)}` },
     { header: 'Paiement', render: (row) => row.payment_method ?? '—' },
     { header: 'Créée le', render: (row) => formatDate(row.created_at) },

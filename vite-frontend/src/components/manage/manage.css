@@ -261,13 +261,16 @@
 }
 
 .manage-hub__card {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   padding: 1.25rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
   text-decoration: none;
   transition: border-color 0.15s;
+  min-height: 110px;
 }
 
 .manage-hub__card:hover {
@@ -305,6 +308,15 @@
   padding: 2rem 0;
   text-align: center;
 }
+
+/* Row / cell color helpers */
+tr.manage-text-success td { color: var(--color-green); }
+tr.manage-text-warning td { color: var(--color-gold); }
+tr.manage-text-danger  td { color: var(--color-red); }
+
+td.manage-text-success { color: var(--color-green); }
+td.manage-text-warning { color: var(--color-gold); }
+td.manage-text-danger  { color: var(--color-red); }
 
 /* Pagination */
 .manage-pagination {

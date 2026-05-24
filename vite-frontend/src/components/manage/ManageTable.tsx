@@ -5,6 +5,7 @@ export interface Column<T> {
   header: string;
   accessor?: keyof T;
   render?: (row: T) => React.ReactNode;
+  cellClassName?: (row: T) => string;
 }
 
 interface Props<T extends { id: number }> {
@@ -12,9 +13,10 @@ interface Props<T extends { id: number }> {
   data: T[];
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
+  rowClassName?: (row: T) => string;
 }
 
-export default function ManageTable<T extends { id: number }>({ columns, data, onEdit, onDelete }: Props<T>) {
+export default function ManageTable<T extends { id: number }>({ columns, data, onEdit, onDelete, rowClassName }: Props<T>) {
   const hasActions = onEdit ?? onDelete;
 
   return (
@@ -30,9 +32,9 @@ export default function ManageTable<T extends { id: number }>({ columns, data, o
         </thead>
         <tbody>
           {data.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.id} className={rowClassName?.(row)}>
               {columns.map((col) => (
-                <td key={col.header}>
+                <td key={col.header} className={col.cellClassName?.(row)}>
                   {col.render ? col.render(row) : col.accessor != null ? String(row[col.accessor] ?? '') : null}
                 </td>
               ))}

@@ -55,6 +55,7 @@ export default function ConfirmModal({ isOpen, title, message, onCancel, onConfi
       aria-modal="true"
       aria-labelledby="confirm-modal-title"
       onClick={(e) => { if (e.target === e.currentTarget) handleCancel(); }}
+      onKeyDown={(e) => { if (e.key === 'Escape') handleCancel(); }}
     >
       <div className="manage-modal">
         <div id="confirm-modal-title" className="manage-modal__title">{title}</div>
@@ -63,7 +64,7 @@ export default function ConfirmModal({ isOpen, title, message, onCancel, onConfi
         {/* Cas erreur : suppression impossible */}
         {error && (
           <>
-            <div className="manage-modal__warning" style={{ color: '#d4a017' }}>
+            <div className="manage-modal__warning" style={{ color: 'var(--color-gold)' }}>
               Pour supprimer cette catégorie, vous devez soit retirer les activités suivantes de la catégorie, soit les supprimer.
             </div>
             <div className="manage-error" style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
