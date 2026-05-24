@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://claude.ai/chat/19803e60-af57-4408-8b93-bd203df03f19
+HostUrl=https://claude.ai/api/organizations/7698e6e7-a542-4ac8-8194-b99b709dc8dd/conversations/19803e60-af57-4408-8b93-bd203df03f19/wiggle/download-file?path=%2Fmnt%2Fuser-data%2Foutputs%2Fdeploy-checklist.md
