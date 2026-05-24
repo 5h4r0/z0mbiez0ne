@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[hook]' \"$CLAUDE_TOOL_INPUT\" | grep -qE 'db:reset|db:drop' && echo 'BLOQUÉ : db:reset/db:drop interdit sans confirmation explicite. Demande à Steph.' && exit 1 || exit 0"
+          },
+          {
+            "type": "command",
+            "command": "echo '[hook]' \"$CLAUDE_TOOL_INPUT\" | grep -qE 'push --force|push -f' && echo 'BLOQUÉ : git push --force interdit. Demande à Steph.' && exit 1 || exit 0"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[hook]' \"$CLAUDE_TOOL_INPUT\" | grep -qE 'db:dev|db:deploy' && echo '⚠️  Migration appliquée — pense à lancer db:gen pour régénérer le client Prisma.' || exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}
