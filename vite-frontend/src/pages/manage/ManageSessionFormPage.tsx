@@ -3,8 +3,8 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import ConfirmModal from '../../components/manage/ConfirmModal';
 import '../../components/manage/manage.css';
 import '../../styles/manage.scss';
-import { apiFetch } from '../../store/authStore';
 import { useToast } from '../../hooks/useToast';
+import { apiFetch } from '../../store/authStore';
 
 interface Activity { id: number; title: string; }
 
@@ -63,9 +63,9 @@ export default function ManageSessionFormPage() {
     if (!activityId) errs.activityId = 'Activité requise';
     if (!date) errs.date = 'Date requise';
     const cap = Number(capacity);
-    if (!capacity || isNaN(cap) || cap < 1) errs.capacity = 'Capacité min. 1';
+    if (!capacity || Number.isNaN(cap) || cap < 1) errs.capacity = 'Capacité min. 1';
     const price = Number(unitPrice);
-    if (!unitPrice || isNaN(price) || price < 0) errs.unitPrice = 'Prix invalide';
+    if (!unitPrice || Number.isNaN(price) || price < 0) errs.unitPrice = 'Prix invalide';
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -113,8 +113,9 @@ export default function ManageSessionFormPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="manage-form__field">
-          <label className="manage-form__label">Activité</label>
+          <label className="manage-form__label" htmlFor="sess-activity">Activité</label>
           <select
+            id="sess-activity"
             className={`manage-form__input${fieldErrors.activityId ? ' manage-form__input--error' : ''}`}
             value={activityId}
             onChange={e => setActivityId(e.target.value)}
@@ -128,8 +129,9 @@ export default function ManageSessionFormPage() {
         </div>
 
         <div className="manage-form__field">
-          <label className="manage-form__label">Date et heure</label>
+          <label className="manage-form__label" htmlFor="sess-date">Date et heure</label>
           <input
+            id="sess-date"
             type="datetime-local"
             className={`manage-form__input${fieldErrors.date ? ' manage-form__input--error' : ''}`}
             value={date}
@@ -139,8 +141,9 @@ export default function ManageSessionFormPage() {
         </div>
 
         <div className="manage-form__field">
-          <label className="manage-form__label">Capacité</label>
+          <label className="manage-form__label" htmlFor="sess-capacity">Capacité</label>
           <input
+            id="sess-capacity"
             type="number"
             min={1}
             className={`manage-form__input${fieldErrors.capacity ? ' manage-form__input--error' : ''}`}
@@ -152,8 +155,9 @@ export default function ManageSessionFormPage() {
         </div>
 
         <div className="manage-form__field">
-          <label className="manage-form__label">Prix unitaire (€)</label>
+          <label className="manage-form__label" htmlFor="sess-price">Prix unitaire (€)</label>
           <input
+            id="sess-price"
             type="number"
             min={0}
             step="0.01"
@@ -166,8 +170,9 @@ export default function ManageSessionFormPage() {
         </div>
 
         <div className="manage-form__field">
-          <label className="manage-form__label">Statut</label>
+          <label className="manage-form__label" htmlFor="sess-status">Statut</label>
           <select
+            id="sess-status"
             className="manage-form__input"
             value={status}
             onChange={e => setStatus(e.target.value)}

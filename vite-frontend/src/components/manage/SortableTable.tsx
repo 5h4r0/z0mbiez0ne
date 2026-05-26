@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export interface Column<T> {
   key: keyof T | string;
@@ -12,6 +12,7 @@ interface Props<T extends Record<string, unknown>> {
   rows: T[];
   onRowClick?: (row: T) => void;
   emptyMessage?: string;
+  rowKey?: (row: T) => React.Key;
 }
 
 export default function SortableTable<T extends Record<string, unknown>>({
@@ -19,6 +20,7 @@ export default function SortableTable<T extends Record<string, unknown>>({
   rows,
   onRowClick,
   emptyMessage = 'Aucune donnée.',
+  rowKey = (row) => String(row.id ?? ''),
 }: Props<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -71,9 +73,9 @@ export default function SortableTable<T extends Record<string, unknown>>({
           </tr>
         </thead>
         <tbody>
-          {sorted.map((row, i) => (
+          {sorted.map((row) => (
             <tr
-              key={i}
+              key={rowKey(row)}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
               style={onRowClick ? { cursor: 'pointer' } : undefined}
             >

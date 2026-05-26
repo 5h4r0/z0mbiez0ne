@@ -128,7 +128,9 @@ export const useAuthStore = create<AuthStore>()(
           } catch {
             set({ user: null, isHydrating: false });
           }
-        })().finally(() => { refreshPromise = null; });
+        })().finally(() => {
+          refreshPromise = null;
+        });
         return refreshPromise;
       },
 

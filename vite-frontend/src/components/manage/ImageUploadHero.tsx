@@ -57,7 +57,8 @@ export default function ImageUploadHero({ currentFilename, slug, onUploaded }: P
   const imgSrc = currentFilename ? `/images/banners/${currentFilename}` : null;
 
   return (
-    <div
+    <button
+      type="button"
       className="manage-form__hero"
       onClick={() => inputRef.current?.click()}
     >
@@ -86,6 +87,6 @@ export default function ImageUploadHero({ currentFilename, slug, onUploaded }: P
         style={{ display: 'none' }}
         onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
       />
-    </div>
+    </button>
   );
 }

@@ -7,9 +7,9 @@ import ImageUploadThumb from '../../components/manage/ImageUploadThumb';
 import TipTapEditor from '../../components/manage/TipTapEditor';
 import '../../components/manage/manage.css';
 import '../../styles/manage.scss';
+import { useToast } from '../../hooks/useToast';
 import { apiFetch } from '../../store/authStore';
 import { slugify } from '../../utils/slugify';
-import { useToast } from '../../hooks/useToast';
 
 export default function ManageActivityFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -94,8 +94,9 @@ export default function ManageActivityFormPage() {
         />
 
         <div className="manage-form__field">
-          <label className="manage-form__label">Titre</label>
+          <label className="manage-form__label" htmlFor="act-title">Titre</label>
           <input
+            id="act-title"
             className="manage-form__input"
             value={title}
             onChange={e => {
@@ -107,8 +108,9 @@ export default function ManageActivityFormPage() {
         </div>
 
         <div className="manage-form__field">
-          <label className="manage-form__label">Slug</label>
+          <label className="manage-form__label" htmlFor="act-slug">Slug</label>
           <input
+            id="act-slug"
             className="manage-form__input"
             value={slug}
             onChange={e => { setSlug(e.target.value); setSlugLocked(true); }}
@@ -120,17 +122,17 @@ export default function ManageActivityFormPage() {
         </div>
 
         <div className="manage-form__field">
-          <label className="manage-form__label">Description</label>
+          <span className="manage-form__label">Description</span>
           <TipTapEditor value={description} onChange={setDescription} maxLength={2000} />
         </div>
 
         <div className="manage-form__field">
-          <label className="manage-form__label">Catégories</label>
+          <span className="manage-form__label">Catégories</span>
           <CategoryTagPicker selected={categoryIds} onChange={setCategoryIds} />
         </div>
 
         <div className="manage-form__field" style={{ marginTop: 24 }}>
-          <label className="manage-form__label">Miniature</label>
+          <span className="manage-form__label">Miniature</span>
           <ImageUploadThumb
             currentFilename={thumbFilename}
             slug={slug || slugify(title)}
