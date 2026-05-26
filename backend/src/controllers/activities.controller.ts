@@ -123,7 +123,9 @@ export const getActivity = async (req: Request, res: Response) => {
       data: {
         id: activity.id,
         title: activity.title,
+        slug: activity.slug,
         description: activity.description,
+        image_filename: activity.image_filename,
         categories: activity.activities_categories.map((ac) => ac.category),
         sessions: activity.sessions.map((s) => ({
           id: s.id,
@@ -211,7 +213,7 @@ export const getActivityBySlug = async (req: Request, res: Response) => {
 export const createActivity = async (req: Request, res: Response): Promise<void> => {
   const { title, description, activities_categories, slug: slugBody, image_filename: imageBody } = req.body;
   const slug = slugBody ?? makeSlug(title);
-  const image_filename = imageBody ?? `activity-${slug}.jpg`;
+  const image_filename = imageBody ?? `activity-${slug}.webp`;
 
   try {
     const created = await prisma.activities.create({

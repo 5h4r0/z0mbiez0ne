@@ -80,7 +80,7 @@ export const sessionFormSchema = z.object({
   activity_id: z.number({ message: 'Activité requise' }),
   date: z.string().min(1, 'Date requise'),
   capacity: z.number().min(1, 'Capacité min. 1'),
-  unit_price: z.string().min(1, 'Prix requis'),
+  unit_price: z.number().min(0, 'Prix invalide'),
   status: z.enum(['Scheduled', 'Cancelled', 'Completed']),
 });
 

@@ -24,6 +24,7 @@ export default function ManageActivityFormPage() {
   const [categoryIds, setCategoryIds] = useState<number[]>([]);
   const [bannerFilename, setBannerFilename] = useState<string | null>(null);
   const [thumbFilename, setThumbFilename] = useState<string | null>(null);
+  const [thumbCacheKey, setThumbCacheKey] = useState(() => Date.now());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDelete, setShowDelete] = useState(false);
@@ -36,7 +37,6 @@ export default function ManageActivityFormPage() {
         const a = d.data ?? d;
         setTitle(a.title ?? '');
         setSlug(a.slug ?? '');
-        setSlugLocked(true);
         setDescription(a.description ?? '');
         setCategoryIds((a.categories ?? a.activities_categories ?? []).map((c: { id: number }) => c.id));
         setBannerFilename(a.image_filename ?? null);
@@ -84,13 +84,19 @@ export default function ManageActivityFormPage() {
     <div className="manage-form">
       <div className="manage-page__header">
         <h1 className="manage-page__title">{isEdit ? 'Modifier l\'activité' : 'Nouvelle activité'}</h1>
+        {isEdit && slug && (
+          <a href={`/${slug}`} target="_blank" rel="noreferrer" className="manage-page__view-link">
+            Voir l'activité ⟶ {title}
+          </a>
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>
         <ImageUploadHero
           currentFilename={bannerFilename}
-          slug={slug || slugify(title)}
+          slug={`activity-${slug || slugify(title)}`}
           onUploaded={f => { setBannerFilename(f); if (!thumbFilename) setThumbFilename(f); }}
+          onThumbUploaded={f => { setThumbFilename(f); setThumbCacheKey(Date.now()); }}
         />
 
         <div className="manage-form__field">
@@ -135,8 +141,9 @@ export default function ManageActivityFormPage() {
           <span className="manage-form__label">Miniature</span>
           <ImageUploadThumb
             currentFilename={thumbFilename}
-            slug={slug || slugify(title)}
-            onUploaded={setThumbFilename}
+            slug={`activity-${slug || slugify(title)}`}
+            onUploaded={f => { setThumbFilename(f); setBannerFilename(f); }}
+            cacheKey={thumbCacheKey}
           />
         </div>
 
