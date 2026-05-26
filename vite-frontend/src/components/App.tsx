@@ -52,6 +52,7 @@ function PublicLayout() {
 
 function App() {
   useEffect(() => {
+    localStorage.removeItem('zz-auth');
     useAuthStore.getState().refreshToken().catch(() => {});
   }, []);
 
