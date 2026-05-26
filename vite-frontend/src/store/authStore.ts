@@ -46,7 +46,6 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
 
     if (!refreshRes.ok) {
       await useAuthStore.getState().logout();
-      window.location.href = '/dashboard';
       return res;
     }
 
