@@ -209,9 +209,9 @@ export const getActivityBySlug = async (req: Request, res: Response) => {
 
 /** create */
 export const createActivity = async (req: Request, res: Response): Promise<void> => {
-  const { title, description, activities_categories } = req.body;
-  const slug = makeSlug(title);
-  const image_filename = `activity-${slug}.jpg`;
+  const { title, description, activities_categories, slug: slugBody, image_filename: imageBody } = req.body;
+  const slug = slugBody ?? makeSlug(title);
+  const image_filename = imageBody ?? `activity-${slug}.jpg`;
 
   try {
     const created = await prisma.activities.create({
@@ -257,10 +257,12 @@ export const createActivity = async (req: Request, res: Response): Promise<void>
 /** update */
 export const updateActivity = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { title, description, activities_categories } = req.body as {
+  const { title, description, activities_categories, slug: slugBody, image_filename } = req.body as {
     title: string;
     description?: string;
     activities_categories?: number[];
+    slug?: string;
+    image_filename?: string;
   };
 
   const activityId = Number(id);
@@ -283,14 +285,19 @@ export const updateActivity = async (req: Request, res: Response): Promise<void>
 
     let updated: Prisma.activitiesGetPayload<{ include: { activities_categories: { include: { category: true } } } }>;
 
+    const baseData = {
+      title,
+      slug: slugBody ?? makeSlug(title),
+      ...(description !== undefined ? { description } : {}),
+      ...(image_filename !== undefined ? { image_filename } : {}),
+    };
+
     if (categoryIds.length > 0) {
       await prisma.activities_categories.deleteMany({ where: { activity_id: activityId } });
       updated = await prisma.activities.update({
         where: { id: activityId },
         data: {
-          title,
-          slug: makeSlug(title),
-          ...(description !== undefined ? { description } : {}),
+          ...baseData,
           activities_categories: {
             create: categoryIds.map((cid) => ({
               category: { connect: { id: cid } },
@@ -304,11 +311,7 @@ export const updateActivity = async (req: Request, res: Response): Promise<void>
     } else {
       updated = await prisma.activities.update({
         where: { id: activityId },
-        data: {
-          title,
-          slug: makeSlug(title),
-          ...(description !== undefined ? { description } : {}),
-        },
+        data: baseData,
         include: {
           activities_categories: { include: { category: true } },
         },
