@@ -33,6 +33,7 @@ const querySchema = z.object({
   activity_slug: z.string().optional(),
   sort: z.enum(['date', 'id']).optional(),
   order: z.enum(['asc', 'desc']).optional(),
+  upcoming: z.coerce.boolean().optional(),
 });
 
 /** get all sessions */
@@ -71,17 +72,20 @@ export const getSessions = async (req: Request, res: Response) => {
     const whereSlug = query.activity_slug
       ? Prisma.sql`AND activity_id = (SELECT id FROM activities WHERE slug = ${query.activity_slug})`
       : Prisma.empty;
+    const whereUpcoming = query.upcoming ? Prisma.sql`AND date >= NOW()` : Prisma.empty;
+    const useCustomSort = !query.sort || query.sort === 'id';
+    const dateOrder = query.order === 'asc' ? Prisma.sql`ASC` : Prisma.sql`DESC`;
     const orderedIds = await prisma.$queryRaw<{ id: number }[]>`
       SELECT id FROM sessions
-      WHERE 1=1 ${whereStatus} ${whereSlug}
+      WHERE 1=1 ${whereStatus} ${whereSlug} ${whereUpcoming}
       ORDER BY
-        CASE status
+        ${useCustomSort ? Prisma.sql`CASE status
           WHEN 'Scheduled' THEN 0
           WHEN 'Completed' THEN 1
           WHEN 'Cancelled' THEN 2
           ELSE 3
-        END,
-        date DESC
+        END,` : Prisma.empty}
+        date ${dateOrder}
       LIMIT ${limit} OFFSET ${skip}
     `;
     const idList = orderedIds.map((r) => r.id);
