@@ -17,21 +17,29 @@ interface Props<T extends { id: number }> {
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
   rowClassName?: (row: T) => string;
+  sortKey?: string | null;
+  sortDir?: 'asc' | 'desc';
+  onSortChange?: (key: string, dir: 'asc' | 'desc') => void;
 }
 
-export default function ManageTable<T extends { id: number }>({ columns, data, onEdit, onDelete, rowClassName }: Props<T>) {
+export default function ManageTable<T extends { id: number }>({ columns, data, onEdit, onDelete, rowClassName, sortKey: extSortKey, sortDir: extSortDir, onSortChange }: Props<T>) {
   const hasActions = onEdit ?? onDelete;
-  const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [intSortKey, setIntSortKey] = useState<string | null>(null);
+  const [intSortDir, setIntSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const isExternal = onSortChange != null;
+  const sortKey = isExternal ? (extSortKey ?? null) : intSortKey;
+  const sortDir = isExternal ? (extSortDir ?? 'asc') : intSortDir;
 
   function handleSort(col: Column<T>) {
     if (!col.sortable) return;
     const key = col.header;
-    if (sortKey === key) {
-      setSortDir((d) => d === 'asc' ? 'desc' : 'asc');
+    const newDir = sortKey === key ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+    if (isExternal) {
+      onSortChange(key, newDir);
     } else {
-      setSortKey(key);
-      setSortDir('asc');
+      setIntSortKey(key);
+      setIntSortDir(newDir);
     }
   }
 
@@ -44,7 +52,7 @@ export default function ManageTable<T extends { id: number }>({ columns, data, o
     return '';
   }
 
-  const sorted = sortKey
+  const sorted = (!isExternal && sortKey)
     ? [...data].sort((a, b) => {
         const col = columns.find((c) => c.header === sortKey);
         if (!col) return 0;
@@ -71,7 +79,7 @@ export default function ManageTable<T extends { id: number }>({ columns, data, o
                 {col.header}
                 {col.sortable && (
                   <span className="manage-table__sort-icon">
-                    {sortKey === col.header ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅'}
+                    {sortKey === col.header ? (sortDir === 'asc' ? ' ▼' : ' ▲') : ' ⇅'}
                   </span>
                 )}
               </th>

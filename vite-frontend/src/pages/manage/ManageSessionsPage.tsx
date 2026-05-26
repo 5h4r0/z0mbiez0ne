@@ -29,6 +29,15 @@ const STATUS_LABEL: Record<string, string> = {
   Completed: 'Terminée',
 };
 
+const SORT_MAP: Record<string, string> = {
+  'Date': 'date',
+  'Activité': 'activity',
+  'Capacité': 'capacity',
+  'Prix': 'unit_price',
+  'Statut': 'status',
+  'Dispo': 'available_capacity',
+};
+
 export default function ManageSessionsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -40,12 +49,25 @@ export default function ManageSessionsPage() {
   const [error, setError] = useState('');
   const [toDelete, setToDelete] = useState<ManageSession | null>(null);
   const [blockError, setBlockError] = useState('');
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  function handleSortChange(key: string, dir: 'asc' | 'desc') {
+    setSortKey(key);
+    setSortDir(dir);
+    setBlockError('');
+    setSearchParams({ page: '1' });
+  }
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError('');
-    apiFetch(`/api/sessions?page=${page}&limit=20`)
+    setBlockError('');
+    const sortParam = sortKey && SORT_MAP[sortKey]
+      ? `&sort=${SORT_MAP[sortKey]}&order=${sortDir}`
+      : '';
+    apiFetch(`/api/sessions?page=${page}&limit=20${sortParam}`)
       .then(async (r) => {
         if (!r.ok) throw new Error('Erreur serveur');
         const raw = await r.json();
@@ -62,7 +84,7 @@ export default function ManageSessionsPage() {
       .catch((err: Error) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [page]);
+  }, [page, sortKey, sortDir]);
 
   async function handleDeleteClick(session: ManageSession) {
     setBlockError('');
@@ -89,7 +111,6 @@ export default function ManageSessionsPage() {
     {
       header: 'Date',
       sortable: true,
-      sortValue: (row) => row.date_iso,
       render: (row) => new Date(row.date_iso).toLocaleDateString('fr-FR', {
         weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
       }),
@@ -97,7 +118,6 @@ export default function ManageSessionsPage() {
     {
       header: 'Activité',
       sortable: true,
-      sortValue: (row) => row.activity?.title ?? '',
       render: (row) => row.activity?.title ?? `#${row.activity_id}`,
     },
     { header: 'Capacité', accessor: 'capacity', sortable: true },
@@ -105,13 +125,11 @@ export default function ManageSessionsPage() {
     {
       header: 'Prix',
       sortable: true,
-      sortValue: (row) => row.unit_price,
       render: (row) => `${row.unit_price} €`,
     },
     {
       header: 'Statut',
       sortable: true,
-      sortValue: (row) => row.status,
       render: (row) => STATUS_LABEL[row.status] ?? row.status,
     },
   ];
@@ -135,6 +153,9 @@ export default function ManageSessionsPage() {
             onEdit={(row) => navigate(`/manage/sessions/${row.id}`)}
             onDelete={handleDeleteClick}
             rowClassName={(row) => row.status === 'Scheduled' ? 'manage-text-success' : ''}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSortChange={handleSortChange}
           />
           <ManagePagination
             page={page}
