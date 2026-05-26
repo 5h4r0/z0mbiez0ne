@@ -52,6 +52,7 @@ export interface ManageActivity {
   description: string;
   image_filename: string;
   categories?: { id: number; title: string }[];
+  sessions_count?: number;
 }
 
 export interface ManageCategory {
@@ -117,6 +118,7 @@ export const manageActivitySchema = z.object({
   description: z.string(),
   image_filename: z.string(),
   categories: z.array(z.object({ id: z.number(), title: z.string() })).optional(),
+  sessions_count: z.number().optional(),
 });
 
 export const manageCategorySchema = z.object({

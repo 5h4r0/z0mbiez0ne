@@ -1,6 +1,6 @@
 // vite-frontend/src/pages/manage/ManageCategoriesPage.tsx
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { z } from 'zod';
 import ConfirmModal from '../../components/manage/ConfirmModal';
 import ManagePagination from '../../components/manage/ManagePagination';
@@ -38,7 +38,8 @@ export default function ManageCategoriesPage() {
         const parsed = listSchema.safeParse(raw);
         if (!cancelled) {
           if (parsed.success) {
-            setItems(parsed.data.data);
+            const sorted = [...parsed.data.data].sort((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }));
+            setItems(sorted);
             setTotalPages(parsed.data.totalPages ?? 1);
           } else {
             setError('Réponse inattendue du serveur.');
@@ -64,12 +65,19 @@ export default function ManageCategoriesPage() {
   }
 
   const columns: Column<ManageCategory>[] = [
-    { header: 'Titre', accessor: 'title' },
+    {
+      header: 'Titre',
+      sortable: true,
+      sortValue: (row) => row.title,
+      render: (row) => <Link to={`/manage/categories/${row.id}`}>{row.title}</Link>,
+    },
     {
       header: 'Activités',
       render: (row) =>
         row.activities.length > 0
-          ? [...row.activities].sort((a, b) => a.title.localeCompare(b.title, 'fr')).map((a) => a.title).join(' — ')
+          ? [...row.activities]
+              .sort((a, b) => a.title.localeCompare(b.title, 'fr'))
+              .map((a) => <Link key={a.id} to={`/manage/activites/${a.id}`} style={{ marginRight: '0.5rem' }}>{a.title}</Link>)
           : '—',
     },
   ];
@@ -89,7 +97,6 @@ export default function ManageCategoriesPage() {
           <ManageTable
             columns={columns}
             data={items}
-            onEdit={(row) => navigate(`/manage/categories/${row.id}`)}
             onDelete={(row) => { setDeleteError(''); setToDelete(row); }}
           />
           <ManagePagination

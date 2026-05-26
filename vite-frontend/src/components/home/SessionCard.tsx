@@ -38,7 +38,7 @@ export default function SessionCard({ session }: Props) {
         </div>
 
         <div className="p-4">
-          <h3 className="font-bold text-base text-(--color-text) mb-2 truncate">{title}</h3>
+          <h3 className="font-bold text-base text-(--color-text) mb-2">{title}</h3>
 
           {session.available_capacity === 0 ? (
             <p className="text-[0.8rem] text-yellow-400 font-normal mb-3">SOLD OUT</p>

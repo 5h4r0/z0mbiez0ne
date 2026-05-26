@@ -197,6 +197,16 @@
   background: var(--color-surface-hover);
 }
 
+.manage-table td a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.manage-table td a:hover {
+  color: var(--color-green);
+}
+
 .manage-table__actions {
   display: flex;
   gap: 0.4rem;

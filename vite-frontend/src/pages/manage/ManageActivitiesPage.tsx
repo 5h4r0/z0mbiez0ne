@@ -1,6 +1,6 @@
 // vite-frontend/src/pages/manage/ManageActivitiesPage.tsx
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { z } from 'zod';
 import ConfirmModal from '../../components/manage/ConfirmModal';
 import ManagePagination from '../../components/manage/ManagePagination';
@@ -37,7 +37,8 @@ export default function ManageActivitiesPage() {
         const parsed = listSchema.safeParse(raw);
         if (!cancelled) {
           if (parsed.success) {
-            setItems(parsed.data.data);
+            const sorted = [...parsed.data.data].sort((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }));
+            setItems(sorted);
             setTotalPages(parsed.data.totalPages ?? 1);
           } else {
             setError('Réponse inattendue du serveur.');
@@ -57,13 +58,26 @@ export default function ManageActivitiesPage() {
   }
 
   const columns: Column<ManageActivity>[] = [
-    { header: 'Titre', accessor: 'title' },
+    {
+      header: 'Titre',
+      sortable: true,
+      sortValue: (row) => row.title,
+      render: (row) => <Link to={`/manage/activites/${row.id}`}>{row.title}</Link>,
+    },
     {
       header: 'Catégories',
       render: (row) =>
         row.categories && row.categories.length > 0
-          ? [...row.categories].sort((a, b) => a.title.localeCompare(b.title, 'fr')).map((c) => c.title).join(' — ')
+          ? [...row.categories]
+              .sort((a, b) => a.title.localeCompare(b.title, 'fr'))
+              .map((c) => <Link key={c.id} to={`/manage/categories/${c.id}`} style={{ marginRight: '0.5rem' }}>{c.title}</Link>)
           : '—',
+    },
+    {
+      header: 'Sessions',
+      sortable: true,
+      sortValue: (row) => row.sessions_count ?? 0,
+      render: (row) => row.sessions_count ?? 0,
     },
   ];
 
@@ -79,7 +93,7 @@ export default function ManageActivitiesPage() {
       {!loading && !error && items.length === 0 && <div className="manage-empty">Aucune activité.</div>}
       {!loading && !error && items.length > 0 && (
         <>
-          <ManageTable columns={columns} data={items} onEdit={(row) => navigate(`/manage/activites/${row.id}`)} onDelete={setToDelete} />
+          <ManageTable columns={columns} data={items} onDelete={setToDelete} />
           <ManagePagination
             page={page}
             totalPages={totalPages}
