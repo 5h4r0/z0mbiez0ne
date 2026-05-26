@@ -36,7 +36,6 @@ export default function ManageCategoryFormPage() {
         const c = d.data ?? d;
         setTitle(c.title ?? '');
         setSlug(c.slug ?? '');
-        setSlugLocked(true);
         setDescription(c.description ?? '');
         setActivityIds((c.activities ?? []).map((a: { id: number }) => a.id));
         setBannerFilename(c.image_filename ?? null);
@@ -52,6 +51,7 @@ export default function ManageCategoryFormPage() {
     try {
       const payload = {
         title,
+        slug,
         description,
         activities_ids: activityIds,
         ...(bannerFilename ? { image_filename: bannerFilename } : {}),
@@ -84,6 +84,16 @@ export default function ManageCategoryFormPage() {
     <div className="manage-form">
       <div className="manage-page__header">
         <h1 className="manage-page__title">{isEdit ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h1>
+        {isEdit && slug && (
+          <div className="manage-page__view-links">
+            <a href="/categories-epreuves" target="_blank" rel="noreferrer" className="manage-page__view-link">
+              Voir les catégories
+            </a>
+            <a href={`/${slug}`} target="_blank" rel="noreferrer" className="manage-page__view-link">
+              Voir la catégorie ⟶ {title}
+            </a>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -136,7 +146,7 @@ export default function ManageCategoryFormPage() {
           <ImageUploadThumb
             currentFilename={thumbFilename}
             slug={`category-${slugForUpload}`}
-            onUploaded={setThumbFilename}
+            onUploaded={f => { setThumbFilename(f); setBannerFilename(f); }}
           />
         </div>
 

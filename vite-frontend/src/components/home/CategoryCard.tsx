@@ -47,7 +47,7 @@ export default function CategoryCard({ category }: Props) {
         </div>
 
         <div className="p-4 flex-1 flex flex-col">
-          <p className="text-[0.82rem] text-(--color-text-muted) mb-3 flex-1 line-clamp-2">{category.description}</p>
+          <p className="text-[0.82rem] text-(--color-text-muted) mb-3 flex-1 line-clamp-2">{category.description.replace(/<[^>]*>/g, '')}</p>
 
           <span className="border border-(--color-text) hover:border-(--color-red) text-(--color-text) hover:text-(--color-red) px-4 py-1.5 rounded text-[0.8rem] font-semibold tracking-wider uppercase text-center transition-colors duration-200">
             Voir la catégorie

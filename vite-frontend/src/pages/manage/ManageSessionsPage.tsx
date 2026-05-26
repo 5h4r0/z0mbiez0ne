@@ -52,7 +52,14 @@ export default function ManageSessionsPage() {
         const parsed = listSchema.safeParse(raw);
         if (!cancelled) {
           if (parsed.success) {
-            setItems(parsed.data.data);
+            const STATUS_ORDER: Record<string, number> = { Scheduled: 0, Completed: 1, Cancelled: 2 };
+            const sorted = [...parsed.data.data].sort((a, b) => {
+              const orderDiff = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9);
+              if (orderDiff !== 0) return orderDiff;
+              if (a.status === 'Scheduled') return new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime();
+              return new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime();
+            });
+            setItems(sorted);
             setTotalPages(parsed.data.totalPages ?? 1);
           } else {
             setError('Réponse inattendue du serveur.');

@@ -1,6 +1,6 @@
+import path from 'node:path';
 import { Router } from 'express';
 import multer from 'multer';
-import path from 'node:path';
 import { requireAuth } from '../middlewares/requireAuth.js';
 import { requireRole } from '../middlewares/requireRole.js';
 

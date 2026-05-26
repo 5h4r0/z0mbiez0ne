@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '../../store/authStore';
 
 interface Props {
   currentFilename: string | null;
   slug: string;
   onUploaded: (filename: string) => void;
+  cacheKey?: number;
 }
 
 async function resizeAndConvertWebp(file: File, maxWidth: number, quality: number): Promise<Blob> {
@@ -30,9 +31,13 @@ async function resizeAndConvertWebp(file: File, maxWidth: number, quality: numbe
   });
 }
 
-export default function ImageUploadThumb({ currentFilename, slug, onUploaded }: Props) {
+export default function ImageUploadThumb({ currentFilename, slug, onUploaded, cacheKey }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [localVersion, setLocalVersion] = useState(() => Date.now());
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — refresh localVersion when parent busts cache
+  useEffect(() => { setLocalVersion(Date.now()); }, [cacheKey]);
+  const version = localVersion;
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
@@ -40,12 +45,13 @@ export default function ImageUploadThumb({ currentFilename, slug, onUploaded }: 
     setUploading(true);
     try {
       const blob = await resizeAndConvertWebp(file, 320, 0.80);
-      const filename = `activity-${slug}.webp`;
+      const filename = `${slug}.webp`;
       const fd = new FormData();
-      fd.append('image', blob, filename);
       fd.append('filename', filename);
+      fd.append('image', blob, filename);
       const res = await apiFetch('/api/upload/activity-thumb', { method: 'POST', body: fd });
       if (!res.ok) throw new Error('Upload échoué');
+      setLocalVersion(Date.now());
       onUploaded(filename);
     } catch (e) {
       setError((e as Error).message);
@@ -54,7 +60,7 @@ export default function ImageUploadThumb({ currentFilename, slug, onUploaded }: 
     }
   }
 
-  const imgSrc = currentFilename ? `/images/thumbs/${currentFilename}` : null;
+  const imgSrc = currentFilename ? `/images/thumbs/${currentFilename}?v=${version}` : null;
 
   return (
     <div className="manage-form__thumb-wrapper">

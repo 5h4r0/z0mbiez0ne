@@ -185,13 +185,13 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
 /** update */
 export const updateCategory = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { title, description, image_filename, activities_ids } = req.body;
+  const { title, description, image_filename, activities_ids, slug: slugBody } = req.body;
   const categoryId = Number(id);
 
   const data: Prisma.categoriesUpdateInput = Object.assign(
     {
       title,
-      slug: makeSlug(title),
+      slug: slugBody ?? makeSlug(title),
     },
     description !== undefined ? { description } : {},
     image_filename !== undefined ? { image_filename } : {},
