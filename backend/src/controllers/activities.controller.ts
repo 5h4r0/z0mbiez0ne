@@ -40,7 +40,7 @@ export const getActivities = async (req: Request, res: Response) => {
     };
 
     const [activities, total] = await Promise.all([
-      prisma.activities.findMany({ include, take: limit, skip }),
+      prisma.activities.findMany({ include, orderBy: { title: 'asc' }, take: limit, skip }),
       prisma.activities.count(),
     ]);
 
@@ -52,6 +52,7 @@ export const getActivities = async (req: Request, res: Response) => {
       slug: a.slug,
       image_filename: a.image_filename,
       updated_at: a.updated_at,
+      sessions_count: a.sessions.length,
       sessions: a.sessions.map((s) => ({
         id: s.id,
         date: format(new Date(s.date), 'EEEE, MMMM d, yyyy, h:mm a', { locale: enUS }),

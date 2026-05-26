@@ -34,9 +34,9 @@ export default function ManageHubPage() {
   }, []);
 
   const cards = [
+    { to: '/manage/sessions', label: 'Sessions planifiées', count: stats?.scheduledSessions },
     { to: '/manage/activities', label: 'Activités', count: stats?.activities },
     { to: '/manage/categories', label: 'Catégories', count: stats?.categories },
-    { to: '/manage/sessions', label: 'Sessions planifiées', count: stats?.scheduledSessions },
     { to: '/manage/orders', label: 'Commandes en attente', count: stats?.pendingOrders },
     { to: '/manage/users', label: 'Utilisateurs', count: stats?.users },
   ];

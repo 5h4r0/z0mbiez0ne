@@ -46,10 +46,6 @@ export const getSessions = async (req: Request, res: Response) => {
     if (query.status) where.status = query.status;
     if (query.activity_slug) where.activity = { slug: query.activity_slug };
 
-    const orderBy: Prisma.sessionsOrderByWithRelationInput = {
-      [query.sort ?? 'date']: query.order ?? 'asc',
-    };
-
     const include = {
       activity: {
         select: { id: true, title: true, slug: true, image_filename: true },
@@ -67,10 +63,34 @@ export const getSessions = async (req: Request, res: Response) => {
       },
     };
 
-    const [sessions, total] = await Promise.all([
-      prisma.sessions.findMany({ where, orderBy, include, take: limit, skip }),
-      prisma.sessions.count({ where }),
-    ]);
+    const total = await prisma.sessions.count({ where });
+
+    // Custom status order: Scheduled(0) → Completed(1) → Cancelled(2), then date desc
+    // The enum declaration order is Scheduled/Cancelled/Completed so we need a CASE expression.
+    const whereStatus = query.status ? Prisma.sql`AND status = ${query.status}::"SessionStatus"` : Prisma.empty;
+    const whereSlug = query.activity_slug
+      ? Prisma.sql`AND activity_id = (SELECT id FROM activities WHERE slug = ${query.activity_slug})`
+      : Prisma.empty;
+    const orderedIds = await prisma.$queryRaw<{ id: number }[]>`
+      SELECT id FROM sessions
+      WHERE 1=1 ${whereStatus} ${whereSlug}
+      ORDER BY
+        CASE status
+          WHEN 'Scheduled' THEN 0
+          WHEN 'Completed' THEN 1
+          WHEN 'Cancelled' THEN 2
+          ELSE 3
+        END,
+        date DESC
+      LIMIT ${limit} OFFSET ${skip}
+    `;
+    const idList = orderedIds.map((r) => r.id);
+    const sessionsById = await prisma.sessions.findMany({
+      where: { id: { in: idList } },
+      include,
+    });
+    const byId = new Map(sessionsById.map((s) => [s.id, s]));
+    const sessions = idList.flatMap((id) => { const s = byId.get(id); return s ? [s] : []; });
 
     const formatted = sessions.map((s) => {
       const bookedQty = s.orders_lines

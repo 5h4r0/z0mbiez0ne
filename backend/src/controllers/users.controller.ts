@@ -1,6 +1,5 @@
 import { Prisma } from '@prisma/client';
 import type { Request, Response } from 'express';
-import { getPagination } from '../helpers/getPagination.js';
 import { ConflictError } from '../lib/errors.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
@@ -10,28 +9,32 @@ type UserWithRole = Prisma.usersGetPayload<{ include: { role: true } }>;
 
 /** GET all */
 export async function getUsers(req: Request, res: Response): Promise<void> {
-  const { take, skip } = getPagination(req);
+  const page = Math.max(1, Number(req.query.page ?? '1'));
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? '20')));
+  const skip = (page - 1) * limit;
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
-  const options: Parameters<typeof prisma.users.findMany>[0] = Object.assign(
-    {
-      include: {
-        role: true,
-        orders: {
-          select: {
-            id: true,
-            total_amount: true,
-            status: true,
-            payment_date: true,
-          },
-        },
-      },
-    },
-    take !== undefined ? { take: take as number } : {},
-    skip !== undefined ? { skip: skip as number } : {},
-  );
+  const where: Prisma.usersWhereInput = search
+    ? {
+        OR: [
+          { lastname: { contains: search, mode: 'insensitive' } },
+          { firstname: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      }
+    : {};
 
   try {
-    const users = await prisma.users.findMany(options);
+    const [users, total] = await Promise.all([
+      prisma.users.findMany({
+        where,
+        include: { role: true },
+        orderBy: [{ lastname: 'asc' }, { firstname: 'asc' }],
+        take: limit,
+        skip,
+      }),
+      prisma.users.count({ where }),
+    ]);
     const list = users as UserWithRole[];
 
     res.status(200).json({
@@ -46,6 +49,10 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
         deleted_at: u.deleted_at,
         role: u.role?.name ?? null,
       })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     console.error('Error fetching users:', error);

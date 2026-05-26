@@ -24,6 +24,7 @@ export default function ManageCategoryFormPage() {
   const [activityIds, setActivityIds] = useState<number[]>([]);
   const [bannerFilename, setBannerFilename] = useState<string | null>(null);
   const [thumbFilename, setThumbFilename] = useState<string | null>(null);
+  const [thumbCacheKey, setThumbCacheKey] = useState(() => Date.now());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDelete, setShowDelete] = useState(false);
@@ -101,6 +102,7 @@ export default function ManageCategoryFormPage() {
           currentFilename={bannerFilename}
           slug={`category-${slugForUpload}`}
           onUploaded={f => { setBannerFilename(f); if (!thumbFilename) setThumbFilename(f); }}
+          onThumbUploaded={f => { setThumbFilename(f); setThumbCacheKey(Date.now()); }}
         />
 
         <div className="manage-form__field">
@@ -147,6 +149,7 @@ export default function ManageCategoryFormPage() {
             currentFilename={thumbFilename}
             slug={`category-${slugForUpload}`}
             onUploaded={f => { setThumbFilename(f); setBannerFilename(f); }}
+            cacheKey={thumbCacheKey}
           />
         </div>
 

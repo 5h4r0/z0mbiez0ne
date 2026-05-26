@@ -52,14 +52,7 @@ export default function ManageSessionsPage() {
         const parsed = listSchema.safeParse(raw);
         if (!cancelled) {
           if (parsed.success) {
-            const STATUS_ORDER: Record<string, number> = { Scheduled: 0, Completed: 1, Cancelled: 2 };
-            const sorted = [...parsed.data.data].sort((a, b) => {
-              const orderDiff = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9);
-              if (orderDiff !== 0) return orderDiff;
-              if (a.status === 'Scheduled') return new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime();
-              return new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime();
-            });
-            setItems(sorted);
+            setItems(parsed.data.data);
             setTotalPages(parsed.data.totalPages ?? 1);
           } else {
             setError('Réponse inattendue du serveur.');
@@ -95,15 +88,32 @@ export default function ManageSessionsPage() {
   const columns: Column<ManageSession>[] = [
     {
       header: 'Date',
+      sortable: true,
+      sortValue: (row) => row.date_iso,
       render: (row) => new Date(row.date_iso).toLocaleDateString('fr-FR', {
         weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
       }),
     },
-    { header: 'Activité', render: (row) => row.activity?.title ?? `#${row.activity_id}` },
-    { header: 'Capacité', accessor: 'capacity' },
-    { header: 'Dispo', accessor: 'available_capacity' },
-    { header: 'Prix', render: (row) => `${row.unit_price} €` },
-    { header: 'Statut', render: (row) => STATUS_LABEL[row.status] ?? row.status },
+    {
+      header: 'Activité',
+      sortable: true,
+      sortValue: (row) => row.activity?.title ?? '',
+      render: (row) => row.activity?.title ?? `#${row.activity_id}`,
+    },
+    { header: 'Capacité', accessor: 'capacity', sortable: true },
+    { header: 'Dispo', accessor: 'available_capacity', sortable: true },
+    {
+      header: 'Prix',
+      sortable: true,
+      sortValue: (row) => row.unit_price,
+      render: (row) => `${row.unit_price} €`,
+    },
+    {
+      header: 'Statut',
+      sortable: true,
+      sortValue: (row) => row.status,
+      render: (row) => STATUS_LABEL[row.status] ?? row.status,
+    },
   ];
 
   return (

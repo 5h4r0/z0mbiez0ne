@@ -1,5 +1,5 @@
 // vite-frontend/src/pages/manage/ManageUsersPage.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { z } from 'zod';
 import ManagePagination from '../../components/manage/ManagePagination';
@@ -21,17 +21,32 @@ function formatDate(iso: string) {
 export default function ManageUsersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
+  const search = searchParams.get('search') ?? '';
 
   const [items, setItems] = useState<ManageUser[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [inputValue, setInputValue] = useState(search);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleSearch(value: string) {
+    setInputValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const next: Record<string, string> = { page: '1' };
+      if (value.trim()) next.search = value.trim();
+      setSearchParams(next);
+    }, 300);
+  }
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError('');
-    apiFetch(`/api/users?page=${page}&limit=20`)
+    const qs = new URLSearchParams({ page: String(page), limit: '20' });
+    if (search) qs.set('search', search);
+    apiFetch(`/api/users?${qs}`)
       .then(async (r) => {
         if (!r.ok) throw new Error('Erreur serveur');
         const raw = await r.json();
@@ -48,7 +63,7 @@ export default function ManageUsersPage() {
       .catch((err: Error) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [page]);
+  }, [page, search]);
 
   const columns: Column<ManageUser>[] = [
     { header: 'Prénom', accessor: 'firstname' },
@@ -63,6 +78,14 @@ export default function ManageUsersPage() {
     <div>
       <div className="manage-page__header">
         <h1 className="manage-page__title">Utilisateurs</h1>
+        <input
+          className="manage-form__input"
+          style={{ maxWidth: 320 }}
+          type="search"
+          placeholder="Rechercher nom, prénom, email…"
+          value={inputValue}
+          onChange={e => handleSearch(e.target.value)}
+        />
       </div>
 
       {loading && <div className="manage-empty">Chargement…</div>}
@@ -74,8 +97,8 @@ export default function ManageUsersPage() {
           <ManagePagination
             page={page}
             totalPages={totalPages}
-            onPrev={() => setSearchParams({ page: String(page - 1) })}
-            onNext={() => setSearchParams({ page: String(page + 1) })}
+            onPrev={() => setSearchParams(search ? { page: String(page - 1), search } : { page: String(page - 1) })}
+            onNext={() => setSearchParams(search ? { page: String(page + 1), search } : { page: String(page + 1) })}
           />
         </>
       )}

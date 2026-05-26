@@ -25,7 +25,7 @@ export const getCategories = async (req: Request, res: Response): Promise<void> 
     };
 
     const [categories, total] = await Promise.all([
-      prisma.categories.findMany({ include, take: limit, skip }),
+      prisma.categories.findMany({ include, orderBy: { title: 'asc' }, take: limit, skip }),
       prisma.categories.count(),
     ]);
 
