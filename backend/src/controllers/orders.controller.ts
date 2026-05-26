@@ -145,6 +145,7 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
 
 /** get my orders (authenticated user) */
 export const getMyOrders = async (req: Request, res: Response): Promise<void> => {
+  if (!req.user) { res.status(401).json({ success: false, message: 'Not authenticated' }); return; }
   try {
     const orders = await prisma.orders.findMany({
       where: { user_id: req.user.id },

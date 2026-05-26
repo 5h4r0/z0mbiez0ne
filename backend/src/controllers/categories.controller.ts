@@ -144,7 +144,7 @@ export const getCategoryBySlug = async (req: Request, res: Response): Promise<vo
 
 /** create */
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
-  const { title, description, image_filename } = req.body;
+  const { title, description, image_filename, activities_ids } = req.body;
   const slug = makeSlug(title);
 
   try {
@@ -154,6 +154,16 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
         slug,
         description,
         image_filename,
+        ...(Array.isArray(activities_ids) && activities_ids.length > 0
+          ? {
+              activities_categories: {
+                create: activities_ids.map((activity_id: number) => ({ activity_id })),
+              },
+            }
+          : {}),
+      },
+      include: {
+        activities_categories: { select: { activity: { select: { id: true, title: true, slug: true } } } },
       },
     });
 
@@ -175,7 +185,8 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
 /** update */
 export const updateCategory = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { title, description, image_filename } = req.body;
+  const { title, description, image_filename, activities_ids } = req.body;
+  const categoryId = Number(id);
 
   const data: Prisma.categoriesUpdateInput = Object.assign(
     {
@@ -187,8 +198,29 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
   );
 
   try {
+    if (Array.isArray(activities_ids)) {
+      if (activities_ids.length > 0) {
+        const existing = await prisma.activities.findMany({
+          where: { id: { in: activities_ids } },
+          select: { id: true },
+        });
+        const foundIds = existing.map((a) => a.id);
+        const invalid = activities_ids.filter((aid: number) => !foundIds.includes(aid));
+        if (invalid.length > 0) {
+          res.status(400).json({ success: false, message: `Activités invalides : ${invalid.join(', ')}` });
+          return;
+        }
+      }
+      await prisma.activities_categories.deleteMany({ where: { category_id: categoryId } });
+      if (activities_ids.length > 0) {
+        await prisma.activities_categories.createMany({
+          data: activities_ids.map((activity_id: number) => ({ activity_id, category_id: categoryId })),
+        });
+      }
+    }
+
     const updated = await prisma.categories.update({
-      where: { id: Number(id) },
+      where: { id: categoryId },
       data,
     });
 

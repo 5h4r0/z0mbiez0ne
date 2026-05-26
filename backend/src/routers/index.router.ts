@@ -8,6 +8,7 @@ import { router as ordersLinesRouter } from './order.lines.router.js';
 import { router as ordersRouter } from './orders.router.js';
 import { router as rolesRouter } from './roles.router.js';
 import { router as sessionsRouter } from './sessions.router.js';
+import { router as uploadRouter } from './upload.router.js';
 import { router as usersRouter } from './users.router.js';
 
 export const router = Router();
@@ -18,6 +19,7 @@ router.use(sessionsRouter);
 router.use(ordersRouter);
 router.use(ordersLinesRouter);
 
+router.use(uploadRouter);
 router.use(rolesRouter);
 router.use(usersRouter);
 router.use('/auth', authRouter);
