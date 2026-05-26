@@ -1,6 +1,6 @@
 // vite-frontend/src/pages/dashboard/DashboardPage.tsx
 import { useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router';
+import { Link, Navigate, useNavigate } from 'react-router';
 import { apiFetch, useAuthStore } from '../../store/authStore';
 import '../../styles/pages.scss';
 
@@ -33,9 +33,16 @@ function formatShortDate(iso: string): string {
 
 export default function DashboardPage() {
   const { user, isHydrating } = useAuthStore();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState(false);
+
+  // Guard bfcache — redirige si session expirée au retour navigateur
+  useEffect(() => {
+    if (isHydrating) return;
+    if (!user) navigate('/login', { replace: true });
+  }, [isHydrating, user, navigate]);
 
   // Guard réseau — protection bfcache
   useEffect(() => {

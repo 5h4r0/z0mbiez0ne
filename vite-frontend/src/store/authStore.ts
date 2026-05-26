@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { ROLE_IDS } from '../lib/roles.js';
 
 export interface AuthUser {
@@ -56,8 +55,7 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
 }
 
 export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set, get) => ({
+  (set, get) => ({
       user: null,
       isHydrating: true,
 
@@ -135,6 +133,4 @@ export const useAuthStore = create<AuthStore>()(
 
       isAuthenticated: () => !!get().user,
     }),
-    { name: 'zz-auth', partialize: (state) => ({ user: state.user }) },
-  ),
 );

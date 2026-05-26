@@ -203,7 +203,6 @@ export const getMyOrders = async (req: Request, res: Response): Promise<void> =>
 /** create */
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
   const bodySchema = z.object({
-    user_id: z.number().int().positive(),
     payment_method: z.string().max(30).optional(),
     lines: z
       .array(
@@ -216,7 +215,13 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
   });
 
   try {
-    const { user_id, payment_method, lines } = await bodySchema.parseAsync(req.body);
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'not authenticated' });
+      return;
+    }
+
+    const { payment_method, lines } = await bodySchema.parseAsync(req.body);
+    const user_id = req.user.id;
 
     const result = await prisma.$transaction(
       async (tx) => {
