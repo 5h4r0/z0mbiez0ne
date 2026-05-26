@@ -1,8 +1,8 @@
 import { ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
-import { useBasketStore } from '../store/basketStore';
 import { useAuthStore } from '../store/authStore';
+import { useBasketStore } from '../store/basketStore';
 
 const NAV_LINKS = [
   { label: 'Activités', to: '/les-epreuves' },

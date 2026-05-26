@@ -37,8 +37,7 @@ export const useBasketStore = create<BasketStore>()(
           return { items: [...state.items, incoming] };
         }),
 
-      removeItem: (sessionId) =>
-        set((state) => ({ items: state.items.filter((i) => i.sessionId !== sessionId) })),
+      removeItem: (sessionId) => set((state) => ({ items: state.items.filter((i) => i.sessionId !== sessionId) })),
 
       updateQuantity: (sessionId, quantity) =>
         set((state) => ({
