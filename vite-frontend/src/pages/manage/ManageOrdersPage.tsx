@@ -5,6 +5,7 @@ import { z } from 'zod';
 import ManagePagination from '../../components/manage/ManagePagination';
 import ManageTable, { type Column } from '../../components/manage/ManageTable';
 import '../../components/manage/manage.css';
+import '../../styles/manage.scss';
 import { apiFetch } from '../../store/authStore';
 import { type ManageOrder, manageOrderSchema } from '../../types/manage';
 

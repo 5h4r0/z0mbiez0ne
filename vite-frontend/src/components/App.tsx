@@ -14,10 +14,13 @@ import DynamicDetailPage from '../pages/DynamicDetailPage';
 import FaqPage from '../pages/FaqPage';
 import HomePage from '../pages/HomePage';
 import ManageActivitiesPage from '../pages/manage/ManageActivitiesPage';
+import ManageActivityFormPage from '../pages/manage/ManageActivityFormPage';
 import ManageCategoriesPage from '../pages/manage/ManageCategoriesPage';
+import ManageCategoryFormPage from '../pages/manage/ManageCategoryFormPage';
 import ManageHubPage from '../pages/manage/ManageHubPage';
 import ManageLoginPage from '../pages/manage/ManageLoginPage';
 import ManageOrdersPage from '../pages/manage/ManageOrdersPage';
+import ManageSessionFormPage from '../pages/manage/ManageSessionFormPage';
 import ManageSessionsPage from '../pages/manage/ManageSessionsPage';
 import ManageUsersPage from '../pages/manage/ManageUsersPage';
 import MentionsLegalesPage from '../pages/MentionsLegalesPage';
@@ -62,10 +65,19 @@ function App() {
           <Route element={<ManageLayout />}>
             <Route index element={<ManageHubPage />} />
             <Route path="activities" element={<ManageActivitiesPage />} />
+            <Route path="activites" element={<ManageActivitiesPage />} />
+            <Route path="activites/nouvelle" element={<ManageActivityFormPage />} />
+            <Route path="activites/:id" element={<ManageActivityFormPage />} />
             <Route path="categories" element={<ManageCategoriesPage />} />
+            <Route path="categories/nouvelle" element={<ManageCategoryFormPage />} />
+            <Route path="categories/:id" element={<ManageCategoryFormPage />} />
             <Route path="sessions" element={<ManageSessionsPage />} />
+            <Route path="sessions/nouvelle" element={<ManageSessionFormPage />} />
+            <Route path="sessions/:id" element={<ManageSessionFormPage />} />
             <Route path="orders" element={<ManageOrdersPage />} />
+            <Route path="commandes" element={<ManageOrdersPage />} />
             <Route path="users" element={<ManageUsersPage />} />
+            <Route path="utilisateurs" element={<ManageUsersPage />} />
           </Route>
         </Route>
 

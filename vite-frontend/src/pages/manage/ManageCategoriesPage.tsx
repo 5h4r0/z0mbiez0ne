@@ -1,11 +1,12 @@
 // vite-frontend/src/pages/manage/ManageCategoriesPage.tsx
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { z } from 'zod';
 import ConfirmModal from '../../components/manage/ConfirmModal';
 import ManagePagination from '../../components/manage/ManagePagination';
 import ManageTable, { type Column } from '../../components/manage/ManageTable';
 import '../../components/manage/manage.css';
+import '../../styles/manage.scss';
 import { apiFetch } from '../../store/authStore';
 import { type ManageCategory, manageCategorySchema } from '../../types/manage';
 
@@ -15,6 +16,7 @@ const listSchema = z.object({
 });
 
 export default function ManageCategoriesPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
 
@@ -76,7 +78,7 @@ export default function ManageCategoriesPage() {
     <div>
       <div className="manage-page__header">
         <h1 className="manage-page__title">Catégories</h1>
-        <button type="button" className="manage-btn manage-btn--primary">+ Nouveau</button>
+        <button type="button" className="btn-primary" onClick={() => navigate('/manage/categories/nouvelle')}>+ Nouvelle catégorie</button>
       </div>
 
       {loading && <div className="manage-empty">Chargement…</div>}
@@ -87,7 +89,7 @@ export default function ManageCategoriesPage() {
           <ManageTable
             columns={columns}
             data={items}
-            onEdit={() => {}}
+            onEdit={(row) => navigate(`/manage/categories/${row.id}`)}
             onDelete={(row) => { setDeleteError(''); setToDelete(row); }}
           />
           <ManagePagination

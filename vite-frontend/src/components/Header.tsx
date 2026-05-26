@@ -2,6 +2,7 @@ import { ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
 import { useBasketStore } from '../store/basketStore';
+import { useAuthStore } from '../store/authStore';
 
 const NAV_LINKS = [
   { label: 'Activités', to: '/les-epreuves' },
@@ -22,6 +23,7 @@ function ZombieLogo() {
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const totalItems = useBasketStore((s) => s.totalItems());
+  const user = useAuthStore((s) => s.user);
 
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-100 bg-[rgba(10,10,10,0.95)] backdrop-blur-sm border-b border-(--color-border)">
@@ -60,6 +62,18 @@ export default function Header() {
             </span>
           </NavLink>
 
+          {user?.role_id === 2 && (
+            <NavLink
+              to="/manage"
+              className={({ isActive }) =>
+                `text-[0.75rem] font-bold tracking-[0.08em] px-3 py-1.5 rounded no-underline border transition-colors duration-200 uppercase ${
+                  isActive ? 'border-(--color-red) text-(--color-red)' : 'border-(--color-border) text-(--color-text-muted) hover:border-(--color-red) hover:text-(--color-red)'
+                }`
+              }
+            >
+              Backoffice
+            </NavLink>
+          )}
           <NavLink
             to="/dashboard"
             className={({ isActive }) =>
@@ -101,6 +115,15 @@ export default function Header() {
               {label}
             </NavLink>
           ))}
+          {user?.role_id === 2 && (
+            <NavLink
+              to="/manage"
+              onClick={() => setMenuOpen(false)}
+              className="text-(--color-text-muted) no-underline font-bold uppercase text-xs tracking-widest"
+            >
+              Backoffice
+            </NavLink>
+          )}
           <NavLink
             to="/dashboard"
             onClick={() => setMenuOpen(false)}
