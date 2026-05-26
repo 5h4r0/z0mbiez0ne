@@ -1,11 +1,12 @@
 // vite-frontend/src/pages/manage/ManageSessionsPage.tsx
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { z } from 'zod';
 import ConfirmModal from '../../components/manage/ConfirmModal';
 import ManagePagination from '../../components/manage/ManagePagination';
 import ManageTable, { type Column } from '../../components/manage/ManageTable';
 import '../../components/manage/manage.css';
+import '../../styles/manage.scss';
 import { apiFetch } from '../../store/authStore';
 import { type ManageSession, manageSessionSchema } from '../../types/manage';
 
@@ -29,6 +30,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function ManageSessionsPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
 
@@ -101,7 +103,7 @@ export default function ManageSessionsPage() {
     <div>
       <div className="manage-page__header">
         <h1 className="manage-page__title">Sessions</h1>
-        <button type="button" className="manage-btn manage-btn--primary">+ Nouveau</button>
+        <button type="button" className="btn-primary" onClick={() => navigate('/manage/sessions/nouvelle')}>+ Nouvelle session</button>
       </div>
 
       {blockError && <div className="manage-error" style={{ marginBottom: '1rem' }}>{blockError}</div>}
@@ -113,7 +115,7 @@ export default function ManageSessionsPage() {
           <ManageTable
             columns={columns}
             data={items}
-            onEdit={() => {}}
+            onEdit={(row) => navigate(`/manage/sessions/${row.id}`)}
             onDelete={handleDeleteClick}
             rowClassName={(row) => row.status === 'Scheduled' ? 'manage-text-success' : ''}
           />

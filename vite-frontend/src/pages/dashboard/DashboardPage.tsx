@@ -80,7 +80,16 @@ export default function DashboardPage() {
         <p className="text-(--color-text-muted) mb-1">
           Connecté en tant que <strong className="text-(--color-text)">{user.firstname} {user.lastname}</strong>
         </p>
-        <p className="text-(--color-text-muted) text-sm mb-10">{user.email}</p>
+        <p className="text-(--color-text-muted) text-sm mb-6">{user.email}</p>
+
+        {user.role_id === 2 && (
+          <Link
+            to="/manage"
+            className="inline-flex items-center gap-2 border border-(--color-border) rounded px-4 py-2 text-sm font-semibold text-(--color-text-muted) no-underline mb-10 hover:border-(--color-red) hover:text-(--color-red) transition-colors"
+          >
+            ⚙ Accéder au backoffice
+          </Link>
+        )}
 
         <h2 className="font-montserrat text-[1.1rem] tracking-widest text-(--color-text) mb-5">
           MES COMMANDES

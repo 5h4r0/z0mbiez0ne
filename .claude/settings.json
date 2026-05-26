@@ -1,4 +1,16 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(rtk tsc *)",
+      "Bash(rtk git status *)",
+      "Bash(rtk git log *)",
+      "Bash(rtk git diff *)",
+      "Bash(rtk git branch *)",
+      "Bash(rtk npm run *)",
+      "Bash(psql *)",
+      "Bash(/home/sharo/.claude/skills/gstack/browse/dist/browse *)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {

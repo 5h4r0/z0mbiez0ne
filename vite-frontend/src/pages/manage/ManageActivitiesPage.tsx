@@ -1,11 +1,12 @@
 // vite-frontend/src/pages/manage/ManageActivitiesPage.tsx
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { z } from 'zod';
 import ConfirmModal from '../../components/manage/ConfirmModal';
 import ManagePagination from '../../components/manage/ManagePagination';
 import ManageTable, { type Column } from '../../components/manage/ManageTable';
 import '../../components/manage/manage.css';
+import '../../styles/manage.scss';
 import { apiFetch } from '../../store/authStore';
 import { type ManageActivity, manageActivitySchema } from '../../types/manage';
 
@@ -15,6 +16,7 @@ const listSchema = z.object({
 });
 
 export default function ManageActivitiesPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
 
@@ -69,7 +71,7 @@ export default function ManageActivitiesPage() {
     <div>
       <div className="manage-page__header">
         <h1 className="manage-page__title">Activités</h1>
-        <button type="button" className="manage-btn manage-btn--primary">+ Nouveau</button>
+        <button type="button" className="btn-primary" onClick={() => navigate('/manage/activites/nouvelle')}>+ Nouvelle activité</button>
       </div>
 
       {loading && <div className="manage-empty">Chargement…</div>}
@@ -77,7 +79,7 @@ export default function ManageActivitiesPage() {
       {!loading && !error && items.length === 0 && <div className="manage-empty">Aucune activité.</div>}
       {!loading && !error && items.length > 0 && (
         <>
-          <ManageTable columns={columns} data={items} onEdit={() => {}} onDelete={setToDelete} />
+          <ManageTable columns={columns} data={items} onEdit={(row) => navigate(`/manage/activites/${row.id}`)} onDelete={setToDelete} />
           <ManagePagination
             page={page}
             totalPages={totalPages}
