@@ -47,11 +47,7 @@ afterAll(async () => {
 // ─── Helper : créer un user de test en BDD ───────────────────
 import { hashPassword } from '../lib/auth.js';
 
-export async function createTestUser(overrides: {
-  email?: string;
-  password?: string;
-  role_id?: number;
-} = {}) {
+export async function createTestUser(overrides: { email?: string; password?: string; role_id?: number } = {}) {
   const email = overrides.email ?? 'test@zombiezone.fr';
   const password = overrides.password ?? 'Test1234!';
   const role_id = overrides.role_id ?? 2; // 2 = user/member

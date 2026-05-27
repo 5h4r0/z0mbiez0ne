@@ -75,8 +75,7 @@ const errorTemplates: Record<Locale, Record<Entity, Partial<Record<ErrorType, st
       already_exists: 'La catégorie "{id}" existe déjà',
       has_orphan_activities:
         'La catégorie "{id}" ne peut pas être supprimée car des activités en dépendent exclusivement',
-      has_linked_activities:
-        'Cette catégorie ne peut pas être supprimée car des activités y sont rattachées.',
+      has_linked_activities: 'Cette catégorie ne peut pas être supprimée car des activités y sont rattachées.',
       invalid_id: 'L\'identifiant catégorie "{id}" est invalide',
       internal_error: 'Une erreur interne est survenue lors du traitement de la catégorie',
     },

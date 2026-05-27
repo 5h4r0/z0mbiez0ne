@@ -77,19 +77,28 @@ export const getSessions = async (req: Request, res: Response) => {
     // Build ORDER BY explicitly to avoid Prisma.sql nesting issues
     const orderBy = (() => {
       switch (query.sort) {
-        case 'date':       return asc ? Prisma.sql`date ASC`       : Prisma.sql`date DESC`;
-        case 'activity':   return asc ? Prisma.sql`(SELECT title FROM activities WHERE id = sessions.activity_id) ASC`  : Prisma.sql`(SELECT title FROM activities WHERE id = sessions.activity_id) DESC`;
-        case 'capacity':   return asc ? Prisma.sql`capacity ASC`   : Prisma.sql`capacity DESC`;
-        case 'available_capacity': return asc
-          ? Prisma.sql`(capacity - COALESCE((SELECT SUM(ol.tickets_qty) FROM orders_lines ol JOIN orders o ON ol.order_id = o.id WHERE ol.session_id = sessions.id AND o.status NOT IN ('Cancelled', 'Refunded')), 0)) ASC`
-          : Prisma.sql`(capacity - COALESCE((SELECT SUM(ol.tickets_qty) FROM orders_lines ol JOIN orders o ON ol.order_id = o.id WHERE ol.session_id = sessions.id AND o.status NOT IN ('Cancelled', 'Refunded')), 0)) DESC`;
-        case 'unit_price': return asc ? Prisma.sql`unit_price ASC` : Prisma.sql`unit_price DESC`;
+        case 'date':
+          return asc ? Prisma.sql`date ASC` : Prisma.sql`date DESC`;
+        case 'activity':
+          return asc
+            ? Prisma.sql`(SELECT title FROM activities WHERE id = sessions.activity_id) ASC`
+            : Prisma.sql`(SELECT title FROM activities WHERE id = sessions.activity_id) DESC`;
+        case 'capacity':
+          return asc ? Prisma.sql`capacity ASC` : Prisma.sql`capacity DESC`;
+        case 'available_capacity':
+          return asc
+            ? Prisma.sql`(capacity - COALESCE((SELECT SUM(ol.tickets_qty) FROM orders_lines ol JOIN orders o ON ol.order_id = o.id WHERE ol.session_id = sessions.id AND o.status NOT IN ('Cancelled', 'Refunded')), 0)) ASC`
+            : Prisma.sql`(capacity - COALESCE((SELECT SUM(ol.tickets_qty) FROM orders_lines ol JOIN orders o ON ol.order_id = o.id WHERE ol.session_id = sessions.id AND o.status NOT IN ('Cancelled', 'Refunded')), 0)) DESC`;
+        case 'unit_price':
+          return asc ? Prisma.sql`unit_price ASC` : Prisma.sql`unit_price DESC`;
         // Alphabetical FR: Annulée(Cancelled)=0, Planifiée(Scheduled)=1, Terminée(Completed)=2
-        case 'status':     return asc
-          ? Prisma.sql`CASE status WHEN 'Cancelled' THEN 0 WHEN 'Scheduled' THEN 1 WHEN 'Completed' THEN 2 ELSE 3 END ASC`
-          : Prisma.sql`CASE status WHEN 'Cancelled' THEN 0 WHEN 'Scheduled' THEN 1 WHEN 'Completed' THEN 2 ELSE 3 END DESC`;
+        case 'status':
+          return asc
+            ? Prisma.sql`CASE status WHEN 'Cancelled' THEN 0 WHEN 'Scheduled' THEN 1 WHEN 'Completed' THEN 2 ELSE 3 END ASC`
+            : Prisma.sql`CASE status WHEN 'Cancelled' THEN 0 WHEN 'Scheduled' THEN 1 WHEN 'Completed' THEN 2 ELSE 3 END DESC`;
         // Default: business order Planifiée→Terminée→Annulée, then date ASC within each group
-        default:           return Prisma.sql`CASE status WHEN 'Scheduled' THEN 0 WHEN 'Completed' THEN 1 WHEN 'Cancelled' THEN 2 ELSE 3 END ASC, date ASC`;
+        default:
+          return Prisma.sql`CASE status WHEN 'Scheduled' THEN 0 WHEN 'Completed' THEN 1 WHEN 'Cancelled' THEN 2 ELSE 3 END ASC, date ASC`;
       }
     })();
     const orderedIds = await prisma.$queryRaw<{ id: number }[]>`
@@ -104,7 +113,10 @@ export const getSessions = async (req: Request, res: Response) => {
       include,
     });
     const byId = new Map(sessionsById.map((s) => [s.id, s]));
-    const sessions = idList.flatMap((id) => { const s = byId.get(id); return s ? [s] : []; });
+    const sessions = idList.flatMap((id) => {
+      const s = byId.get(id);
+      return s ? [s] : [];
+    });
 
     const formatted = sessions.map((s) => {
       const bookedQty = s.orders_lines
