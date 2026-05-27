@@ -10,7 +10,7 @@
     //"esModuleInterop": true,
     "target": "ES2022",                      // output moderne mais compatible
     "lib": ["ESNext"],
-    "types": ["node"],     // ajoute les types Node.js
+    "types": ["node", "vitest/globals"],     // ajoute les types Node.js
 
     /* Other Outputs */
     "sourceMap": true,                       // utile pour debug
