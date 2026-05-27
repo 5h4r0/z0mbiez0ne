@@ -1,4 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <rect width="100" height="100" fill="crimson"/>
-  <text x="50" y="50" dominant-baseline="central" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="52" fill="white" letter-spacing="-2">ZZ</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#000"/>
+  <text
+    x="50" y="54"
+    text-anchor="middle"
+    dominant-baseline="central"
+    font-family="'Arial Black', Impact, sans-serif"
+    font-weight="900"
+    font-size="96"
+    fill="crimson"
+    textLength="90"
+    lengthAdjust="spacingAndGlyphs"
+  >ZZ</text>
 </svg>
