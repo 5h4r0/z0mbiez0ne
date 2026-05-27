@@ -62,7 +62,7 @@
 - Pages protégées : call réseau au montage pour valider la session (pas seulement `!!token` en mémoire)
 
 ### CSRF
-- `sameSite: 'strict'` suffit si frontend et backend sont sur le même domaine (zombiezone.kadath.fr)
+- `sameSite: 'strict'` suffit si frontend et backend sont sur le même domaine (sharo.fr)
 - Si cross-domain un jour : ajouter anti-CSRF token (double submit cookie pattern)
 
 ### bfcache (back-forward cache)

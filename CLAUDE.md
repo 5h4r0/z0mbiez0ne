@@ -1,5 +1,5 @@
 # CLAUDE.md
-> Contexte CC — zombiezone.kadath.fr
+> Contexte CC — sharo.fr
 
 Branche active : `customer-account-dev` — jamais commiter sur `main`.
 

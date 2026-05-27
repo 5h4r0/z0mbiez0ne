@@ -1,5 +1,5 @@
-# Flux de données — zombiezone.kadath.fr
-> Branche `customer-account-dev` — état au 2026-05-22
+# Flux de données — sharo.fr
+> Branche `global-audit-and-fixes` — état au 2026-05-26
 > Trois lectures : D (tableaux + anomalies), C (diagrammes ASCII), B (flux narratif par type)
 
 ---
@@ -42,9 +42,9 @@
 
 | Page frontend | Fichier | Appel | Endpoint | Router | Middleware | Controller |
 |---|---|---|---|---|---|---|
-| `DashboardPage` (formulaire login) | `pages/dashboard/DashboardPage.tsx` | `store.login()` → `fetch` | `POST /api/auth/login` | `routers/auth.router.ts` | aucun | `auth.controller.ts → loginUser` |
-| `DashboardPage` (formulaire login) | `pages/dashboard/DashboardPage.tsx` | `store.login()` → `fetch` | `GET /api/auth/profile` | `routers/auth.router.ts` | `requireAuth` | `auth.controller.ts → getAuthenticatedUser` |
-| `DashboardPage` (formulaire register) | `pages/dashboard/DashboardPage.tsx` | `store.register()` → `fetch` | `POST /api/auth/register` | `routers/auth.router.ts` | aucun | `auth.controller.ts → registerUser` |
+| `LoginPage` (formulaire login) | `pages/LoginPage.tsx` | `store.login()` → `fetch` | `POST /api/auth/login` | `routers/auth.router.ts` | aucun | `auth.controller.ts → loginUser` |
+| `LoginPage` (formulaire login) | `pages/LoginPage.tsx` | `store.login()` → `fetch` | `GET /api/auth/profile` | `routers/auth.router.ts` | `requireAuth` | `auth.controller.ts → getAuthenticatedUser` |
+| `LoginPage` (formulaire register) | `pages/LoginPage.tsx` | `store.register()` → `fetch` | `POST /api/auth/register` | `routers/auth.router.ts` | aucun | `auth.controller.ts → registerUser` |
 | `App.tsx` (montage) | `components/App.tsx` | `store.refreshToken()` → `fetch` | `POST /api/auth/refresh` | `routers/auth.router.ts` | aucun (lit cookie httpOnly) | `auth.controller.ts → refreshAccessToken` |
 | `App.tsx` (montage, si refresh OK) | `components/App.tsx` | `store.refreshToken()` → `fetch` | `GET /api/auth/profile` | `routers/auth.router.ts` | `requireAuth` | `auth.controller.ts → getAuthenticatedUser` |
 
@@ -57,6 +57,7 @@
 | Page frontend | Fichier | Appel | Endpoint | Router | Middleware | Controller |
 |---|---|---|---|---|---|---|
 | `DashboardPage` (bouton déconnexion) | `pages/dashboard/DashboardPage.tsx` | `store.logout()` → `fetch` | `POST /api/auth/logout` | `routers/auth.router.ts` | aucun | `auth.controller.ts → logoutUser` |
+| `DashboardPage` (guard bfcache) | `pages/dashboard/DashboardPage.tsx` | `useEffect` + `useNavigate` | — | — | — | redirect `/login` si `!user && !isHydrating` |
 | `OrderDetailPage` (guard bfcache) | `pages/dashboard/OrderDetailPage.tsx` | `useEffect` → redirect si `!user` | — | — | — | — |
 
 #### Orders
@@ -67,27 +68,28 @@
 | `OrderDetailPage` | `pages/dashboard/OrderDetailPage.tsx` | `apiFetch` | `GET /api/orders/:id` | `routers/orders.router.ts` | `requireAuth` + `requireRole('member','admin')` | `orders.controller.ts → getOrder` |
 | `OrderDetailPage` (payer) | `pages/dashboard/OrderDetailPage.tsx` | `apiFetch` | `PUT /api/orders/:id` `{ status: 'Confirmed' }` | `routers/orders.router.ts` | `requireAuth` + `requireRole('member','admin')` | `orders.controller.ts → updateOrder` |
 | `OrderDetailPage` (annuler) | `pages/dashboard/OrderDetailPage.tsx` | `apiFetch` | `PUT /api/orders/:id` `{ status: 'Cancelled' }` | `routers/orders.router.ts` | `requireAuth` + `requireRole('member','admin')` | `orders.controller.ts → updateOrder` |
+| `BasketPage` (commander) | `pages/BasketPage.tsx` | `apiFetch` | `POST /api/orders` | `routers/orders.router.ts` | `requireAuth` + `requireRole('member','admin')` | `orders.controller.ts → createOrder` |
 
 ---
 
 ### Zone 3 — Backoffice admin (`/manage`)
 
-> ⚠️ **Cette zone n'existe pas dans le frontend.** Aucune page, aucune route, aucun composant lié à `/manage` n'est présent dans `vite-frontend/src/`. Les endpoints admin sont câblés côté backend (activities, sessions, categories, orders, users, roles avec `requireRole('admin')`), mais sans interface frontend associée.
-
-| Endpoint disponible côté API | Router | Middleware | Controller | Frontend |
-|---|---|---|---|---|
-| `POST /api/activities` | `activities.router.ts` | `requireAuth` + `requireRole('admin')` | `createActivity` | ❌ absent |
-| `PUT /api/activities/:id` | `activities.router.ts` | `requireAuth` + `requireRole('admin')` | `updateActivity` | ❌ absent |
-| `DELETE /api/activities/:id` | `activities.router.ts` | `requireAuth` + `requireRole('admin')` | `deleteActivity` | ❌ absent |
-| `POST /api/sessions` | `sessions.router.ts` | `requireAuth` + `requireRole('admin')` | `createSession` | ❌ absent |
-| `PUT /api/sessions/:id` | `sessions.router.ts` | `requireAuth` + `requireRole('admin')` | `updateSession` | ❌ absent |
-| `DELETE /api/sessions/:id` | `sessions.router.ts` | `requireAuth` + `requireRole('admin')` | `deleteSession` | ❌ absent |
-| `POST /api/categories` | `categories.router.ts` | `requireAuth` + `requireRole('admin')` | `createCategory` | ❌ absent |
-| `PUT /api/categories/:id` | `categories.router.ts` | `requireAuth` + `requireRole('admin')` | `updateCategory` | ❌ absent |
-| `DELETE /api/categories/:id` | `categories.router.ts` | `requireAuth` + `requireRole('admin')` | `deleteCategory` | ❌ absent |
-| `GET /api/orders` | `orders.router.ts` | `requireAuth` + `requireRole('admin')` | `getOrders` | ❌ absent |
-| `GET /api/users` | `users.router.ts` | `requireAuth` + `requireRole('admin')` | `getUsers` | ❌ absent |
-| `GET /api/orders_lines` | `order.lines.router.ts` | `requireAuth` + `requireRole('admin')` | `getOrdersLines` | ❌ absent |
+| Page frontend | Fichier | Appel | Endpoint | Router | Middleware | Controller |
+|---|---|---|---|---|---|---|
+| `ManageActivitiesPage` | `pages/manage/ManageActivitiesPage.tsx` | `apiFetch` | `GET /api/activities` | `activities.router.ts` | `requireAuth` + `requireRole('admin')` | `getActivities` |
+| `ManageActivityFormPage` | `pages/manage/ManageActivityFormPage.tsx` | `apiFetch` | `POST /api/activities` | `activities.router.ts` | `requireAuth` + `requireRole('admin')` | `createActivity` |
+| `ManageActivityFormPage` | `pages/manage/ManageActivityFormPage.tsx` | `apiFetch` | `PUT /api/activities/:id` | `activities.router.ts` | `requireAuth` + `requireRole('admin')` | `updateActivity` |
+| `ManageActivitiesPage` | `pages/manage/ManageActivitiesPage.tsx` | `apiFetch` | `DELETE /api/activities/:id` | `activities.router.ts` | `requireAuth` + `requireRole('admin')` | `deleteActivity` |
+| `ManageSessionsPage` | `pages/manage/ManageSessionsPage.tsx` | `apiFetch` | `GET /api/sessions` | `sessions.router.ts` | `requireAuth` + `requireRole('admin')` | `getSessions` |
+| `ManageSessionFormPage` | `pages/manage/ManageSessionFormPage.tsx` | `apiFetch` | `POST /api/sessions` | `sessions.router.ts` | `requireAuth` + `requireRole('admin')` | `createSession` |
+| `ManageSessionFormPage` | `pages/manage/ManageSessionFormPage.tsx` | `apiFetch` | `PUT /api/sessions/:id` | `sessions.router.ts` | `requireAuth` + `requireRole('admin')` | `updateSession` |
+| `ManageSessionsPage` | `pages/manage/ManageSessionsPage.tsx` | `apiFetch` | `DELETE /api/sessions/:id` | `sessions.router.ts` | `requireAuth` + `requireRole('admin')` | `deleteSession` |
+| `ManageCategoriesPage` | `pages/manage/ManageCategoriesPage.tsx` | `apiFetch` | `GET /api/categories` | `categories.router.ts` | `requireAuth` + `requireRole('admin')` | `getCategories` |
+| `ManageCategoryFormPage` | `pages/manage/ManageCategoryFormPage.tsx` | `apiFetch` | `POST /api/categories` | `categories.router.ts` | `requireAuth` + `requireRole('admin')` | `createCategory` |
+| `ManageCategoryFormPage` | `pages/manage/ManageCategoryFormPage.tsx` | `apiFetch` | `PUT /api/categories/:id` | `categories.router.ts` | `requireAuth` + `requireRole('admin')` | `updateCategory` |
+| `ManageCategoriesPage` | `pages/manage/ManageCategoriesPage.tsx` | `apiFetch` | `DELETE /api/categories/:id` | `categories.router.ts` | `requireAuth` + `requireRole('admin')` | `deleteCategory` |
+| `ManageOrdersPage` | `pages/manage/ManageOrdersPage.tsx` | `apiFetch` | `GET /api/orders` | `orders.router.ts` | `requireAuth` + `requireRole('admin')` | `getOrders` |
+| `ManageUsersPage` | `pages/manage/ManageUsersPage.tsx` | `apiFetch` | `GET /api/users` | `users.router.ts` | `requireAuth` + `requireRole('admin')` | `getUsers` |
 
 ---
 
@@ -95,14 +97,17 @@
 
 | # | Fichier(s) concerné(s) | Type | Description |
 |---|---|---|---|
-| 1 | `pages/ActivityDetailPage.tsx`, `pages/SessionDetailPage.tsx`, `pages/CategoryDetailPage.tsx`, `pages/DynamicDetailPage.tsx` | **Incohérence** | Ces pages utilisent `fetch` natif sans `credentials: 'include'`. Pour l'instant les endpoints ciblés sont publics donc pas de bug, mais si l'un d'eux devient protégé le cookie ne sera pas joint automatiquement. À remplacer par `apiFetch`. |
-| 2 | `hooks/useFetch.ts` | **Incohérence** | `useFetch` n'utilise pas `credentials: 'include'` et ne gère pas les 401. Acceptable pour les routes publiques uniquement. Toute utilisation sur une route protégée sera silencieusement cassée. |
-| 3 | `store/basketStore.ts` | **Incomplet** | `basketStore` est défini (items, qty, prix) mais `BasketPage` est vide et commentée dans le routing. Aucun appel API `POST /api/orders` n'est câblé depuis le panier. Le flux "ajout panier → création commande" est manquant. |
-| 4 | `pages/dashboard/DashboardPage.tsx` | **Logique** | Le guard bfcache est absent sur `DashboardPage` : si `user` est null et `isHydrating` est false, la page affiche le formulaire de login sans vérification réseau au montage. `OrderDetailPage` a ce guard (`useEffect` → redirect si `!user`), mais `DashboardPage` non. |
-| 5 | `store/authStore.ts` | **Sécurité mineure** | `persist` de Zustand stocke `user` (id, firstname, lastname, email, role_id) dans `localStorage` sous la clé `zz-auth`. Ce n'est pas un token JWT, donc pas de risque d'exfiltration de credentials, mais c'est un vecteur XSS pour l'identité de l'utilisateur. Le profil pourrait être re-fetché à chaque refresh plutôt que persisté. |
-| 6 | `store/basketStore.ts` | **Sécurité mineure** | `basketStore` utilise `persist` sans clé `partialize` : tout le store est sérialisé en `localStorage`. Si des prix ou des IDs de session sont manipulés côté client, la validation backend (`createOrder` → vérif capacity + prix recalculé en BDD) protège correctement. Pas de risque fonctionnel, mais la donnée panier en localStorage est modifiable par XSS. |
-| 7 | `controllers/orders.controller.ts` | **TODO critique** | `updateOrder` (statut → `Confirmed`) simule un paiement sans Stripe. Un commentaire `TODO` est présent. Le flux "payer" actuel ne valide aucun paiement réel. |
-| 8 | `pages/` (manage) | **Manquant** | Aucune page `/manage` ni backoffice admin n'est implémentée frontend. Tous les endpoints `admin` sont exposés API sans interface. |
+| 1 | `pages/ActivityDetailPage.tsx`, `pages/SessionDetailPage.tsx`, `pages/CategoryDetailPage.tsx`, `pages/DynamicDetailPage.tsx` | **Incohérence** | Ces pages utilisent `fetch` natif sans `credentials: 'include'`. Endpoints ciblés publics — pas de bug actuellement. À remplacer par `apiFetch` si l'un d'eux devient protégé. |
+| 2 | `hooks/useFetch.ts` | **Incohérence** | `useFetch` n'utilise pas `credentials: 'include'` et ne gère pas les 401. Réservé aux routes publiques uniquement. |
+| 3 | `store/basketStore.ts` | ~~Incomplet~~ | ~~Flux panier → création commande manquant.~~ **✅ Résolu** — `BasketPage` implémentée, `POST /api/orders` câblé. |
+| 4 | `pages/dashboard/DashboardPage.tsx` | ~~Sécurité~~ | ~~Guard bfcache absent sur `DashboardPage`.~~ **✅ Résolu** (`global-audit-and-fixes`) — `useEffect` + `useNavigate('/login', { replace: true })` ajouté. |
+| 5 | `store/authStore.ts` + `App.tsx` | ~~Sécurité~~ | ~~`persist` Zustand stocke `user` (PII) dans localStorage.~~ **✅ Résolu** (`global-audit-and-fixes`) — `persist` supprimé, `localStorage.removeItem('zz-auth')` au montage de `App.tsx`. |
+| 6 | `store/basketStore.ts` | **Sécurité mineure** | `basketStore` persiste tout le store en localStorage (pas de `partialize`). Données panier modifiables par XSS, mais validation backend protège (capacity + prix recalculé en BDD). Non bloquant. |
+| 7 | `controllers/orders.controller.ts` | **TODO** | `updateOrder` (statut → `Confirmed`) simule un paiement sans Stripe. Hors MVP — documenté. |
+| 8 | `pages/` (manage) | ~~Manquant~~ | ~~Aucune page `/manage` implémentée frontend.~~ **✅ Résolu** (`admin-backoffice-dev`) — CRUD complet activités, sessions, catégories, orders, users. |
+| B1 | `controllers/orders.controller.ts` | ~~Sécurité~~ | ~~`user_id` venait du body — n'importe quel membre pouvait créer une commande au nom d'autrui.~~ **✅ Résolu** (`global-audit-and-fixes`) — `user_id` retiré du schema Zod, remplacé par `req.user.id`. |
+| B2 | `controllers/users.controller.ts` | ~~Incohérence~~ | ~~`deleteUser` faisait un hard delete (`prisma.users.delete`).~~ **✅ Résolu** (`global-audit-and-fixes`) — soft delete `{ deleted_at: new Date() }`. |
+| B3 | `controllers/users.controller.ts` | ~~Robustesse~~ | ~~`updateUser` sans validation Zod sur le body.~~ **✅ Résolu** (`global-audit-and-fixes`) — schema Zod ajouté, vérification existence rôle en BDD, `ZodError` géré. |
 
 ---
 
@@ -210,6 +215,7 @@ HomePage.tsx
 AUTH — flux de démarrage (App.tsx)
 ──────────────────────────────────────────────────────────────────────────────
 App.tsx  useEffect au montage
+  → localStorage.removeItem('zz-auth')  [nettoyage sessions persistées legacy]
   → store/authStore.ts → refreshToken()
   → fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
   → POST /api/auth/refresh  (lit cookie httpOnly refreshToken)
@@ -227,7 +233,7 @@ App.tsx  useEffect au montage
 
 AUTH — login
 ──────────────────────────────────────────────────────────────────────────────
-DashboardPage.tsx  formulaire login → handleLogin()
+LoginPage.tsx  formulaire login → handleLogin()
   → store/authStore.ts → login(email, password)
   → fetch('/api/auth/login', { method: 'POST', credentials: 'include', body: {email, password} })
   → POST /api/auth/login  (public)
@@ -243,7 +249,7 @@ DashboardPage.tsx  formulaire login → handleLogin()
 
 AUTH — register
 ──────────────────────────────────────────────────────────────────────────────
-DashboardPage.tsx  formulaire register → handleRegister()
+LoginPage.tsx  formulaire register → handleRegister()
   → store/authStore.ts → register({ firstname, lastname, email, password, confirm })
   → fetch('/api/auth/register', { method: 'POST', credentials: 'include', body: {..., role_id: 1} })
   → POST /api/auth/register  (public)
@@ -274,6 +280,13 @@ DashboardPage.tsx  bouton "Se déconnecter"
   → finally : res.clearCookie('accessToken') + res.clearCookie('refreshToken')
   → store.set({ user: null })
 
+GUARD bfcache — DashboardPage
+──────────────────────────────────────────────────────────────────────────────
+DashboardPage.tsx  useEffect au montage (+ sur restauration bfcache)
+  → si isHydrating : attendre
+  → si !user : navigate('/login', { replace: true })
+  [protection contre restauration bfcache après déconnexion]
+
 ORDERS — liste
 ──────────────────────────────────────────────────────────────────────────────
 DashboardPage.tsx  useEffect (déclenché quand user !== null)
@@ -297,9 +310,25 @@ OrderDetailPage.tsx  useEffect (déclenché au montage)
   → GET /api/orders/:id  (auth)
   → [MW] requireAuth + requireRole('member','admin')
   → controllers/orders.controller.ts → getOrder()
-  → PostgreSQL : orders.findUnique + orders_lines + session + activity.title
+  → PostgreSQL : orders.findUnique({ where: { id, user_id: req.user.id } })
+                 [admin : sans filtre user_id]
+                 include orders_lines + session + activity.title
   → { data: Order & { lines: OrderLine[] } }
   → setOrder(d.data)
+
+ORDERS — créer (panier → commande)
+──────────────────────────────────────────────────────────────────────────────
+BasketPage.tsx  bouton "Commander"
+  → si !isAuthenticated : navigate('/login?redirectTo=/panier')
+  → apiFetch('/api/orders', { method: 'POST', body: { lines: [...] } })
+  → POST /api/orders  (auth)
+  → [MW] requireAuth + requireRole('member','admin')
+  → controllers/orders.controller.ts → createOrder()
+  → user_id = req.user.id  [body ignoré — ✅ corrigé #B1]
+  → PostgreSQL : $transaction sérialisé
+                 orders.create (Pending) → loop lines (vérif capacity) → orders.update (total TTC)
+  → clearBasket()
+  → navigate('/dashboard/commandes/:id')
 
 ORDERS — payer (Pending → Confirmed)
 ──────────────────────────────────────────────────────────────────────────────
@@ -323,16 +352,6 @@ OrderDetailPage.tsx  bouton "Annuler la commande" (double confirmation)
   → vérif transition : Pending → Cancelled ✅
   → PostgreSQL : orders.update({ status: 'Cancelled' })
   → navigate('/dashboard')
-
-PANIER — flux manquant
-──────────────────────────────────────────────────────────────────────────────
-~~BasketPage.tsx  (vide — non implémentée)
-  ~~ store/basketStore.ts → items, totalPrice()  [présent, persist localStorage]
-  ~~ apiFetch('/api/orders', { method: 'POST', body: { user_id, lines: [...] } })
-  ~~ POST /api/orders  (auth)
-  ~~ controllers/orders.controller.ts → createOrder()
-  ~~ PostgreSQL : $transaction → orders.create + orders_lines.create (vérif capacity)
-  [ce flux est câblé backend mais n'a pas d'interface frontend]
 ```
 
 ---
@@ -340,47 +359,68 @@ PANIER — flux manquant
 ### Zone 3 — Backoffice admin (`/manage`)
 
 ```
-TOUTES RESSOURCES — flux admin (backend uniquement)
+AUTH admin
 ──────────────────────────────────────────────────────────────────────────────
-~~ManagePage  (inexistante)
-  ~~ apiFetch('/api/activities', { method: 'POST', body: {...} })
-  ~~ POST /api/activities  (admin)
-  ~~ [MW] requireAuth + requireRole('admin')
-  ~~ controllers/activities.controller.ts → createActivity()
+ManageLoginPage.tsx  formulaire login admin
+  → store/authStore.ts → login(email, password)
+  → POST /api/auth/login  (public)
+  → Set-Cookie: accessToken + refreshToken
+  → si role !== 'admin' : logout() + erreur
+  → navigate('/manage')
 
-  ~~ apiFetch('/api/activities/:id', { method: 'PUT', body: {...} })
-  ~~ PUT /api/activities/:id  (admin)
-  ~~ controllers/activities.controller.ts → updateActivity()
-  ~~ [note : rebuild slug, replace activities_categories via deleteMany + create]
+AdminGuard  (wrapper Route /manage)
+  → vérifie store.user?.role === 'admin'
+  → si non : redirect /manage/login
 
-  ~~ apiFetch('/api/activities/:id', { method: 'DELETE' })
-  ~~ DELETE /api/activities/:id  (admin)
-  ~~ controllers/activities.controller.ts → deleteActivity()
-  ~~ [protection : refuse si orders_lines ou sessions liées]
+ACTIVITÉS — CRUD
+──────────────────────────────────────────────────────────────────────────────
+ManageActivitiesPage.tsx
+  → apiFetch('/api/activities')  GET (admin)
+  → apiFetch('/api/activities/:id', DELETE)  (admin)
+  → [MW] requireAuth + requireRole('admin')
+  → controllers/activities.controller.ts → getActivities() / deleteActivity()
+  → deleteActivity() : refuse si orders_lines ou sessions liées
 
-  ~~ apiFetch('/api/sessions', { method: 'POST', body: {...} })
-  ~~ POST /api/sessions  (admin)
-  ~~ controllers/sessions.controller.ts → createSession()
+ManageActivityFormPage.tsx  (create / edit)
+  → apiFetch('/api/activities', POST)  ou  apiFetch('/api/activities/:id', PUT)
+  → [MW] requireAuth + requireRole('admin')
+  → createActivity() : génère slug, crée activities_categories
+  → updateActivity() : deleteMany pivot + recreate
 
-  ~~ apiFetch('/api/sessions/:id', { method: 'PUT' / 'DELETE' })
-  ~~ controllers/sessions.controller.ts → updateSession() / deleteSession()
-  ~~ [DELETE refuse si orders_lines liées]
+SESSIONS — CRUD
+──────────────────────────────────────────────────────────────────────────────
+ManageSessionsPage.tsx
+  → apiFetch('/api/sessions')  GET (admin)
+  → apiFetch('/api/sessions/:id', DELETE)  (admin)
+  → deleteSession() : refuse si orders_lines liées
 
-  ~~ apiFetch('/api/categories', { method: 'POST' / 'PUT' / 'DELETE' })
-  ~~ controllers/categories.controller.ts → createCategory() / updateCategory() / deleteCategory()
-  ~~ [DELETE refuse si activités orphelines]
+ManageSessionFormPage.tsx
+  → apiFetch('/api/sessions', POST)  ou  apiFetch('/api/sessions/:id', PUT)
+  → createSession() : valide date dans le futur
 
-  ~~ apiFetch('/api/orders')
-  ~~ GET /api/orders  (admin uniquement — liste complète tous users)
-  ~~ controllers/orders.controller.ts → getOrders()
+CATÉGORIES — CRUD
+──────────────────────────────────────────────────────────────────────────────
+ManageCategoriesPage.tsx
+  → apiFetch('/api/categories')  GET (admin)
+  → apiFetch('/api/categories/:id', DELETE)  (admin)
+  → deleteCategory() : refuse si activités orphelines (une seule catégorie)
 
-  ~~ apiFetch('/api/users')
-  ~~ GET /api/users  (admin)
-  ~~ controllers/users.controller.ts → getUsers()
+ManageCategoryFormPage.tsx
+  → apiFetch('/api/categories', POST)  ou  apiFetch('/api/categories/:id', PUT)
 
-  ~~ apiFetch('/api/orders_lines')
-  ~~ GET /api/orders_lines  (admin)
-  ~~ controllers/orders.lines.controller.ts → getOrdersLines()
+COMMANDES — liste admin
+──────────────────────────────────────────────────────────────────────────────
+ManageOrdersPage.tsx
+  → apiFetch('/api/orders')  GET (admin uniquement — toutes commandes sans filtre user)
+  → controllers/orders.controller.ts → getOrders()
+
+UTILISATEURS — liste admin
+──────────────────────────────────────────────────────────────────────────────
+ManageUsersPage.tsx
+  → apiFetch('/api/users')  GET (admin)
+  → controllers/users.controller.ts → getUsers()
+  → apiFetch('/api/users/:id', PUT)  — updateUser() avec Zod + vérif rôle  [✅ corrigé #B3]
+  → apiFetch('/api/users/:id', DELETE)  — soft delete { deleted_at }  [✅ corrigé #B2]
 ```
 
 ---
@@ -398,7 +438,7 @@ TOUTES RESSOURCES — flux admin (backend uniquement)
 `ActivityDetailPage` et `DynamicDetailPage` utilisent `fetch` natif direct (pas `useFetch`). `getActivityBySlug()` fait un `findFirst({ where: { slug } })` avec le même `include`. En parallèle, `ActivityDetailPage` émet un second fetch vers `/api/sessions?activity_slug=X&status=Scheduled` pour lister les sessions disponibles de cette activité.
 
 **Écriture admin (create / update / delete)**
-Aucune page frontend ne couvre ces flux. Backend : `requireAuth` lit le cookie `accessToken` via `cookie-parser`, `requireRole('admin')` fait un `findUnique` sur la table `roles`. `createActivity()` génère un slug via `utils/slugify.ts` et crée les liaisons `activities_categories` en cascade. `updateActivity()` fait un `deleteMany` sur la table pivot puis recrée les liaisons. `deleteActivity()` refuse la suppression si des `orders_lines` ou `sessions` sont liées.
+`ManageActivityFormPage` et `ManageActivitiesPage` consomment ces endpoints via `apiFetch`. `createActivity()` génère un slug via `utils/slugify.ts` et crée les liaisons `activities_categories` en cascade. `updateActivity()` fait un `deleteMany` sur la table pivot puis recrée les liaisons. `deleteActivity()` refuse la suppression si des `orders_lines` ou `sessions` sont liées.
 
 ---
 
@@ -411,7 +451,7 @@ Aucune page frontend ne couvre ces flux. Backend : `requireAuth` lit le cookie `
 `SessionDetailPage` appelle `GET /api/sessions/:id`. `getSession()` retourne le même calcul de capacité disponible, plus les données de l'activité associée (select minimal : id, title, slug, image_filename).
 
 **Écriture admin**
-Non implémentée frontend. `createSession()` valide que la date est dans le futur. `deleteSession()` refuse si des `orders_lines` sont liées à la session.
+`ManageSessionFormPage` crée et modifie. `createSession()` valide que la date est dans le futur. `deleteSession()` refuse si des `orders_lines` sont liées à la session.
 
 ---
 
@@ -421,55 +461,57 @@ Non implémentée frontend. `createSession()` valide que la date est dans le fut
 `CategoriesPage` → `getCategories()` : retourne `activities_categories → activity` (id, title, slug uniquement) + `activities_count`. `CategoryDetailPage` charge la catégorie par slug, puis en parallèle les activités via `/api/activities?category_slug=X`. `DynamicDetailPage` tente d'abord un fetch activité par slug, et si 404 tente un fetch catégorie par slug — route fourre-tout pour `/:slug`.
 
 **Écriture admin**
-Non implémentée frontend. `deleteCategory()` contient une protection spécifique : elle refuse si des activités liées n'ont qu'une seule catégorie (elles deviendraient orphelines).
+`ManageCategoryFormPage` crée et modifie. `deleteCategory()` contient une protection spécifique : elle refuse si des activités liées n'ont qu'une seule catégorie (elles deviendraient orphelines).
 
 ---
 
 ### 4. Orders
 
 **Création (membre)**
-Le flux de création est câblé backend (`createOrder()` dans une transaction Prisma sérialisée : création commande vide → loop sur les lignes avec vérif capacity atomique → calcul total TTC → `orders.update`), mais aucune page frontend ne l'invoque. `BasketPage` est vide, `basketStore` existe mais n'appelle jamais l'API.
+`BasketPage` appelle `POST /api/orders` via `apiFetch`. `createOrder()` ignore le `user_id` du body et utilise `req.user.id` (injecté par `requireAuth`). La transaction Prisma sérialisée crée la commande vide, vérifie la capacité atomiquement pour chaque ligne, calcule le total TTC, et retourne la commande complète. `BasketPage` redirige vers `OrderDetailPage` après succès.
 
 **Lecture (membre — mes commandes)**
-`DashboardPage` déclenche `apiFetch('/api/orders/mine')` uniquement quand `user !== null`. `apiFetch` gère le refresh automatique sur 401 via un flag module-level `isRefreshing` (évite les boucles infinies si plusieurs 401 simultanés). `getMyOrders()` filtre par `user_id: req.user.id` (injecté par `requireAuth`), retourne les lignes avec session + activity title.
+`DashboardPage` déclenche `apiFetch('/api/orders/mine')` uniquement quand `user !== null`. `apiFetch` gère le refresh automatique sur 401 via un flag module-level `isRefreshing`. `getMyOrders()` filtre par `user_id: req.user.id`, retourne les lignes avec session + activity title.
 
 **Lecture (membre — détail)**
-`OrderDetailPage` appelle `apiFetch('/api/orders/:id')` au montage. `getOrder()` ne filtre pas par `user_id` — n'importe quel membre authentifié peut lire n'importe quelle commande par id. L'isolation est uniquement par rôle (`member` ou `admin`), pas par propriété.
+`OrderDetailPage` appelle `apiFetch('/api/orders/:id')`. `getOrder()` filtre par `user_id: req.user.id` pour les membres (les admins voient tout).
 
 **Mutation de statut (membre)**
-`OrderDetailPage` émet `PUT /api/orders/:id` avec `{ status: 'Confirmed' }` (paiement simulé) ou `{ status: 'Cancelled' }` (annulation). `updateOrder()` applique une table de transitions autorisées (`VALID_TRANSITIONS`) : `Pending → Confirmed`, `Pending → Cancelled`, `Confirmed → Refunded`. Les autres transitions retournent 400.
+`OrderDetailPage` émet `PUT /api/orders/:id` avec `{ status: 'Confirmed' }` (paiement simulé) ou `{ status: 'Cancelled' }`. `updateOrder()` applique une table de transitions autorisées (`VALID_TRANSITIONS`) : `Pending → Confirmed`, `Pending → Cancelled`, `Confirmed → Refunded`.
 
 **Lecture admin (liste complète)**
-`GET /api/orders` est réservé `admin` et retourne toutes les commandes sans filtre user. Non consommé par le frontend.
+`ManageOrdersPage` consomme `GET /api/orders` — réservé `admin`, retourne toutes les commandes sans filtre user.
 
 ---
 
 ### 5. Auth
 
 **Démarrage de l'application**
-`App.tsx` appelle `refreshToken()` dans un `useEffect` au montage, systématiquement, sans condition sur `user`. `refreshAccessToken()` lit le cookie httpOnly `refreshToken`, en extrait `tokenId` (UUID), fait un `findUnique` sur `RefreshToken.token_id`, vérifie le hash argon2, puis fait un `deleteMany` atomique (protection race condition : si `count === 0` → token déjà consommé). Un nouveau pair `accessToken` / `refreshToken` est émis. Un housekeeping silencieux nettoie les tokens expirés de l'utilisateur.
+`App.tsx` appelle `localStorage.removeItem('zz-auth')` pour nettoyer les sessions persistées legacy, puis `refreshToken()` dans un `useEffect` au montage. `refreshAccessToken()` lit le cookie httpOnly `refreshToken`, extrait `tokenId` (UUID), vérifie le hash argon2, puis fait un `deleteMany` atomique. Un nouveau pair `accessToken` / `refreshToken` est émis. Housekeeping silencieux des tokens expirés.
 
 **Login**
-`loginUser()` valide email + password via Zod, compare via argon2 (`lib/auth.ts → comparePassword`), génère access + refresh tokens (`lib/tokens.ts`), persiste le refresh en BDD (`persistRefreshToken` : hash argon2 du tokenId), pose les deux cookies httpOnly. Le frontend enchaîne immédiatement avec `GET /api/auth/profile` pour hydrater `store.user`.
+`loginUser()` valide email + password via Zod, compare via argon2, génère access + refresh tokens, persiste le refresh en BDD (hash argon2 du tokenId), pose les deux cookies httpOnly. Le frontend enchaîne avec `GET /api/auth/profile`.
 
 **Register**
-Identique au login côté cookies. Différence : le `user` est extrait du body de réponse (`data.data`) sans re-fetch profile. Le `role_id: 1` est hardcodé côté frontend dans le body du register.
+Identique au login côté cookies. Le `user` est extrait du body de réponse sans re-fetch profile. Le `role_id: 1` est hardcodé côté frontend.
 
 **Logout**
-`logoutUser()` supprime tous les `RefreshToken` de l'utilisateur en BDD, puis `clearCookie` dans `finally` (garanti même si la BDD throw). Le frontend set `user: null`.
+`logoutUser()` supprime tous les `RefreshToken` de l'utilisateur en BDD, puis `clearCookie` dans `finally`. Le frontend set `user: null`.
 
-**Guard des pages protégées**
-`OrderDetailPage` a un `useEffect` qui redirige vers `/dashboard` si `!user && !isHydrating`. `DashboardPage` n'a pas ce guard réseau — elle affiche directement le formulaire si `user` est null sans vérifier la session côté serveur.
+**Guard bfcache (DashboardPage)**
+`DashboardPage` a un `useEffect` qui appelle `navigate('/login', { replace: true })` si `!user && !isHydrating`. Ce guard se re-déclenche sur restauration bfcache, contrairement au render-time `<Navigate>` qui lui est conservé pour le premier rendu synchrone.
 
 **Intercepteur 401 (`apiFetch`)**
-Toutes les requêtes authentifiées passent par `apiFetch` (défini dans `authStore.ts`). Sur 401, si `isRefreshing` est false : déclenche `POST /api/auth/refresh`, si OK retry la requête originale, si KO appelle `logout()` et redirige vers `/dashboard`.
+Sur 401, si `isRefreshing` est false : déclenche `POST /api/auth/refresh`, si OK retry la requête originale, si KO appelle `logout()` et redirige vers `/login`.
 
 ---
 
 ### 6. Panier (`basketStore`)
 
-`basketStore` (Zustand + persist `localStorage`) gère les items localement : `addItem`, `removeItem`, `updateQuantity`, `clearBasket`, `totalItems()`, `totalPrice()`. Il n'émet aucun appel API. `BasketPage` est vide. Le pont entre le panier local et `POST /api/orders` n'est pas implémenté.
+`basketStore` (Zustand + persist `localStorage`) gère les items localement : `addItem`, `removeItem`, `updateQuantity`, `clearBasket`, `totalItems()`, `totalPrice()`. `SessionDetailPage` appelle `addItem()` puis redirige vers `/panier`. `BasketPage` consomme le store et émet `POST /api/orders` via `apiFetch` au clic "Commander". Après succès : `clearBasket()` + redirect vers `OrderDetailPage`.
+
+Note : `basketStore` persiste tout le store en localStorage (anomalie #6 ouverte — non bloquant, validation backend protège).
 
 ---
 
-*Fin du document — généré depuis le code source de la branche `customer-account-dev`.*
+*Fin du document — mis à jour le 2026-05-26, branche `global-audit-and-fixes`.*
