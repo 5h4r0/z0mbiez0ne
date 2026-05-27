@@ -24,6 +24,14 @@ export async function resetDatabase() {
     prismaTest.categories.deleteMany(),
     prismaTest.users.deleteMany(),
   ]);
+
+  await prismaTest.roles.createMany({
+    data: [
+      { id: 1, name: 'admin' },
+      { id: 2, name: 'member' },
+    ],
+    skipDuplicates: true,
+  });
 }
 
 // ─── Lifecycle global ────────────────────────────────────────
