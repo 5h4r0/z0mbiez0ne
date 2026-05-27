@@ -1,5 +1,5 @@
 import request from 'supertest';
-// import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../app.js';
 import { createTestUser, prismaTest, resetDatabase } from './setup.js';
 
@@ -160,12 +160,13 @@ describe('POST /api/auth/logout', () => {
     const agent = await loginAgent('logout@zombiezone.fr', 'Test1234!');
 
     const user = await prismaTest.users.findFirst({ where: { email: 'logout@zombiezone.fr' } });
-    const beforeCount = await prismaTest.refreshToken.count({ where: { user_id: user!.id } });
+    if (!user) throw new Error('test user not found');
+    const beforeCount = await prismaTest.refreshToken.count({ where: { user_id: user.id } });
     expect(beforeCount).toBeGreaterThan(0);
 
     await agent.post('/api/auth/logout');
 
-    const afterCount = await prismaTest.refreshToken.count({ where: { user_id: user!.id } });
+    const afterCount = await prismaTest.refreshToken.count({ where: { user_id: user.id } });
     expect(afterCount).toBe(0);
   });
 });
@@ -200,17 +201,14 @@ describe('POST /api/auth/refresh', () => {
 
     const refreshCookie = getCookie(loginRes, 'refreshToken');
     expect(refreshCookie).toBeDefined();
+    if (!refreshCookie) throw new Error('refreshCookie not set');
 
     // Premier refresh — OK
-    const res1 = await request(app)
-      .post('/api/auth/refresh')
-      .set('Cookie', [refreshCookie!]);
+    const res1 = await request(app).post('/api/auth/refresh').set('Cookie', [refreshCookie]);
     expect(res1.status).toBe(200);
 
     // Deuxième refresh avec le même token — doit échouer (rotation)
-    const res2 = await request(app)
-      .post('/api/auth/refresh')
-      .set('Cookie', [refreshCookie!]);
+    const res2 = await request(app).post('/api/auth/refresh').set('Cookie', [refreshCookie]);
     expect(res2.status).toBe(401);
   });
 });

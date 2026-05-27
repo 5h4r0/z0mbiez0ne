@@ -7,6 +7,7 @@ export default defineConfig({
     env: { NODE_ENV: 'test' },
     setupFiles: ['./src/__tests__/setup.ts'],
     // tests séquentiels — une seule connexion BDD de test
+    reporters: ['verbose'],
     pool: 'forks',
     poolOptions: {
       forks: { singleFork: true },
