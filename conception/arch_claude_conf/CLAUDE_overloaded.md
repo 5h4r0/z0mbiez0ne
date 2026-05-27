@@ -5,15 +5,15 @@
 
 ## Project Overview | https://github.com/5h4r0/z0mbiez0ne 
 
-**zombiezone.kadath.fr** — parc d'attractions fictif post-apocalyptique. Projet pédagogique fullstack TypeScript, monorepo `backend/` + `vite-frontend/`.
+**sharo.fr** — parc d'attractions fictif post-apocalyptique. Projet pédagogique fullstack TypeScript, monorepo `backend/` + `vite-frontend/`.
 
 ### Zones
 
-| Zone             | URL                                        | Description                              |
-|------------------|--------------------------------------------|------------------------------------------|
-| Site vitrine     | `zombiezone.kadath.fr/fr` · `/en`          | Activités, réservation, contact          |
-| Espace client    | `zombiezone.kadath.fr/espace-client`       | Compte, commandes, annulation            |
-| Backoffice admin | `zombiezone.kadath.fr/manage`              | Gestion activités, sessions, utilisateurs|
+| Zone             | URL                  | Description                               |
+|------------------|----------------------|-------------------------------------------|
+| Site vitrine     | `sharo.fr`           | Activités, réservation, contact           |
+| Espace client    | `sharo.fr/dashboard` | Compte, commandes, annulation             |
+| Backoffice admin | `sharo.fr/manage`    | Gestion activités, sessions, utilisateurs |
 
 ---
 
@@ -189,7 +189,7 @@ Soft delete : `deleted_at` sur `users`, `categories`, `activities`, `sessions`, 
 - Pages protégées : call réseau au montage pour valider la session (pas seulement `!!token` en mémoire)
 
 ### CSRF
-- `sameSite: 'strict'` suffit si frontend et backend sont sur le même domaine (zombiezone.kadath.fr)
+- `sameSite: 'strict'` suffit si frontend et backend sont sur le même domaine (sharo.fr)
 - Si cross-domain un jour : ajouter anti-CSRF token (double submit cookie pattern)
 
 ### bfcache (back-forward cache)
@@ -252,7 +252,7 @@ Template versionné : `backend/.env.example`
 
 Même variables, avec :
 - `NODE_ENV=production`
-- `ALLOWED_ORIGINS=https://zombiezone.kadath.fr`
+- `ALLOWED_ORIGINS=https://sharo.fr`
 - Secrets JWT forts obligatoires (le serveur throw au démarrage sinon)
 
 → Voir `DEPLOY.md` pour la gestion des secrets sur VPS.

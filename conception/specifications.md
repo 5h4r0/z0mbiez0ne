@@ -130,11 +130,11 @@
 
 ### Zones de l'application
 
-| Zone             | URL                                        | Description                               |
-|------------------|--------------------------------------------|-------------------------------------------|
-| Site vitrine     | `zombiezone.kadath.fr/fr` · `/en`          | Activités, réservation, contact           |
-| Espace client    | `zombiezone.kadath.fr/espace-client`       | Compte, commandes, annulation             |
-| Backoffice admin | `zombiezone.kadath.fr/manage`              | Gestion activités, sessions, utilisateurs |
+| Zone             | URL                  | Description                               |
+|------------------|----------------------|-------------------------------------------|
+| Site vitrine     | `sharo.fr`           | Activités, réservation, contact           |
+| Espace client    | `sharo.fr/dashboard` | Compte, commandes, annulation             |
+| Backoffice admin | `sharo.fr/manage`    | Gestion activités, sessions, utilisateurs |
 
 ---
 
@@ -142,38 +142,38 @@
 
 ### Back-end
 
-| Technologie            | Rôle                         | Justification                                          |
-|------------------------|------------------------------|--------------------------------------------------------|
-| **Node.js + Express 5**| API REST                     | Léger, rapide, bien intégré au stack JS/TS             |
-| **TypeScript**         | Typage statique              | Sécurité, maintenabilité                               |
-| **Prisma**             | ORM + migrations             | Schéma déclaratif, client typé, migrations versionnées |
-| **PostgreSQL**         | BDD relationnelle            | Robuste, idéale pour activités/sessions/orders         |
-| **Zod**                | Validation des inputs        | Validation runtime + inférence de types TS             |
-| **argon2**             | Hachage mots de passe        | Plus sécurisé que bcrypt (résistant aux GPU attacks)   |
-| **jsonwebtoken**       | Génération/vérification JWT  | Auth stateless access + refresh token                  |
-| **date-fns**           | Manipulation de dates        | Légère, tree-shakeable                                 |
-| **Biome**              | Linter + formateur           | Remplace ESLint + Prettier, plus rapide                |
-| **tsx**                | Exécuteur TS (dev)           | Hot reload sans compilation intermédiaire              |
+| Technologie             | Rôle                        | Justification                                          |
+|-------------------------|-----------------------------|--------------------------------------------------------|
+| **Node.js + Express 5** | API REST                    | Léger, rapide, bien intégré au stack JS/TS             |
+| **TypeScript**          | Typage statique             | Sécurité, maintenabilité                               |
+| **Prisma**              | ORM + migrations            | Schéma déclaratif, client typé, migrations versionnées |
+| **PostgreSQL**          | BDD relationnelle           | Robuste, idéale pour activités/sessions/orders         |
+| **Zod**                 | Validation des inputs       | Validation runtime + inférence de types TS             |
+| **argon2**              | Hachage mots de passe       | Plus sécurisé que bcrypt (résistant aux GPU attacks)   |
+| **jsonwebtoken**        | Génération/vérification JWT | Auth stateless access + refresh token                  |
+| **date-fns**            | Manipulation de dates       | Légère, tree-shakeable                                 |
+| **Biome**               | Linter + formateur          | Remplace ESLint + Prettier, plus rapide                |
+| **tsx**                 | Exécuteur TS (dev)          | Hot reload sans compilation intermédiaire              |
 
 ### Front-end
 
-| Technologie          | Rôle                   | Justification                                     |
-|----------------------|------------------------|---------------------------------------------------|
-| **React 19**         | UI SPA                 | Composants, hooks, concurrent features            |
-| **Vite**             | Bundler / dev server   | Build ultra-rapide, HMR natif                     |
-| **React Router 7**   | Routing côté client    | Navigation SPA sans rechargement                  |
-| **Zustand**          | State global           | Simple, sans boilerplate (vs Redux)               |
-| **TypeScript**       | Typage statique        | Cohérence avec le back, meilleure DX              |
-| **Biome**            | Linter + formateur     | Uniformité avec le back                           |
+| Technologie        | Rôle                 | Justification                          |
+|--------------------|----------------------|----------------------------------------|
+| **React 19**       | UI SPA               | Composants, hooks, concurrent features |
+| **Vite**           | Bundler / dev server | Build ultra-rapide, HMR natif          |
+| **React Router 7** | Routing côté client  | Navigation SPA sans rechargement       |
+| **Zustand**        | State global         | Simple, sans boilerplate (vs Redux)    |
+| **TypeScript**     | Typage statique      | Cohérence avec le back, meilleure DX   |
+| **Biome**          | Linter + formateur   | Uniformité avec le back                |
 
 ### Infrastructure
 
-| Technologie             | Rôle                     |
-|-------------------------|--------------------------|
-| **Docker + Compose**    | Conteneurisation dev/prod|
-| **Nginx**               | Reverse proxy + SSL      |
-| **Let's Encrypt**       | Certificats SSL           |
-| *Stripe API*            | *Paiement (hors MVP)*    |
+| Technologie          | Rôle                      |
+|----------------------|---------------------------|
+| **Docker + Compose** | Conteneurisation dev/prod |
+| **Nginx**            | Reverse proxy + SSL       |
+| **Let's Encrypt**    | Certificats SSL           |
+| *Stripe API*         | *Paiement (hors MVP)*     |
 
 ---
 
@@ -181,17 +181,17 @@
 
 ### Entités principales
 
-| Entité             | Description                                          |
-|--------------------|------------------------------------------------------|
-| `roles`            | Rôles utilisateur (Member, Admin)                    |
-| `users`            | Comptes utilisateurs, soft delete (`deleted_at`)     |
-| `RefreshToken`     | Tokens de rafraîchissement JWT                       |
-| `categories`       | Catégories d'activités, soft delete                  |
-| `activities`       | Activités du parc, soft delete                       |
-| `activities_categories` | Table de jonction activité ↔ catégorie          |
-| `sessions`         | Sessions planifiées d'une activité, soft delete      |
-| `orders`           | Commandes utilisateur, soft delete                   |
-| `orders_lines`     | Lignes de commande (session × quantité × montant)    |
+| Entité                  | Description                                       |
+|-------------------------|---------------------------------------------------|
+| `roles`                 | Rôles utilisateur (Member, Admin)                 |
+| `users`                 | Comptes utilisateurs, soft delete (`deleted_at`)  |
+| `RefreshToken`          | Tokens de rafraîchissement JWT                    |
+| `categories`            | Catégories d'activités, soft delete               |
+| `activities`            | Activités du parc, soft delete                    |
+| `activities_categories` | Table de jonction activité ↔ catégorie            |
+| `sessions`              | Sessions planifiées d'une activité, soft delete   |
+| `orders`                | Commandes utilisateur, soft delete                |
+| `orders_lines`          | Lignes de commande (session × quantité × montant) |
 
 ### Enums
 
@@ -208,26 +208,26 @@
 
 ## 🚨 Analyse des risques
 
-| Risque                        | Impact | Mesure préventive                                      |
-|-------------------------------|--------|--------------------------------------------------------|
-| Délais de développement       | Élevé  | Planification agile avec sprints courts                |
-| Bugs critiques sur commande   | Élevé  | Recette + tests unitaires/fonctionnels                 |
-| Faille de sécurité (XSS, SQL) | Élevé  | Validation Zod + middlewares + argon2 + JWT httpOnly   |
-| Problème de déploiement       | Moyen  | Documentation (DEPLOY.md) + tests env. locaux/Docker  |
+| Risque                        | Impact | Mesure préventive                                    |
+|-------------------------------|--------|------------------------------------------------------|
+| Délais de développement       | Élevé  | Planification agile avec sprints courts              |
+| Bugs critiques sur commande   | Élevé  | Recette + tests unitaires/fonctionnels               |
+| Faille de sécurité (XSS, SQL) | Élevé  | Validation Zod + middlewares + argon2 + JWT httpOnly |
+| Problème de déploiement       | Moyen  | Documentation (DEPLOY.md) + tests env. locaux/Docker |
 
 ---
 
 ## 🎭 Répartition des rôles
 
-| Nom         | Rôle               | Responsabilités                           |
-|-------------|--------------------|-------------------------------------------|
-| Stéphane R. | PO (Product Owner) | Vision produit, priorisation backlog      |
-| Stéphane R. | Scrum Master       | Facilitation, organisation des sprints    |
-| Stéphane R. | Lead Dev           | Architecture, choix techniques            |
-| Stéphane R. | Dev Back-End       | API REST, sécurité, base de données       |
-| Stéphane R. | Dev Front-End      | SPA React, routing, state management      |
-| Stéphane R. | UI/UX Designer     | Maquettes, expérience utilisateur         |
-| Stéphane R. | Testeur / QA       | Plan de tests, vérification qualité       |
+| Nom         | Rôle               | Responsabilités                        |
+|-------------|--------------------|----------------------------------------|
+| Stéphane R. | PO (Product Owner) | Vision produit, priorisation backlog   |
+| Stéphane R. | Scrum Master       | Facilitation, organisation des sprints |
+| Stéphane R. | Lead Dev           | Architecture, choix techniques         |
+| Stéphane R. | Dev Back-End       | API REST, sécurité, base de données    |
+| Stéphane R. | Dev Front-End      | SPA React, routing, state management   |
+| Stéphane R. | UI/UX Designer     | Maquettes, expérience utilisateur      |
+| Stéphane R. | Testeur / QA       | Plan de tests, vérification qualité    |
 
 ---
 
