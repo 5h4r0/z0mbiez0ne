@@ -107,7 +107,7 @@ export async function logoutUser(req: Request, res: Response) {
     // silencieux — token invalide ou BDD indisponible
   } finally {
     res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    res.clearCookie('refreshToken', { path: '/api/auth' });
   }
   res.status(200).json({ status: 'success', message: 'logged out' });
 }
@@ -203,7 +203,7 @@ function setRefreshCookie(res: Response, token: string): void {
     httpOnly: true,
     secure: config.server.secure,
     sameSite: 'strict',
-    path: '/api/auth/refresh',
+    path: '/api/auth',
     maxAge: REFRESH_EXPIRES_MS,
   });
 }

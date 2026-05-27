@@ -1,5 +1,5 @@
 import request from 'supertest';
-// import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../app.js';
 import { createTestAdmin, createTestUser, prismaTest, resetDatabase } from './setup.js';
 
@@ -19,7 +19,6 @@ async function createTestSession(overrides: { capacity?: number; unit_price?: nu
       title: 'Zombie Safari',
       slug: 'zombie-safari',
       description: 'Une activité terrifiante',
-      duration: 60,
     },
   });
 
@@ -80,8 +79,9 @@ describe('POST /api/orders', () => {
     const agent = await loginAgent('calc@zombiezone.fr', 'Test1234!');
 
     const user = await prismaTest.users.findFirst({ where: { email: 'calc@zombiezone.fr' } });
+    if (!user) throw new Error('test user not found');
     const res = await agent.post('/api/orders').send({
-      user_id: user!.id,
+      user_id: user.id,
       lines: [{ session_id: session.id, tickets_qty: 2 }],
     });
 
@@ -116,10 +116,12 @@ describe('POST /api/orders', () => {
 
   it('refuse sans authentification — 401', async () => {
     const { session } = await createTestSession();
-    const res = await request(app).post('/api/orders').send({
-      user_id: 1,
-      lines: [{ session_id: session.id, tickets_qty: 1 }],
-    });
+    const res = await request(app)
+      .post('/api/orders')
+      .send({
+        user_id: 1,
+        lines: [{ session_id: session.id, tickets_qty: 1 }],
+      });
 
     expect(res.status).toBe(401);
   });
@@ -141,7 +143,7 @@ describe('GET /api/orders/mine', () => {
     await resetDatabase();
   });
 
-  it('retourne les commandes de l\'utilisateur connecté', async () => {
+  it("retourne les commandes de l'utilisateur connecté", async () => {
     const user = await createTestUser({ email: 'mine@zombiezone.fr', password: 'Test1234!' });
     const { session } = await createTestSession();
 
@@ -188,7 +190,7 @@ describe('GET /api/orders/:id', () => {
     await resetDatabase();
   });
 
-  it('retourne la commande si elle appartient à l\'utilisateur', async () => {
+  it("retourne la commande si elle appartient à l'utilisateur", async () => {
     const user = await createTestUser({ email: 'owner@zombiezone.fr', password: 'Test1234!' });
     const { session } = await createTestSession();
     const order = await prismaTest.orders.create({
@@ -253,8 +255,13 @@ describe('PUT /api/orders/:id — transitions de statut', () => {
     const user = await createTestUser({ email: 'confirm@zombiezone.fr', password: 'Test1234!' });
     const { session } = await createTestSession();
     const order = await prismaTest.orders.create({
-      data: { user_id: user.id, taxes: 0.2, total_amount: 30, status: 'Pending',
-        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } } },
+      data: {
+        user_id: user.id,
+        taxes: 0.2,
+        total_amount: 30,
+        status: 'Pending',
+        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } },
+      },
     });
 
     const agent = await loginAgent('confirm@zombiezone.fr', 'Test1234!');
@@ -268,8 +275,13 @@ describe('PUT /api/orders/:id — transitions de statut', () => {
     const user = await createTestUser({ email: 'cancel@zombiezone.fr', password: 'Test1234!' });
     const { session } = await createTestSession();
     const order = await prismaTest.orders.create({
-      data: { user_id: user.id, taxes: 0.2, total_amount: 30, status: 'Pending',
-        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } } },
+      data: {
+        user_id: user.id,
+        taxes: 0.2,
+        total_amount: 30,
+        status: 'Pending',
+        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } },
+      },
     });
 
     const agent = await loginAgent('cancel@zombiezone.fr', 'Test1234!');
@@ -283,8 +295,13 @@ describe('PUT /api/orders/:id — transitions de statut', () => {
     const user = await createTestUser({ email: 'refund@zombiezone.fr', password: 'Test1234!' });
     const { session } = await createTestSession();
     const order = await prismaTest.orders.create({
-      data: { user_id: user.id, taxes: 0.2, total_amount: 30, status: 'Pending',
-        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } } },
+      data: {
+        user_id: user.id,
+        taxes: 0.2,
+        total_amount: 30,
+        status: 'Pending',
+        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } },
+      },
     });
 
     const agent = await loginAgent('refund@zombiezone.fr', 'Test1234!');
@@ -297,8 +314,13 @@ describe('PUT /api/orders/:id — transitions de statut', () => {
     const user = await createTestUser({ email: 'reopen@zombiezone.fr', password: 'Test1234!' });
     const { session } = await createTestSession();
     const order = await prismaTest.orders.create({
-      data: { user_id: user.id, taxes: 0.2, total_amount: 30, status: 'Cancelled',
-        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } } },
+      data: {
+        user_id: user.id,
+        taxes: 0.2,
+        total_amount: 30,
+        status: 'Cancelled',
+        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } },
+      },
     });
 
     const agent = await loginAgent('reopen@zombiezone.fr', 'Test1234!');
@@ -319,8 +341,13 @@ describe('DELETE /api/orders/:id (soft delete)', () => {
     const user = await createTestUser({ email: 'del@zombiezone.fr', password: 'Test1234!' });
     const { session } = await createTestSession();
     const order = await prismaTest.orders.create({
-      data: { user_id: user.id, taxes: 0.2, total_amount: 30, status: 'Pending',
-        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } } },
+      data: {
+        user_id: user.id,
+        taxes: 0.2,
+        total_amount: 30,
+        status: 'Pending',
+        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } },
+      },
     });
 
     const agent = await loginAgent('del@zombiezone.fr', 'Test1234!');
@@ -336,8 +363,13 @@ describe('DELETE /api/orders/:id (soft delete)', () => {
     const user = await createTestUser({ email: 'nodelete@zombiezone.fr', password: 'Test1234!' });
     const { session } = await createTestSession();
     const order = await prismaTest.orders.create({
-      data: { user_id: user.id, taxes: 0.2, total_amount: 30, status: 'Confirmed',
-        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } } },
+      data: {
+        user_id: user.id,
+        taxes: 0.2,
+        total_amount: 30,
+        status: 'Confirmed',
+        orders_lines: { create: { session_id: session.id, tickets_qty: 1, amount: 25 } },
+      },
     });
 
     const agent = await loginAgent('nodelete@zombiezone.fr', 'Test1234!');
@@ -363,7 +395,7 @@ describe('GET /api/orders — admin only', () => {
     expect(Array.isArray(res.body.data)).toBe(true);
   });
 
-  it('user member n\'a pas accès — 403', async () => {
+  it("user member n'a pas accès — 403", async () => {
     await createTestUser({ email: 'member@zombiezone.fr', password: 'Test1234!' });
     const agent = await loginAgent('member@zombiezone.fr', 'Test1234!');
     const res = await agent.get('/api/orders');

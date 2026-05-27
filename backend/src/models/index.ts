@@ -5,12 +5,12 @@ import { PrismaClient } from '@prisma/client';
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 // export a Prisma instance, reusing an existing one in dev or creating a new one
+const testDbUrl = process.env.NODE_ENV === 'test' ? process.env.TEST_DATABASE_URL : undefined;
+
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    // configure logs depending on environment:
-    // - production: only errors
-    // - development: queries, info, warnings, and errors
+    ...(testDbUrl ? { datasources: { db: { url: testDbUrl } } } : {}),
     log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'info', 'warn', 'error'],
   });
 
