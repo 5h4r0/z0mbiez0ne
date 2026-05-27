@@ -8,6 +8,9 @@ COPY package*.json ./
 COPY backend/package*.json ./backend/
 RUN npm ci --workspace=backend
 
+COPY backend/src/models/schema.prisma ./backend/src/models/schema.prisma
+RUN cd backend && npx prisma generate --schema=./src/models/schema.prisma
+
 COPY backend/ ./backend/
 RUN npm run build --workspace=backend
 
