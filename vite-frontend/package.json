@@ -17,10 +17,10 @@
     "@tiptap/react": "^3.23.6",
     "@tiptap/starter-kit": "^3.23.6",
     "browser-image-compression": "^2.0.2",
+    "lucide-react": "^0.469.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.9.5",
-    "lucide-react": "^0.469.0",
     "zod": "^3.24.0",
     "zustand": "^5.0.8"
   },
@@ -33,6 +33,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "globals": "^16.4.0",
     "sass-embedded": "^1.100.0",
+    "sharp": "^0.34.5",
     "typescript": "~5.9.3",
     "vite": "^7.1.7"
   }
