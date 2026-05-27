@@ -36,4 +36,4 @@ RUN cd backend && npx prisma generate --schema=./src/models/schema.prisma
 
 EXPOSE 3000
 
-CMD ["node", "--env-file=.env.production", "./backend/dist/index.js"]
+CMD ["node", "./backend/dist/index.js"]
