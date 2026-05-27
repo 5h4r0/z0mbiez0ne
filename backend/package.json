@@ -21,7 +21,10 @@
     "db:sql": "dotenv -e .env -- sh -c 'psql \"$DATABASE_URL\" -f ./src/models/postgres_schema.psql'",
     "lint": "biome check",
     "fix": "biome check --write",
-    "lint:prod": "biome check --config-path biome.prod.json"
+    "lint:prod": "biome check --config-path biome.prod.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
@@ -29,10 +32,10 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
-    "dotenv": "^16.4.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -44,9 +47,12 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
     "@types/node": "^25.7.0",
+    "@types/supertest": "^6.0.3",
     "dotenv-cli": "^11.0.0",
     "prisma": "^6.16.3",
+    "supertest": "^7.2.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.9"
   }
 }
