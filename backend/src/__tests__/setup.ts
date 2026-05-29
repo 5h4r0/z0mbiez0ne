@@ -1,18 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { afterAll, beforeAll } from 'vitest';
+import { hashPassword } from '../lib/auth.js';
 
-// Client Prisma dédié à la BDD de test
 export const prismaTest = new PrismaClient({
-  datasources: {
-    db: {
-      url: (process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL) as string,
-    },
-  },
   log: [],
 });
 
-// ─── Reset BDD entre chaque suite ───────────────────────────
-// Ordre important : respect des FK
+// Reset BDD entre chaque suite — ordre FK obligatoire
 export async function resetDatabase() {
   await prismaTest.$transaction([
     prismaTest.orders_lines.deleteMany(),
@@ -23,18 +17,15 @@ export async function resetDatabase() {
     prismaTest.activities.deleteMany(),
     prismaTest.categories.deleteMany(),
     prismaTest.users.deleteMany(),
+    prismaTest.roles.deleteMany(),
   ]);
 
+  // Ordre identique au seed de prod : member en premier, admin en second
   await prismaTest.roles.createMany({
-    data: [
-      { id: 1, name: 'admin' },
-      { id: 2, name: 'member' },
-    ],
-    skipDuplicates: true,
+    data: [{ name: 'member' }, { name: 'admin' }],
   });
 }
 
-// ─── Lifecycle global ────────────────────────────────────────
 beforeAll(async () => {
   await prismaTest.$connect();
 });
@@ -44,13 +35,17 @@ afterAll(async () => {
   await prismaTest.$disconnect();
 });
 
-// ─── Helper : créer un user de test en BDD ───────────────────
-import { hashPassword } from '../lib/auth.js';
+async function getRoleId(name: 'member' | 'admin'): Promise<number> {
+  const role = await prismaTest.roles.findUniqueOrThrow({ where: { name } });
+  return role.id;
+}
 
-export async function createTestUser(overrides: { email?: string; password?: string; role_id?: number } = {}) {
+export async function createTestUser(
+  overrides: { email?: string; password?: string; roleName?: 'member' | 'admin' } = {},
+) {
   const email = overrides.email ?? 'test@zombiezone.fr';
   const password = overrides.password ?? 'Test1234!';
-  const role_id = overrides.role_id ?? 2; // 2 = user/member
+  const role_id = await getRoleId(overrides.roleName ?? 'member');
 
   const password_hash = await hashPassword(password);
   return prismaTest.users.create({
@@ -65,11 +60,10 @@ export async function createTestUser(overrides: { email?: string; password?: str
   });
 }
 
-// ─── Helper : créer un admin de test en BDD ──────────────────
 export async function createTestAdmin(overrides: { email?: string; password?: string } = {}) {
   return createTestUser({
     email: overrides.email ?? 'admin@zombiezone.fr',
     password: overrides.password ?? 'Admin1234!',
-    role_id: 1, // 1 = admin
+    roleName: 'admin',
   });
 }

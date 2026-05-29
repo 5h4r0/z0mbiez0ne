@@ -150,13 +150,21 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={async () => { await useAuthStore.getState().logout(); }}
-          className="mt-10 border border-(--color-border) text-(--color-text-muted) hover:text-(--color-red) hover:border-(--color-red) px-5 py-2 rounded text-sm cursor-pointer bg-transparent transition-colors duration-200"
-        >
-          Se déconnecter
-        </button>
+        <div className="mt-10 flex flex-wrap gap-3">
+          <Link
+            to="/dashboard/settings"
+            className="inline-flex items-center border border-(--color-border) text-(--color-text-muted) hover:text-(--color-red) hover:border-(--color-red) px-5 py-2 rounded text-sm no-underline transition-colors duration-200"
+          >
+            Paramètres du compte
+          </Link>
+          <button
+            type="button"
+            onClick={async () => { await useAuthStore.getState().logout(); }}
+            className="border border-(--color-border) text-(--color-text-muted) hover:text-(--color-red) hover:border-(--color-red) px-5 py-2 rounded text-sm cursor-pointer bg-transparent transition-colors duration-200"
+          >
+            Se déconnecter
+          </button>
+        </div>
       </div>
     </div>
   );

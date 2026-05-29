@@ -1,0 +1,16 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: zz_test
+      POSTGRES_PASSWORD: zz_test_pass
+      POSTGRES_DB: zombiezone_test
+    ports:
+      - "54320:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zz_test -d zombiezone_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
