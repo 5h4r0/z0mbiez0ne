@@ -7,6 +7,8 @@ const ROOT = path.resolve(__dirname, '../../');
 const COMPOSE_FILE = path.join(ROOT, 'docker-compose.test.yml');
 
 export async function setup() {
+  if (process.env.CI) return; // Docker fourni par GitHub Actions
+
   console.log('\n🐘 Démarrage PostgreSQL de test...');
 
   execSync(`docker compose -f ${COMPOSE_FILE} up -d --wait`, { stdio: 'inherit' });
