@@ -1,8 +1,10 @@
 import { Prisma } from '@prisma/client';
+import argon2 from 'argon2';
 import type { Request, Response } from 'express';
 import z from 'zod';
-import { ConflictError } from '../lib/errors.js';
+import { ConflictError, ForbiddenError, UnauthorizedError } from '../lib/errors.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
+import { passwordSchema } from '../lib/schemas/password.js';
 import { prisma } from '../models/index.js';
 
 // Type utilitaire : un user avec sa relation "role"
@@ -100,10 +102,62 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+/** UPDATE PASSWORD */
+export const updatePassword = async (req: Request, res: Response): Promise<void> => {
+  const bodySchema = z.object({
+    current_password: z.string(),
+    new_password: passwordSchema,
+  });
+
+  const userId = Number(req.params.id);
+
+  try {
+    const caller = req.user;
+    if (!caller || (caller.roleName !== 'admin' && caller.id !== userId)) {
+      throw new ForbiddenError('forbidden');
+    }
+
+    const body = await bodySchema.parseAsync(req.body);
+
+    const user = await prisma.users.findUnique({
+      where: { id: userId },
+      select: { id: true, password_hash: true },
+    });
+
+    if (!user) {
+      res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'user', String(userId)) });
+      return;
+    }
+
+    const isMatching = await argon2.verify(user.password_hash, body.current_password);
+    if (!isMatching) {
+      throw new UnauthorizedError('current password is incorrect');
+    }
+
+    const newHash = await argon2.hash(body.new_password);
+
+    await prisma.$transaction([
+      prisma.refreshToken.deleteMany({ where: { user_id: userId } }),
+      prisma.users.update({ where: { id: userId }, data: { password_hash: newHash } }),
+    ]);
+
+    res.status(200).json({ success: true, message: buildCudMessage('updated', 'user', String(userId)) });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
+    } else {
+      res.status((error as { status?: number }).status || 500).json({
+        success: false,
+        message: (error as Error).message || buildErrorMessage('internal_error', 'user'),
+      });
+    }
+  }
+};
+
 /** UPDATE */
 export const updateUser = async (req: Request, res: Response) => {
   const bodySchema = z.object({
-    email: z.string().email(),
+    email: z.email(),
     firstname: z.string().min(1).max(100),
     lastname: z.string().min(1).max(100),
     role_id: z.number().int().positive().optional(),
@@ -112,6 +166,13 @@ export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
+    const userId = Number(id);
+    const caller = req.user;
+    if (!caller || (caller.roleName !== 'admin' && caller.id !== userId)) {
+      res.status(403).json({ success: false, message: 'forbidden' });
+      return;
+    }
+
     const body = await bodySchema.parseAsync(req.body);
 
     // verify role exists if provided
@@ -163,19 +224,25 @@ export const deleteUser = async (req: Request, res: Response) => {
   const userId = Number(id);
 
   try {
-    const orders = await prisma.orders.findMany({
-      where: { user_id: userId },
+    const caller = req.user;
+    if (!caller || (caller.roleName !== 'admin' && caller.id !== userId)) {
+      res.status(403).json({ success: false, message: 'forbidden' });
+      return;
+    }
+
+    const activeOrders = await prisma.orders.findMany({
+      where: { user_id: userId, status: { in: ['Pending', 'Confirmed'] } },
       select: { id: true },
     });
 
-    if (orders.length > 0) {
-      throw { type: 'hasOrders', ids: orders.map((o) => o.id) };
+    if (activeOrders.length > 0) {
+      throw { type: 'hasOrders', ids: activeOrders.map((o) => o.id) };
     }
 
-    const deleted = await prisma.users.update({
-      where: { id: userId },
-      data: { deleted_at: new Date() },
-    });
+    const [, deleted] = await prisma.$transaction([
+      prisma.refreshToken.deleteMany({ where: { user_id: userId } }),
+      prisma.users.update({ where: { id: userId }, data: { deleted_at: new Date() } }),
+    ]);
 
     res.status(200).json({ success: true, data: deleted, message: buildCudMessage('deleted', 'user', deleted.email) });
   } catch (error: unknown) {
