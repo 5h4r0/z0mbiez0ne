@@ -63,21 +63,21 @@ backend/
 └── src/
     ├── __tests__/                ← intégration uniquement (multi-couches)
     │   ├── setup.ts              ← BDD test, resetDatabase(), helpers
-    │   ├── auth.test.ts          ✅ fait
-    │   ├── orders.test.ts        ✅ fait
-    │   ├── activities.test.ts    ⬜ à faire
-    │   ├── sessions.test.ts      ⬜ à faire
-    │   ├── categories.test.ts    ⬜ à faire
-    │   └── users.test.ts         ⬜ à faire
+    │   ├── auth.test.ts          ✅ 18 tests
+    │   ├── orders.test.ts        ✅ 21 tests
+    │   ├── activities.test.ts    ✅ 19 tests
+    │   ├── categories.test.ts    ✅ 22 tests
+    │   ├── sessions.test.ts      ✅ 24 tests
+    │   └── users.test.ts         ✅ 12 tests
     ├── utils/
     │   ├── slugify.ts
-    │   └── slugify.test.ts       ← unitaire colocalisé
+    │   └── slugify.test.ts       ← unitaire colocalisé (à faire)
     ├── helpers/
     │   ├── pagination.ts
-    │   └── pagination.test.ts    ← unitaire colocalisé
+    │   └── pagination.test.ts    ← unitaire colocalisé (à faire)
     └── lib/
         ├── tokens.ts
-        └── tokens.test.ts        ← unitaire colocalisé
+        └── tokens.test.ts        ← unitaire colocalisé (à faire)
 ```
 
 **Règle simple :**
@@ -122,7 +122,7 @@ Vitest expose ses types nativement — `@types/vitest` est déprécié depuis la
 
 ## Scripts
 
-À ajouter dans `backend/package.json` :
+Dans `backend/package.json` :
 
 ```json
 "test": "vitest run",
@@ -134,7 +134,7 @@ Vitest expose ses types nativement — `@types/vitest` est déprécié depuis la
 
 ## Variable d'environnement
 
-À ajouter dans `backend/.env` :
+Dans `backend/.env` :
 
 ```dotenv
 TEST_DATABASE_URL="postgresql://username:password@localhost:5432/zombiezone_test"
@@ -155,52 +155,47 @@ Jamais sur la BDD de prod.
 
 ---
 
-## Corrections à appliquer
+## Points d'architecture découverts via les tests
 
-### `setup.ts` — `exactOptionalPropertyTypes`
+### Hard delete vs Soft delete
 
-```ts
-// url peut être undefined → cast explicite requis
-url: (process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL) as string,
-```
+| Entité | Stratégie | Note |
+|--------|-----------|------|
+| `users` | Soft delete (`deleted_at`) | ✅ cohérent |
+| `orders` | Soft delete (`deleted_at`) | ✅ cohérent |
+| `activities` | Hard delete | intentionnel — permet suppression fichier image |
+| `categories` | Hard delete | intentionnel — permet suppression fichier image |
+| `sessions` | Hard delete | intentionnel |
 
-### `setup.ts` — noms des modèles Prisma
+⚠️ `deleted_at` présent dans le schéma sur `activities`, `categories`, `sessions` mais inutilisé — migration à prévoir pour nettoyer.
 
-Les noms dépendent du schéma — vérifier l'autocomplétion :
-```ts
-prismaTest.ordersLines.deleteMany(),       // ou orders_lines selon le schema
-prismaTest.activitiesCategories.deleteMany(), // ou activities_categories
-```
+### Incohérence API — wrapper `{ success, data }`
 
-### `auth.test.ts` / `orders.test.ts` — import `afterEach`
-
-`afterEach` non utilisé — supprimer de l'import :
-```ts
-import { beforeEach, describe, expect, it } from 'vitest';
-```
+`GET /api/users/:id` retourne la réponse directement sans wrapper `{ success, data }`, contrairement aux autres endpoints. À harmoniser lors d'un refactor ou documenter dans Swagger.
 
 ---
 
 ## Plan d'implémentation
 
-### Priorité 1 — Intégration backend
+### Priorité 1 — Intégration backend ✅ 116/116
 
-| Suite | Routes | Cas couverts |
-|-------|--------|-------------|
-| `auth.test.ts` ✅ | register, login, logout, refresh, profile | cookies httpOnly, rotation refreshToken, révocation BDD, 401/400/409 |
-| `orders.test.ts` ✅ | POST/GET/PUT/DELETE /orders | user_id = req.user.id, taxes, soft delete, transitions statut, 401/403/404 |
-| `activities.test.ts` ⬜ | CRUD complet | slug auto, soft delete, catégories |
-| `sessions.test.ts` ⬜ | CRUD complet | capacité, statut, date |
-| `categories.test.ts` ⬜ | CRUD complet | slug, soft delete |
-| `users.test.ts` ⬜ | GET/PATCH/DELETE | soft delete, requireRole admin |
+| Suite | Tests | Couverture |
+|-------|-------|-----------|
+| `auth.test.ts` ✅ | 18 | register, login, logout, refresh (rotation), profile, cookies httpOnly |
+| `orders.test.ts` ✅ | 21 | POST/GET/PUT/DELETE, taxes, user_id sécurisé, transitions statut, soft delete |
+| `activities.test.ts` ✅ | 19 | CRUD, slug auto, hard delete, 401/403/404 |
+| `categories.test.ts` ✅ | 22 | CRUD, slug auto, hard delete, 409 si liée à activity |
+| `sessions.test.ts` ✅ | 24 | CRUD, filtre statut, hard delete, 400 si order_lines |
+| `users.test.ts` ✅ | 12 | GET list admin, GET/:id, PUT, soft delete, 401/403 |
 
-### Priorité 2 — Unitaires
+### Priorité 2 — Unitaires ⬜
 
-- `slugify()`, `getRandom()`, helpers pagination
+- `lib/tokens.test.ts` — `generateAccessToken` / `generateRefreshToken`
+- `utils/slugify.test.ts` — `slugify()`
+- `helpers/pagination.test.ts` — `getPagination()`
 - Validators Zod (inputs malformés, champs manquants)
-- `generateAccessToken` / `generateRefreshToken`
 
-### Priorité 3 — E2E Playwright
+### Priorité 3 — E2E Playwright ⬜
 
 - Flow login → commande → annulation
 - Flow admin → CRUD activité
@@ -210,9 +205,17 @@ import { beforeEach, describe, expect, it } from 'vitest';
 ## setup.ts — fonctionnement
 
 - **`prismaTest`** : client Prisma connecté à `TEST_DATABASE_URL`
-- **`resetDatabase()`** : vide toutes les tables dans l'ordre FK (appelé dans `beforeEach` de chaque suite)
+- **`resetDatabase()`** : vide toutes les tables dans l'ordre FK + recrée les rôles (`skipDuplicates: true`)
 - **`createTestUser()`** : crée un user member en BDD avec mot de passe hashé
 - **`createTestAdmin()`** : idem avec `role_id: 1`
+
+### Ordre FK dans resetDatabase()
+
+```
+orders_lines → orders → RefreshToken → activities_categories
+→ sessions → activities → categories → users → roles
+```
+Puis seed : `roles.createMany({ data: [{id:1, name:'admin'}, {id:2, name:'member'}], skipDuplicates: true })`
 
 ---
 
@@ -223,6 +226,17 @@ import { beforeEach, describe, expect, it } from 'vitest';
 - Jamais de dépendance entre tests (ordre d'exécution non garanti)
 - `request.agent(app)` pour les tests nécessitant des cookies persistants entre requêtes
 - Ne jamais tester l'implémentation interne — tester le **comportement observable** (status HTTP, body, cookies)
+- Pas de `!` non-null assertion — guard clauses explicites
+
+---
+
+## Architecture tests — point clé
+
+Le contrôleur Express utilise `prisma` (connexion principale). Pour que les tests tapent la bonne BDD :
+- `vitest.config.ts` : `env: { NODE_ENV: 'test' }`
+- `models/index.ts` : si `NODE_ENV === 'test'`, utiliser `TEST_DATABASE_URL`
+
+Sans ça, `resetDatabase()` vide la BDD de test mais Express continue de lire la BDD de dev.
 
 ---
 

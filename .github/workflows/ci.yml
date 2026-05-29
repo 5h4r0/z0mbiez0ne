@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [master, tests]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: zombiezone_test
+          POSTGRES_USER: zombiezone
+          POSTGRES_PASSWORD: testpassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zombiezone"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --workspaces --include-workspace-root
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate --schema=./src/models/schema.prisma
+
+      - name: Run migrations (test DB)
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://zombiezone:testpassword@localhost:5432/zombiezone_test
+        run: npx prisma migrate deploy --schema=./src/models/schema.prisma
+
+      - name: Run integration tests
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          TEST_DATABASE_URL: postgresql://zombiezone:testpassword@localhost:5432/zombiezone_test
+          DATABASE_URL: postgresql://zombiezone:testpassword@localhost:5432/zombiezone_test
+          JWT_ACCESS_SECRET: ci-access-secret-not-used-in-prod-64bytes-padding-here
+          JWT_REFRESH_SECRET: ci-refresh-secret-not-used-in-prod-64bytes-padding-here
+          JWT_ACCESS_EXPIRES_IN: 15m
+          JWT_REFRESH_EXPIRES_IN: 7d
+          ALLOWED_ORIGINS: http://localhost:5173
+          PORT: 3000
+        run: npm test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --workspaces --include-workspace-root
+      - name: Lint backend
+        working-directory: backend
+        run: npm run lint
+      - name: Lint frontend
+        working-directory: vite-frontend
+        run: npm run lint
+
+  build:
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --workspaces --include-workspace-root
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate --schema=./src/models/schema.prisma
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+      - name: Build frontend
+        working-directory: vite-frontend
+        run: npm run build
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /srv/zombiezone
+            git pull origin master
+            docker compose -f docker-compose.prod.yml up -d --build
