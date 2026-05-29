@@ -157,7 +157,7 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
 /** UPDATE */
 export const updateUser = async (req: Request, res: Response) => {
   const bodySchema = z.object({
-    email: z.string().email(),
+    email: z.email(),
     firstname: z.string().min(1).max(100),
     lastname: z.string().min(1).max(100),
     role_id: z.number().int().positive().optional(),
