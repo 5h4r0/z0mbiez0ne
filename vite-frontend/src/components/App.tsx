@@ -8,6 +8,7 @@ import CguPage from '../pages/CguPage';
 import ConfidentialitePage from '../pages/ConfidentialitePage';
 import ContactPage from '../pages/ContactPage';
 import DynamicDetailPage from '../pages/DynamicDetailPage';
+import AccountSettingsPage from '../pages/dashboard/AccountSettingsPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
 import OrderDetailPage from '../pages/dashboard/OrderDetailPage';
 import FaqPage from '../pages/FaqPage';
@@ -98,6 +99,7 @@ function App() {
           <Route path="/panier" element={<BasketPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
           <Route path="/dashboard/commandes/:id" element={<OrderDetailPage />} />
           <Route path="/sessions/:id" element={<SessionDetailPage />} />
           {/* Détail dynamique : session (slug-id), activité ou catégorie */}
