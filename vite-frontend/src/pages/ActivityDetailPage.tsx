@@ -83,7 +83,7 @@ export default function ActivityDetailPage() {
   }
 
   const imgUrl = activity.image_filename
-    ? `/images/banners/${activity.image_filename}`
+    ? `/images/uploads/banners/${activity.image_filename}`
     : `https://placehold.co/1400x600/141414/888?text=${encodeURIComponent(activity.title)}`;
 
   return (

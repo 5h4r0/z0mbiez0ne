@@ -74,7 +74,7 @@ export default function SessionDetailPage() {
   const activity = session.activity ?? null;
   const total = (quantity * Number.parseFloat(session.unit_price)).toFixed(2);
   const imgUrl = activity?.image_filename
-    ? `/images/banners/${activity.image_filename}`
+    ? `/images/uploads/banners/${activity.image_filename}`
     : 'https://placehold.co/1400x600/141414/888?text=Session';
 
   return (

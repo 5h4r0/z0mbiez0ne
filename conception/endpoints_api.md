@@ -105,5 +105,5 @@
 | POST    | /api/upload/activity-banner| admin        | Upload image bannière d'une activité |
 | POST    | /api/upload/activity-thumb | admin        | Upload image miniature d'une activité|
 
-> Les fichiers sont stockés dans `vite-frontend/public/images/banners/` et `/thumbs/`.
+> Les fichiers sont stockés dans `vite-frontend/public/uploads/images/banners/` et `/thumbs/`.
 > Le nom de fichier est passé dans le body (`filename`). Format attendu : `.webp`.
