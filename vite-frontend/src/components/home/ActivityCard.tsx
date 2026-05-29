@@ -9,7 +9,7 @@ interface Props {
 
 export default function ActivityCard({ activity }: Props) {
   const imgSrc = activity.image_filename
-    ? `/images/thumbs/${activity.image_filename}`
+    ? `/images/uploads/thumbs/${activity.image_filename}`
     : `https://placehold.co/400x250/141414/888?text=${encodeURIComponent(activity.title)}`;
 
   return (

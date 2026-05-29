@@ -9,7 +9,8 @@ export const router = Router();
 function makeStorage(subdir: 'banners' | 'thumbs') {
   return multer.diskStorage({
     destination: (_req, _file, cb) => {
-      cb(null, path.resolve('..', 'vite-frontend', 'public', 'images', subdir));
+      const base = process.env.UPLOAD_DIR ?? path.resolve('..', 'vite-frontend', 'public', 'images');
+      cb(null, path.join(base, subdir));
     },
     filename: (req, _file, cb) => {
       const filename = (req.body.filename as string) || `upload-${Date.now()}.webp`;

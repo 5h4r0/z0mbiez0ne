@@ -60,7 +60,7 @@ export default function ImageUploadThumb({ currentFilename, slug, onUploaded, ca
     }
   }
 
-  const imgSrc = currentFilename ? `/images/thumbs/${currentFilename}?v=${version}` : null;
+  const imgSrc = currentFilename ? `/images/uploads/thumbs/${currentFilename}?v=${version}` : null;
 
   return (
     <div className="manage-form__thumb-wrapper">
