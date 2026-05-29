@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { Router } from 'express';
 import multer from 'multer';
@@ -10,7 +11,9 @@ function makeStorage(subdir: 'banners' | 'thumbs') {
   return multer.diskStorage({
     destination: (_req, _file, cb) => {
       const base = process.env.UPLOAD_DIR ?? path.resolve('..', 'vite-frontend', 'public', 'images');
-      cb(null, path.join(base, subdir));
+      const dest = path.join(base, subdir);
+      fs.mkdirSync(dest, { recursive: true });
+      cb(null, dest);
     },
     filename: (req, _file, cb) => {
       const filename = (req.body.filename as string) || `upload-${Date.now()}.webp`;
