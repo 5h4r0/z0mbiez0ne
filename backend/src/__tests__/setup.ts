@@ -22,10 +22,7 @@ export async function resetDatabase() {
 
   // Ordre identique au seed de prod : member en premier, admin en second
   await prismaTest.roles.createMany({
-    data: [
-      { name: 'member' },
-      { name: 'admin' },
-    ],
+    data: [{ name: 'member' }, { name: 'admin' }],
   });
 }
 
@@ -43,7 +40,9 @@ async function getRoleId(name: 'member' | 'admin'): Promise<number> {
   return role.id;
 }
 
-export async function createTestUser(overrides: { email?: string; password?: string; roleName?: 'member' | 'admin' } = {}) {
+export async function createTestUser(
+  overrides: { email?: string; password?: string; roleName?: 'member' | 'admin' } = {},
+) {
   const email = overrides.email ?? 'test@zombiezone.fr';
   const password = overrides.password ?? 'Test1234!';
   const role_id = await getRoleId(overrides.roleName ?? 'member');

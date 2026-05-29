@@ -290,7 +290,7 @@ describe('DELETE /api/users/:id', () => {
     expect(inDb.deleted_at).not.toBeNull();
   });
 
-  it("400 — suppression bloquée si commande Pending", async () => {
+  it('400 — suppression bloquée si commande Pending', async () => {
     const user = await createTestUser({ email: 'pending@zombiezone.fr', password: 'Test1234!' });
     await prismaTest.orders.create({
       data: { user_id: user.id, total_amount: 0, status: 'Pending' },
@@ -302,7 +302,7 @@ describe('DELETE /api/users/:id', () => {
     expect(res.status).toBe(400);
   });
 
-  it("400 — suppression bloquée si commande Confirmed", async () => {
+  it('400 — suppression bloquée si commande Confirmed', async () => {
     const user = await createTestUser({ email: 'confirmed@zombiezone.fr', password: 'Test1234!' });
     await prismaTest.orders.create({
       data: { user_id: user.id, total_amount: 0, status: 'Confirmed' },
@@ -334,7 +334,7 @@ describe('DELETE /api/users/:id', () => {
     expect(res.status).toBe(400);
   });
 
-  it("200 — soft delete autorisé si seulement des commandes Cancelled", async () => {
+  it('200 — soft delete autorisé si seulement des commandes Cancelled', async () => {
     const user = await createTestUser({ email: 'cancelled@zombiezone.fr', password: 'Test1234!' });
     await prismaTest.orders.create({
       data: { user_id: user.id, total_amount: 0, status: 'Cancelled' },
@@ -346,7 +346,7 @@ describe('DELETE /api/users/:id', () => {
     expect(res.status).toBe(200);
   });
 
-  it("403 — member tente de supprimer un autre user", async () => {
+  it('403 — member tente de supprimer un autre user', async () => {
     const other = await createTestUser({ email: 'otherdel@zombiezone.fr', password: 'Test1234!' });
     await createTestUser({ email: 'attacker2@zombiezone.fr', password: 'Test1234!' });
     const agent = await loginAgent('attacker2@zombiezone.fr', 'Test1234!');
