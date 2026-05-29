@@ -85,7 +85,8 @@ export default function CategoryDetailPage() {
       </div>
 
       <div className="detail-body">
-        <p className="text-base leading-7 text-(--color-text-muted) mb-12">{category.description}</p>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: contenu TipTap interne, pas de saisie utilisateur externe */}
+        <div className="text-base leading-7 text-(--color-text-muted) mb-12" dangerouslySetInnerHTML={{ __html: category.description }} />
 
         <h2 className="font-montserrat font-bold text-[1.1rem] text-(--color-text) tracking-widest mb-8">
           LES ÉPREUVES DE CETTE CATÉGORIE

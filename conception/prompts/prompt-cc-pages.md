@@ -1,4 +1,4 @@
-# Prompt CC — Pages du site `zombiezone.kadath.fr`
+# Prompt CC — Pages du site `sharo.fr`
 
 ## Contexte
 

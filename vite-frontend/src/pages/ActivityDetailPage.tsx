@@ -99,7 +99,8 @@ export default function ActivityDetailPage() {
       </div>
 
       <div className="detail-body">
-        <p className="text-base leading-7 text-(--color-text-muted) mb-8">{activity.description}</p>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: contenu TipTap interne, pas de saisie utilisateur externe */}
+        <div className="text-base leading-7 text-(--color-text-muted) mb-8" dangerouslySetInnerHTML={{ __html: activity.description }} />
 
         <div className="flex items-center gap-2 text-(--color-text-muted) text-sm mb-12">
           <span>⏱</span>

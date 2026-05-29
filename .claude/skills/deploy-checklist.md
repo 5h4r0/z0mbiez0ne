@@ -11,7 +11,7 @@ backend   → Node.js Express    — port 3000
 db        → PostgreSQL         — port 5432 (interne Docker uniquement, jamais exposé)
 ```
 
-Domaine : `zombiezone.kadath.fr` — VPS Ionos
+Domaine : `sharo.fr` — VPS Ionos
 Reverse proxy : Nginx ou Traefik (SSL Let's Encrypt / Certbot)
 
 ---
@@ -24,7 +24,7 @@ Reverse proxy : Nginx ou Traefik (SSL Let's Encrypt / Certbot)
 - [ ] Migrations à jour — `db:deploy` prévu
 - [ ] `.env.production` rempli avec secrets forts
 - [ ] `JWT_ACCESS_SECRET` et `JWT_REFRESH_SECRET` différents des valeurs par défaut
-- [ ] `ALLOWED_ORIGINS=https://zombiezone.kadath.fr` (pas localhost)
+- [ ] `ALLOWED_ORIGINS=https://sharo.fr` (pas localhost)
 - [ ] Port PostgreSQL non exposé publiquement
 
 ---
@@ -56,7 +56,7 @@ docker compose exec backend npm run db:deploy
 DATABASE_URL="postgresql://user:password@db:5432/zombiezone"
 PORT=3000
 NODE_ENV=production
-ALLOWED_ORIGINS=https://zombiezone.kadath.fr
+ALLOWED_ORIGINS=https://sharo.fr
 JWT_ACCESS_SECRET=<SECRET-FORT>
 JWT_REFRESH_SECRET=<SECRET-FORT>
 JWT_ACCESS_EXPIRES_IN=15m

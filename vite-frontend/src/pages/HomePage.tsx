@@ -10,7 +10,7 @@ import { type Activity, type Category, parsePaginated, type Session } from '../t
 
 export default function HomePage() {
   const { data: sessionsRaw, loading: sessionsLoading, error: sessionsError } = useFetch<unknown>(
-    '/api/sessions?status=Scheduled&limit=4&sort=date&order=asc',
+    '/api/sessions?status=Scheduled&limit=4&sort=date&order=asc&upcoming=true',
   );
   const { data: activitiesRaw, loading: activitiesLoading, error: activitiesError } = useFetch<unknown>(
     '/api/activities?limit=4',

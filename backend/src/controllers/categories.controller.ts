@@ -25,7 +25,7 @@ export const getCategories = async (req: Request, res: Response): Promise<void> 
     };
 
     const [categories, total] = await Promise.all([
-      prisma.categories.findMany({ include, take: limit, skip }),
+      prisma.categories.findMany({ include, orderBy: { title: 'asc' }, take: limit, skip }),
       prisma.categories.count(),
     ]);
 
@@ -144,7 +144,7 @@ export const getCategoryBySlug = async (req: Request, res: Response): Promise<vo
 
 /** create */
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
-  const { title, description, image_filename } = req.body;
+  const { title, description, image_filename, activities_ids } = req.body;
   const slug = makeSlug(title);
 
   try {
@@ -154,6 +154,16 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
         slug,
         description,
         image_filename,
+        ...(Array.isArray(activities_ids) && activities_ids.length > 0
+          ? {
+              activities_categories: {
+                create: activities_ids.map((activity_id: number) => ({ activity_id })),
+              },
+            }
+          : {}),
+      },
+      include: {
+        activities_categories: { select: { activity: { select: { id: true, title: true, slug: true } } } },
       },
     });
 
@@ -175,20 +185,42 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
 /** update */
 export const updateCategory = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { title, description, image_filename } = req.body;
+  const { title, description, image_filename, activities_ids, slug: slugBody } = req.body;
+  const categoryId = Number(id);
 
   const data: Prisma.categoriesUpdateInput = Object.assign(
     {
       title,
-      slug: makeSlug(title),
+      slug: slugBody ?? makeSlug(title),
     },
     description !== undefined ? { description } : {},
     image_filename !== undefined ? { image_filename } : {},
   );
 
   try {
+    if (Array.isArray(activities_ids)) {
+      if (activities_ids.length > 0) {
+        const existing = await prisma.activities.findMany({
+          where: { id: { in: activities_ids } },
+          select: { id: true },
+        });
+        const foundIds = existing.map((a) => a.id);
+        const invalid = activities_ids.filter((aid: number) => !foundIds.includes(aid));
+        if (invalid.length > 0) {
+          res.status(400).json({ success: false, message: `Activités invalides : ${invalid.join(', ')}` });
+          return;
+        }
+      }
+      await prisma.activities_categories.deleteMany({ where: { category_id: categoryId } });
+      if (activities_ids.length > 0) {
+        await prisma.activities_categories.createMany({
+          data: activities_ids.map((activity_id: number) => ({ activity_id, category_id: categoryId })),
+        });
+      }
+    }
+
     const updated = await prisma.categories.update({
-      where: { id: Number(id) },
+      where: { id: categoryId },
       data,
     });
 
@@ -220,19 +252,14 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
 
     const linked = await prisma.activities_categories.findMany({
       where: { category_id: categoryId },
-      include: { activity: { select: { id: true, activities_categories: true } } },
+      include: { activity: { select: { id: true, title: true } } },
     });
 
-    const orphanActivities = linked
-      .filter((relation) => relation.activity.activities_categories.length === 1)
-      .map((relation) => relation.activity.id);
-
-    // rejected, the next then only sees the deleted category
-    if (orphanActivities.length > 0) {
-      throw { type: 'hasOrphans', ids: orphanActivities };
+    if (linked.length > 0) {
+      const titles = linked.flatMap((r) => (r.activity ? [r.activity.title] : []));
+      throw { type: 'hasLinkedActivities', titles };
     }
 
-    await prisma.activities_categories.deleteMany({ where: { category_id: categoryId } });
     const deletedCategory = await prisma.categories.delete({ where: { id: categoryId } });
 
     res.status(200).json({
@@ -250,8 +277,16 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
     const err = error as { type?: string; ids?: number[] };
     if (err?.type === 'invalidId') {
       res.status(400).json({ success: false, message: buildErrorMessage('invalid_id', 'category', id) });
-    } else if (err?.type === 'hasOrphans') {
-      res.status(400).json({ success: false, message: buildErrorMessage('has_orphan_activities', 'category', id) });
+    } else if (err?.type === 'hasLinkedActivities') {
+      const titles = (err as { type: string; titles: string[] }).titles;
+      const base = buildErrorMessage('has_linked_activities', 'category');
+      const list = titles.length > 0 ? ` Activités concernées : ${titles.join(' — ')}.` : '';
+      res.status(409).json({
+        success: false,
+        type: 'hasLinkedActivities',
+        titles,
+        message: base + list,
+      });
     } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'category', id) });
     } else {

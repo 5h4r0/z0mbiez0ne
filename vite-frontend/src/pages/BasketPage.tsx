@@ -97,7 +97,7 @@ export default function BasketPage() {
                   className="bg-(--color-surface) border border-(--color-border) rounded-lg p-4 flex flex-wrap gap-4 justify-between items-center"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-(--color-text) truncate">{item.activityTitle}</p>
+                    <p className="font-bold text-(--color-text)">{item.activityTitle}</p>
                     <p className="text-sm text-(--color-text-muted)">{formatDate(item.date)}</p>
                     <p className="text-sm text-(--color-text-muted)">€{item.unitPrice.toFixed(2)} / place</p>
                   </div>

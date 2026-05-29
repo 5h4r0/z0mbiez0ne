@@ -5,7 +5,7 @@ const ARTICLES = [
     num: 1,
     title: 'OBJET',
     content:
-      "Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation du site zombiezone.kadath.fr ainsi que des services proposés par ZombieZone SAS. En accédant au site ou en achetant une prestation, l'utilisateur accepte sans réserve les présentes conditions, y compris la clause relative aux morsures de zombies.",
+      "Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation du site sharo.fr ainsi que des services proposés par ZombieZone SAS. En accédant au site ou en achetant une prestation, l'utilisateur accepte sans réserve les présentes conditions, y compris la clause relative aux morsures de zombies.",
   },
   {
     num: 2,
@@ -23,7 +23,7 @@ const ARTICLES = [
     num: 4,
     title: 'RÉSERVATION ET PAIEMENT',
     content:
-      "Les réservations sont effectuées en ligne via le site zombiezone.kadath.fr. Le paiement est dû intégralement au moment de la réservation. ZombieZone accepte les cartes bancaires, les virements SEPA et les paiements en or post-apocalyptique (sous réserve d'évaluation). Aucun paiement en cerveaux ne sera accepté.",
+      "Les réservations sont effectuées en ligne via le site sharo.fr. Le paiement est dû intégralement au moment de la réservation. ZombieZone accepte les cartes bancaires, les virements SEPA et les paiements en or post-apocalyptique (sous réserve d'évaluation). Aucun paiement en cerveaux ne sera accepté.",
   },
   {
     num: 5,

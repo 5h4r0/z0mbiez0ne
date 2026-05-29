@@ -53,13 +53,13 @@ npx tsx --env-file=.env src/models/seeding.ts
 - Liste fixe de 10 catégories possibles  
 - Génération de 10 catégories  
 - Faker → description  
-- Image : nom fichier → category-name.jpg  
+- Image : nom fichier → category-name.webp  
 
 5. Activités  
 - Liste fixe de 30 activités  
 - Génération de 30 activités  
 - Faker → description  
-- Image : nom fichier → activity-name.jpg  
+- Image : nom fichier → activity-name.webp  
 
 6. Jointure activités ↔ catégories  
 - Chaque activité est associée à 1 ou 2 catégories  
@@ -179,7 +179,7 @@ await prisma.categories.createMany({
   data: Array.from({ length: 10 }).map(() => ({
     title: faker.commerce.department(),
     description: faker.lorem.paragraph(),
-    image_filename: `activity-${makeSlug(title)}.jpg`
+    image_filename: `activity-${makeSlug(title)}.webp`
   }))
 })
 
@@ -187,7 +187,7 @@ await prisma.activities.createMany({
   data: Array.from({ length: 30 }).map(() => ({
     title: faker.commerce.productName(),
     description: faker.lorem.sentences(2),
-    image_filename: `category-${makeSlug(title)}.jpg`
+    image_filename: `category-${makeSlug(title)}.webp`
   }))
 })
 

@@ -1,180 +1,201 @@
-# 🧟 The z0mbie z0ne — Backend
+# 🧟 ZombieZone
 
-## 🚀 Setup initial
+Parc d'attractions fictif post-apocalyptique — projet pédagogique fullstack TypeScript.  
+Monorepo `backend/` + `vite-frontend/`, déployé sur **sharo.fr**.
 
-1. Installer les dépendances :
-```bash
-npm install
+---
+
+## 🗂️ Zones de l'application
+
+| Zone             | URL                    | Description                               |
+|------------------|------------------------|-------------------------------------------|
+| Site vitrine     | `sharo.fr/`            | Activités, sessions, tarifs, contact      |
+| Espace client    | `sharo.fr/dashboard`   | Compte, commandes, annulation             |
+| Backoffice admin | `sharo.fr/manage`      | Gestion activités, sessions, utilisateurs |
+
+---
+
+## 📂 Structure monorepo
+
+```
+zombiezone/
+├── backend/                  → API REST Express 5 + Prisma + PostgreSQL
+├── vite-frontend/            → SPA React 19 + Vite + React Router 7 + Zustand
+├── docker/                   → Dockerfiles + nginx.conf
+├── conception/               → Docs de conception, ERD, mockups, specs
+├── docker-compose.prod.yml   → Orchestration prod
+├── CLAUDE.md                 → Référence Claude Code
+├── CLAUDE_AI.md              → Référence claude.ai
+└── DEPLOY.md                 → Procédure de déploiement VPS
 ```
 
-2. **Prisma-first** (à partir d’un `schema.prisma` déjà écrit) :
-```bash
-npm run db:dev
+### Backend `backend/src/`
+
+```
+app.ts                        # App Express (middlewares, routes)
+index.ts                      # Point d'entrée serveur
+config/                       # Variables centralisées
+controllers/                  # Logique métier
+routers/                      # Routes Express
+middlewares/                  # requireAuth, requireRole
+lib/                          # auth, tokens, errors, constants
+helpers/                      # getPagination
+utils/                        # slugify, getRandom, barrel
+types/                        # Types TypeScript partagés
+models/
+├── schema.prisma             # Source de vérité BDD
+├── migrations/               # Migrations Prisma versionnées
+├── seeding.ts                # Seed données de test
+└── postgres_schema.psql      # Script SQL optionnel
 ```
 
-*Si besoin d'un nom de migration, comme "init" pour la première*
-```bash
-npm run db:dev -- --name <nom>
-```
+### Frontend `vite-frontend/src/`
 
-3. **DB-first** (à partir du SQL existant) :
-```bash
-npm run db:sql
-npm run db:pull
-npm run db:format
-npm run db:gen
 ```
-
-4. Migration (si `schema.prisma` modifié) :
-```bash
-npm run db:dev -- --name <nom>
-```
-
-5. Reset complet (drop + migrations) :
-```bash
-npm run db:reset
-```
-
-6. Seeding (insérer données de test) :
-```bash
-npm run db:seed
+main.tsx                      # Point d'entrée React
+components/                   # Composants partagés (Header, Footer, Pagination…)
+pages/
+├── (vitrine)                 # HomePage, ActivitiesPage, SessionsPage…
+├── dashboard/                # DashboardPage, OrderDetailPage
+└── manage/                   # ManageHubPage, CRUD activités/sessions/catégories/users
+store/
+├── authStore.ts              # Auth (user, login, logout, refresh)
+├── basketStore.ts            # Panier
+└── store.ts                  # Thème (isDark)
+hooks/                        # Hooks personnalisés
+lib/                          # apiFetch (intercepteur 401 + refresh)
+types/                        # Types partagés
+utils/                        # Helpers frontend
+styles/                       # CSS global
 ```
 
 ---
 
-## 💻 Développement
+## 🚀 Démarrage rapide
 
-- Lancer le serveur :
+### Prérequis
+
+- Node.js 22+
+- PostgreSQL (local ou via Docker)
+- Fichier `backend/.env` (voir `backend/.env.example`)
+
+### Installation
+
 ```bash
-npm run dev
+npm run install:all
 ```
 
-- Explorer la base avec Prisma Studio :
+### Développement
+
 ```bash
-npm run db:studio
+npm run dev          # backend + frontend en parallèle
+npm run dev:back     # backend seul  (localhost:3000)
+npm run dev:front    # frontend seul (localhost:5173)
 ```
 
----
+### Build
 
-## 📦 Production
-
-- Appliquer toutes les migrations en prod :
 ```bash
-npm run db:deploy
+npm run build        # backend (tsc → dist/) + frontend (vite build → dist/)
 ```
 
-- Lancer le serveur compilé :
+---
+
+## 🗄️ Base de données
+
 ```bash
-npm run build
-npm start
+npm run db:dev              # Créer et appliquer une migration (dev)
+npm run db:dev -- --name <nom>  # Avec nom explicite
+npm run db:reset            # ⚠️ Reset complet (drop + migrate + seed)
+npm run db:seed             # Insérer les données de test
+npm run db:gen              # Régénérer le client Prisma après modif schema
+npm run db:deploy           # Appliquer les migrations en prod (sans prompt)
+npm run db:studio           # Ouvrir Prisma Studio
+npm run db:pull             # DB-first : introspection → schema.prisma
+npm run db:format           # Formater schema.prisma
+npm run db:sql              # Appliquer postgres_schema.psql via psql
 ```
 
 ---
 
-## 📂 Arborescence
+## 🐳 Docker
 
-```
-backend/
-├── src/
-│   ├── index.ts                 # Point d'entrée du serveur
-│   ├── config/                  # Configuration de l'application
-│   │   ├── config.ts            # Variables et options centralisées
-│   │   └── cors.ts              # Configuration CORS basée sur config.ts
-│   ├── models/                  # Schéma et scripts liés à la base de données
-│   │   ├── schema.prisma        # Schéma Prisma (source de vérité de la DB)
-│   │   ├── migrations/          # Migrations générées par Prisma
-│   │   ├── seeding.ts           # Script de seed
-│   │   └── postgres_schema.psql # Script SQL d'initialisation (optionnel)
-│   ├── routers/                 # Routes de l’API (Express)
-│   │   ├── index.router.ts      # Point d’entrée des routes
-│   │   ├── auth.router.ts
-│   │   ├── activities.router.ts
-│   │   ├── categories.router.ts
-│   │   ├── users.router.ts
-│   │   ├── roles.router.ts
-│   │   ├── sessions.router.ts
-│   │   ├── orders.router.ts
-│   │   └── order.lines.router.ts
-│   ├── controllers/             # Logique métier
-│   │   ├── auth.controller.ts
-│   │   ├── activities.controller.ts
-│   │   ├── categories.controller.ts
-│   │   ├── users.controller.ts
-│   │   ├── roles.controller.ts
-│   │   ├── sessions.controller.ts
-│   │   ├── orders.controller.ts
-│   │   └── orders.lines.controller.ts
-│   ├── lib/                     # Utilitaires métier (auth, tokens, erreurs, constantes)
-│   │   ├── auth.ts
-│   │   ├── constants.ts
-│   │   ├── errors.ts
-│   │   └── tokens.ts
-│   ├── middlewares/             # Middlewares Express
-│   │   ├── requireAuth.ts
-│   │   └── requireRole.ts
-│   ├── helpers/                 # Helpers génériques
-│   │   └── getPagination.ts
-│   ├── utils/                   # Fonctions utilitaires
-│   │   ├── index.ts             # Barrel file (exports centralisés)
-│   │   ├── slugify.ts
-│   │   └── getrandomint.ts
-│   └── types/                   # Types TypeScript partagés
-├── package.json
-├── tsconfig.json
-├── .env                         # Variables d'environnement
-└── .env.example                 # Exemple de configuration d'environnement
+```bash
+docker compose -f docker-compose.prod.yml up -d --build   # Build + démarrage
+docker compose -f docker-compose.prod.yml down             # Arrêt
+docker compose -f docker-compose.prod.yml logs -f          # Logs en temps réel
 ```
 
----
+Services : `db` (PostgreSQL 16), `backend` (Node 22), `frontend` (Nginx + build Vite).
 
-## 📜 Scripts disponibles
-
-| Commande              | Description                                                                 |
-|-----------------------|-----------------------------------------------------------------------------|
-| `npm run dev`         | Lance le serveur en dev avec hot reload                                     |
-| `npm run build`       | Compile TypeScript dans `/dist`                                             |
-| `npm start`           | Démarre le serveur Node depuis `/dist`                                      |
-| `npm run clean`       | Supprime le dossier `dist`                                                  |
-| `npm run db:sql`      | Applique le script SQL `postgres_schema.psql` directement sur PostgreSQL    |
-| `npm run db:pull`     | Récupère la structure réelle de la DB → `schema.prisma`                     |
-| `npm run db:format`   | Formate le `schema.prisma`                                                  |
-| `npm run db:gen` | Génère le client Prisma                                                     |
-| `npm run db:seed`     | Lance le script de seed (`seeding.ts`)                                      |
-| `npm run db:studio`   | Ouvre Prisma Studio (UI web DB)                                             |
-| `npm run db:reset`    | Reset complet DB (drop, migrate, seed)                                      |
-| `npm run db:deploy`   | Applique les migrations en production                                       |
+→ Voir `DEPLOY.md` pour la procédure complète de déploiement VPS.
 
 ---
 
-## 🧩 Notes projet
+## 🔐 Auth & sécurité
 
-- Pas de `if {}` dans le projet.  
-  → Utiliser opérateurs logiques, ternaires, mapping d’objets, `.map`, `.filter`, `.reduce`.  
-  → Favorise un code lisible, testable, fonctionnel.  
-
-- Uniformiser les retours : toujours retourner une `Promise`, gérer erreurs avec `.catch` / `Promise.reject`.
-
-- Paradigme adopté :  
-  - Réponses JSON aplaties et harmonisées  
-  - `.then` / `.catch` systématiques  
-  - Pas de branches conditionnelles complexes  
-  - Erreurs gérées par rejets explicites  
+- **JWT** : access token 15 min + refresh token 7 j — **exclusivement en cookie `httpOnly`**
+- Jamais `localStorage` / `sessionStorage`
+- `credentials: 'include'` obligatoire sur tous les fetch auth
+- `sameSite: 'strict'` + `Cache-Control: no-store` sur les routes protégées
+- Guard réseau au montage des pages protégées (protection bfcache)
 
 ---
 
-## 🗂️ Commit types
+## 🧩 Conventions de code
 
-| Type        | Description                                       | Emoji |
-|-------------|---------------------------------------------------|:-----:|
-| `feat`      | Nouvelle fonctionnalité                           | ✨    |
-| `fix`       | Correction de bug                                 | 🐛    |
-| `wip`       | Work in progress                                  | 🚧    |
-| `docs`      | Documentation                                     | 📚    |
-| `style`     | Changement sans impact logique (formatage, etc.)  | 💎    |
-| `refactor`  | Refactoring sans ajout ni correction              | 📦    |
-| `perf`      | Amélioration performance                          | 🚀    |
-| `test`      | Ajout/correction de tests                         | 🚨    |
-| `build`     | Changements liés au build ou dépendances          | 🛠    |
-| `ci`        | Changement config CI/CD                           | ⚙️    |
-| `chore`     | Tâches diverses (hors code/test)                  | ♻️    |
-| `revert`    | Annulation d’un commit précédent                  | 🗑    |
+- **Guard Clauses** — retour précoce plutôt qu'imbrication
+- **Lookup Objects** — plutôt que `switch` / `else if` enchaînés
+- **Ternaires** — 1 niveau max dans le JSX
+- **`??`** — plutôt que `||` pour les valeurs par défaut
+- **`async/await`** — pas de `.then/.catch` chaînés
+- **Zod** — validation sur tous les inputs entrants (body, params, query)
+- **Pas de `any`** TypeScript
+- **Pas de `SELECT *`** — colonnes explicites via `select` Prisma
+- **Soft delete** — `deleted_at` (NULL = actif) sur les entités sensibles
+
+---
+
+## 🗃️ Modèle de données
+
+Entités : `roles`, `users`, `RefreshToken`, `categories`, `activities`, `activities_categories`, `sessions`, `orders`, `orders_lines`
+
+Enums : `OrderStatus` (Pending / Confirmed / Cancelled / Refunded) · `SessionStatus` (Scheduled / Cancelled / Completed)
+
+---
+
+## 📜 Commits
+
+| Type        | Emoji | Description                          |
+|-------------|:-----:|--------------------------------------|
+| `feat`      | ✨    | Nouvelle fonctionnalité              |
+| `fix`       | 🐛    | Correction de bug                    |
+| `wip`       | 🚧    | Work in progress                     |
+| `docs`      | 📚    | Documentation                        |
+| `style`     | 💎    | Formatage sans impact logique        |
+| `refactor`  | 📦    | Refactoring                          |
+| `perf`      | 🚀    | Performance                          |
+| `test`      | 🚨    | Tests                                |
+| `build`     | 🛠    | Build / dépendances                  |
+| `ci`        | ⚙️    | CI/CD                                |
+| `chore`     | ♻️    | Tâches diverses                      |
+| `revert`    | 🗑    | Annulation commit                    |
+
+---
+
+## 🌿 Branches
+
+```
+main                   → production (sharo.fr)
+admin-backoffice-dev   → branche de travail active
+```
+
+Jamais de commit direct sur `main`.
+
+---
+
+## 📚 Références
+
+- [`DEPLOY.md`](./DEPLOY.md) — procédure déploiement VPS Ionos
+- [`CLAUDE.md`](./CLAUDE.md) — référence Claude Code
+- [`conception/`](./conception/) — ERD, mockups, specs

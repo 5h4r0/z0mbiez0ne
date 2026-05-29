@@ -1,0 +1,40 @@
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++
+
+COPY package*.json ./
+COPY backend/package*.json ./backend/
+RUN npm ci --workspace=backend
+
+COPY backend/src/models/schema.prisma ./backend/src/models/schema.prisma
+RUN cd backend && npx prisma generate --schema=./src/models/schema.prisma
+
+COPY backend/ ./backend/
+RUN npm run build --workspace=backend
+
+# ---
+
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+RUN mkdir -p backend/prisma && ln -s /app/backend/src/models/migrations /app/backend/prisma/migrations
+
+ENV NODE_ENV=production
+
+RUN apk add --no-cache python3 make g++
+
+COPY package*.json ./
+COPY backend/package*.json ./backend/
+RUN npm ci --workspace=backend --omit=dev
+
+COPY --from=builder /app/backend/dist ./backend/dist
+COPY backend/src/ ./backend/src/
+
+RUN cd backend && npx prisma generate --schema=./src/models/schema.prisma
+
+EXPOSE 3000
+
+CMD ["node", "./backend/dist/index.js"]
