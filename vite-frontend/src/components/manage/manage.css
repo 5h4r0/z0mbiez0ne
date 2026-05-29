@@ -1,0 +1,407 @@
+/* vite-frontend/src/components/manage/manage.css */
+
+.manage-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.manage-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.manage-sidebar__brand {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--color-red);
+  padding: 0 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1rem;
+}
+
+.manage-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  padding: 0 0.5rem;
+}
+
+.manage-sidebar__link {
+  display: block;
+  padding: 0.55rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.manage-sidebar__link:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+
+.manage-sidebar__link--active {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  font-weight: 600;
+  border-left: 2px solid var(--color-red);
+  padding-left: calc(0.75rem - 2px);
+}
+
+.manage-sidebar__logout {
+  margin: 1rem 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  text-align: left;
+}
+
+.manage-sidebar__logout:hover {
+  color: var(--color-red);
+  border-color: var(--color-red);
+}
+
+.manage-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.manage-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Page sections */
+.manage-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.manage-page__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: var(--color-text);
+  text-transform: uppercase;
+}
+
+.manage-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.manage-btn--primary {
+  background: var(--color-red);
+  color: #fff;
+  border-color: var(--color-red);
+}
+
+.manage-btn--primary:hover {
+  background: var(--color-red-hover);
+  border-color: var(--color-red-hover);
+}
+
+.manage-btn--ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
+.manage-btn--ghost:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.manage-btn--danger {
+  background: transparent;
+  color: var(--color-red);
+  border-color: var(--color-red);
+}
+
+.manage-btn--danger:hover {
+  background: var(--color-red);
+  color: #fff;
+}
+
+/* Table */
+.manage-table-wrap {
+  overflow-x: auto;
+}
+
+.manage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.manage-table th {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.manage-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.manage-table tr:last-child td {
+  border-bottom: none;
+}
+
+.manage-table tr:hover td {
+  background: var(--color-surface-hover);
+}
+
+.manage-table td a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.manage-table td a:hover {
+  color: var(--color-green);
+}
+
+.manage-table__actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+/* Modal */
+.manage-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.manage-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.75rem;
+  max-width: 420px;
+  width: 90%;
+}
+
+.manage-modal__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.manage-modal__message {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  margin-bottom: 1.25rem;
+}
+
+.manage-modal__warning {
+  color: var(--color-red);
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.manage-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Hub cards */
+.manage-hub__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.manage-hub__card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color 0.15s;
+  min-height: 110px;
+}
+
+.manage-hub__card:hover {
+  border-color: var(--color-red);
+}
+
+.manage-hub__card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 0.3rem;
+}
+
+.manage-hub__card-count {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+/* Error / empty states */
+.manage-error {
+  color: var(--color-red);
+  font-size: 0.88rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-red);
+  border-radius: 4px;
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.manage-empty {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+/* Row / cell color helpers */
+tr.manage-text-success td { color: var(--color-green); }
+tr.manage-text-warning td { color: var(--color-gold); }
+tr.manage-text-danger  td { color: var(--color-red); }
+
+td.manage-text-success { color: var(--color-green); }
+td.manage-text-warning { color: var(--color-gold); }
+td.manage-text-danger  { color: var(--color-red); }
+
+/* Pagination */
+.manage-pagination {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  justify-content: flex-end;
+}
+
+.manage-pagination__info {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* Login page */
+.manage-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+}
+
+.manage-login__box {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.manage-login__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.manage-login__subtitle {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.manage-form__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 0.3rem;
+}
+
+.manage-form__input {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.55rem 0.75rem;
+  color: var(--color-text);
+  font-size: 0.88rem;
+  box-sizing: border-box;
+}
+
+.manage-form__input:focus {
+  outline: none;
+  border-color: var(--color-red);
+}
+
+.manage-form__group {
+  margin-bottom: 1rem;
+}

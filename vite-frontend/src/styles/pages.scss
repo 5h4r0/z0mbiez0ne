@@ -1,4 +1,10 @@
 // Shared page styles
+img, video {
+	line-height: 6rem !important;
+	text-align: center;
+	font-size: .7rem;
+	color: #444;
+}
 
 .zzlogo {
   width: 20vh;
@@ -7,7 +13,6 @@
 
 // ——— Page wrapper ———
 .page-wrapper {
-  padding-top: 64px; // fixed header height
   min-height: 100vh;
 }
 

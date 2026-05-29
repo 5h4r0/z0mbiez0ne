@@ -1,3 +1,4 @@
+import path from 'node:path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -46,6 +47,9 @@ app.use(
     credentials: true,
   }),
 );
+
+// images statiques (banners, thumbs)
+app.use('/images', express.static(path.resolve('..', 'vite-frontend', 'public', 'images')));
 
 // api router
 app.use('/api', apiRouter);

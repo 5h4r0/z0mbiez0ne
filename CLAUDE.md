@@ -1,5 +1,5 @@
 # CLAUDE.md
-> Contexte CC — zombiezone.kadath.fr
+> Contexte CC — sharo.fr
 
 Branche active : `customer-account-dev` — jamais commiter sur `main`.
 
@@ -53,6 +53,24 @@ Express 5 · Prisma · PostgreSQL · argon2 · JWT · date-fns · Biome · NPM w
 - Soft delete : `deleted_at` (NULL = actif) sur `users`, `categories`, `activities`, `sessions`, `orders`
 - Zod sur tous les inputs (body, params, query)
 - Guard clauses plutôt qu'imbrication · Lookup objects plutôt que switch · `??` plutôt que `||`
+
+---
+
+## Zod — règle absolue : lire le controller, pas le schema Prisma
+
+Quand on écrit un schéma Zod pour parser une réponse API :
+- **Toujours lire le controller concerné** avant d'écrire le schéma
+- **Jamais inférer depuis schema.prisma** — le controller transforme les données :
+  - `Decimal` Prisma → `number` (ex: unit_price, total_amount)
+  - `Date` Prisma → `string` formatée par date-fns (ex: session.date)
+  - Relations → aplaties ou restructurées (ex: role object → role string)
+  - Champs calculés absents du modèle (ex: available_capacity)
+- Le contrat API = la sortie du controller, pas le modèle BDD
+
+Violation détectée le 2026-05-24 :
+- manageSessionSchema : unit_price z.string() au lieu de z.number()
+- manageSessionSchema : date attendue ISO, reçue string formatée date-fns
+- manageUserSchema : role z.object({id, name}) au lieu de z.string()
 
 ---
 

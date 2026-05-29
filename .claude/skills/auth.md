@@ -54,7 +54,7 @@ try {
 
 ## CSRF & bfcache
 
-- `sameSite: 'strict'` suffit — frontend et backend sur le même domaine `zombiezone.kadath.fr`
+- `sameSite: 'strict'` suffit — frontend et backend sur le même domaine `sharo.fr`
 - `Cache-Control: no-store` sur toutes les réponses des routes protégées
 - Si cross-domain un jour : double submit cookie pattern
 

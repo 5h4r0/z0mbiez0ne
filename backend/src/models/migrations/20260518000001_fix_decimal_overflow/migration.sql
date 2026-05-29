@@ -1,0 +1,2 @@
+ALTER TABLE "orders" ALTER COLUMN "total_amount" TYPE DECIMAL(10,2);
+ALTER TABLE "orders_lines" ALTER COLUMN "amount" TYPE DECIMAL(10,2);

@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import type { Request, Response } from 'express';
-import { getPagination } from '../helpers/getPagination.js';
+import z from 'zod';
 import { ConflictError } from '../lib/errors.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
@@ -10,28 +10,32 @@ type UserWithRole = Prisma.usersGetPayload<{ include: { role: true } }>;
 
 /** GET all */
 export async function getUsers(req: Request, res: Response): Promise<void> {
-  const { take, skip } = getPagination(req);
+  const page = Math.max(1, Number(req.query.page ?? '1'));
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? '20')));
+  const skip = (page - 1) * limit;
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
-  const options: Parameters<typeof prisma.users.findMany>[0] = Object.assign(
-    {
-      include: {
-        role: true,
-        orders: {
-          select: {
-            id: true,
-            total_amount: true,
-            status: true,
-            payment_date: true,
-          },
-        },
-      },
-    },
-    take !== undefined ? { take: take as number } : {},
-    skip !== undefined ? { skip: skip as number } : {},
-  );
+  const where: Prisma.usersWhereInput = search
+    ? {
+        OR: [
+          { lastname: { contains: search, mode: 'insensitive' } },
+          { firstname: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      }
+    : {};
 
   try {
-    const users = await prisma.users.findMany(options);
+    const [users, total] = await Promise.all([
+      prisma.users.findMany({
+        where,
+        include: { role: true },
+        orderBy: [{ lastname: 'asc' }, { firstname: 'asc' }],
+        take: limit,
+        skip,
+      }),
+      prisma.users.count({ where }),
+    ]);
     const list = users as UserWithRole[];
 
     res.status(200).json({
@@ -46,6 +50,10 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
         deleted_at: u.deleted_at,
         role: u.role?.name ?? null,
       })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -94,34 +102,40 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
 
 /** UPDATE */
 export const updateUser = async (req: Request, res: Response) => {
+  const bodySchema = z.object({
+    email: z.string().email(),
+    firstname: z.string().min(1).max(100),
+    lastname: z.string().min(1).max(100),
+    role_id: z.number().int().positive().optional(),
+  });
+
   const { id } = req.params;
-  const { email, firstname, lastname, role_id } = req.body;
 
   try {
-    // check if another user already has this email
-    const existing = await prisma.users.findFirst({
-      where: {
-        email,
-        NOT: { id: Number(id) }, // exclude the current user from the check
-      },
-    });
+    const body = await bodySchema.parseAsync(req.body);
 
-    // if another user already uses this email, reject
-    if (existing) {
-      throw new ConflictError(buildErrorMessage('already_exists', 'user', email));
+    // verify role exists if provided
+    if (body.role_id !== undefined) {
+      const role = await prisma.roles.findUnique({ where: { id: body.role_id } });
+      if (!role) {
+        res.status(400).json({ success: false, message: `role ${body.role_id} not found` });
+        return;
+      }
     }
 
-    // otherwise, update the current user
+    // check if another user already has this email
+    const existing = await prisma.users.findFirst({
+      where: { email: body.email, NOT: { id: Number(id) } },
+    });
+    if (existing) {
+      throw new ConflictError(buildErrorMessage('already_exists', 'user', body.email));
+    }
+
+    const { role_id, ...rest } = body;
     const updatedUser = await prisma.users.update({
       where: { id: Number(id) },
-      data: { email, firstname, lastname, role_id },
-      select: {
-        id: true,
-        firstname: true,
-        lastname: true,
-        email: true,
-        role_id: true,
-      },
+      data: role_id !== undefined ? { ...rest, role_id } : rest,
+      select: { id: true, firstname: true, lastname: true, email: true, role_id: true },
     });
 
     res.status(200).json({
@@ -130,7 +144,9 @@ export const updateUser = async (req: Request, res: Response) => {
       message: buildCudMessage('updated', 'user', updatedUser.email),
     });
   } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, message: error.issues.map((e) => e.message).join(', ') });
+    } else if ((error as { code?: string }).code === 'P2025') {
       res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'user', id) });
     } else {
       res.status((error as { status?: number }).status || 500).json({
@@ -156,7 +172,10 @@ export const deleteUser = async (req: Request, res: Response) => {
       throw { type: 'hasOrders', ids: orders.map((o) => o.id) };
     }
 
-    const deleted = await prisma.users.delete({ where: { id: userId } });
+    const deleted = await prisma.users.update({
+      where: { id: userId },
+      data: { deleted_at: new Date() },
+    });
 
     res.status(200).json({ success: true, data: deleted, message: buildCudMessage('deleted', 'user', deleted.email) });
   } catch (error: unknown) {

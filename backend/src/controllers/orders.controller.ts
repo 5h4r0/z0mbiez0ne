@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
 import z from 'zod';
-import { getPagination } from '../helpers/index.js';
 import { TAXES_MULTIPLIER, TAXES_RATE } from '../lib/constants.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
@@ -41,26 +40,29 @@ const formatOrder = (o: {
 
 /** get all */
 export const getOrders = async (req: Request, res: Response): Promise<void> => {
-  const { take, skip } = getPagination(req);
+  const page = Math.max(1, Number(req.query.page ?? '1'));
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? '20')));
+  const skip = (page - 1) * limit;
 
   try {
-    const orders = await prisma.orders.findMany({
-      // optional args -> spread only when defined
-      ...(typeof take !== 'undefined' ? { take } : {}),
-      ...(typeof skip !== 'undefined' ? { skip } : {}),
-    });
+    const [orders, total] = await Promise.all([
+      prisma.orders.findMany({
+        take: limit,
+        skip,
+        orderBy: [{ status: 'asc' }, { created_at: 'desc' }],
+      }),
+      prisma.orders.count(),
+    ]);
 
-    /** () => res.status(...).json(...) returns Response ❌ Promise<Response>
-     * the brace {} bloc cancels the implicit return
-     * () => { res.status(...).json(...); } returns nothing ✅ Promise<void> */
-
-    // send success -> do not return the Response
     res.status(200).json({
       success: true,
       data: orders.map(formatOrder),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    // log -> stderr, then send error -> do not return the Response
     console.error('error fetching orders:', error);
     res.status(500).json({
       success: false,
@@ -145,6 +147,10 @@ export const getOrder = async (req: Request, res: Response): Promise<void> => {
 
 /** get my orders (authenticated user) */
 export const getMyOrders = async (req: Request, res: Response): Promise<void> => {
+  if (!req.user) {
+    res.status(401).json({ success: false, message: 'Not authenticated' });
+    return;
+  }
   try {
     const orders = await prisma.orders.findMany({
       where: { user_id: req.user.id },
@@ -197,7 +203,6 @@ export const getMyOrders = async (req: Request, res: Response): Promise<void> =>
 /** create */
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
   const bodySchema = z.object({
-    user_id: z.number().int().positive(),
     payment_method: z.string().max(30).optional(),
     lines: z
       .array(
@@ -210,7 +215,13 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
   });
 
   try {
-    const { user_id, payment_method, lines } = await bodySchema.parseAsync(req.body);
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'not authenticated' });
+      return;
+    }
+
+    const { payment_method, lines } = await bodySchema.parseAsync(req.body);
+    const user_id = req.user.id;
 
     const result = await prisma.$transaction(
       async (tx) => {

@@ -31,8 +31,9 @@ const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(12),
   status: z.nativeEnum(SessionStatus).optional(),
   activity_slug: z.string().optional(),
-  sort: z.enum(['date', 'id']).optional(),
+  sort: z.enum(['date', 'id', 'activity', 'capacity', 'available_capacity', 'unit_price', 'status']).optional(),
   order: z.enum(['asc', 'desc']).optional(),
+  upcoming: z.coerce.boolean().optional(),
 });
 
 /** get all sessions */
@@ -45,10 +46,6 @@ export const getSessions = async (req: Request, res: Response) => {
     const where: Prisma.sessionsWhereInput = {};
     if (query.status) where.status = query.status;
     if (query.activity_slug) where.activity = { slug: query.activity_slug };
-
-    const orderBy: Prisma.sessionsOrderByWithRelationInput = {
-      [query.sort ?? 'date']: query.order ?? 'asc',
-    };
 
     const include = {
       activity: {
@@ -67,10 +64,59 @@ export const getSessions = async (req: Request, res: Response) => {
       },
     };
 
-    const [sessions, total] = await Promise.all([
-      prisma.sessions.findMany({ where, orderBy, include, take: limit, skip }),
-      prisma.sessions.count({ where }),
-    ]);
+    const total = await prisma.sessions.count({ where });
+
+    // Default order: Scheduled(0) → Completed(1) → Cancelled(2), then date ASC within group
+    // The enum declaration order is Scheduled/Cancelled/Completed so we need a CASE expression.
+    const whereStatus = query.status ? Prisma.sql`AND status = ${query.status}::"SessionStatus"` : Prisma.empty;
+    const whereSlug = query.activity_slug
+      ? Prisma.sql`AND activity_id = (SELECT id FROM activities WHERE slug = ${query.activity_slug})`
+      : Prisma.empty;
+    const whereUpcoming = query.upcoming ? Prisma.sql`AND date >= NOW()` : Prisma.empty;
+    const asc = query.order !== 'desc';
+    // Build ORDER BY explicitly to avoid Prisma.sql nesting issues
+    const orderBy = (() => {
+      switch (query.sort) {
+        case 'date':
+          return asc ? Prisma.sql`date ASC` : Prisma.sql`date DESC`;
+        case 'activity':
+          return asc
+            ? Prisma.sql`(SELECT title FROM activities WHERE id = sessions.activity_id) ASC`
+            : Prisma.sql`(SELECT title FROM activities WHERE id = sessions.activity_id) DESC`;
+        case 'capacity':
+          return asc ? Prisma.sql`capacity ASC` : Prisma.sql`capacity DESC`;
+        case 'available_capacity':
+          return asc
+            ? Prisma.sql`(capacity - COALESCE((SELECT SUM(ol.tickets_qty) FROM orders_lines ol JOIN orders o ON ol.order_id = o.id WHERE ol.session_id = sessions.id AND o.status NOT IN ('Cancelled', 'Refunded')), 0)) ASC`
+            : Prisma.sql`(capacity - COALESCE((SELECT SUM(ol.tickets_qty) FROM orders_lines ol JOIN orders o ON ol.order_id = o.id WHERE ol.session_id = sessions.id AND o.status NOT IN ('Cancelled', 'Refunded')), 0)) DESC`;
+        case 'unit_price':
+          return asc ? Prisma.sql`unit_price ASC` : Prisma.sql`unit_price DESC`;
+        // Alphabetical FR: Annulée(Cancelled)=0, Planifiée(Scheduled)=1, Terminée(Completed)=2
+        case 'status':
+          return asc
+            ? Prisma.sql`CASE status WHEN 'Cancelled' THEN 0 WHEN 'Scheduled' THEN 1 WHEN 'Completed' THEN 2 ELSE 3 END ASC`
+            : Prisma.sql`CASE status WHEN 'Cancelled' THEN 0 WHEN 'Scheduled' THEN 1 WHEN 'Completed' THEN 2 ELSE 3 END DESC`;
+        // Default: business order Planifiée→Terminée→Annulée, then date ASC within each group
+        default:
+          return Prisma.sql`CASE status WHEN 'Scheduled' THEN 0 WHEN 'Completed' THEN 1 WHEN 'Cancelled' THEN 2 ELSE 3 END ASC, date ASC`;
+      }
+    })();
+    const orderedIds = await prisma.$queryRaw<{ id: number }[]>`
+      SELECT id FROM sessions
+      WHERE 1=1 ${whereStatus} ${whereSlug} ${whereUpcoming}
+      ORDER BY ${orderBy}
+      LIMIT ${limit} OFFSET ${skip}
+    `;
+    const idList = orderedIds.map((r) => r.id);
+    const sessionsById = await prisma.sessions.findMany({
+      where: { id: { in: idList } },
+      include,
+    });
+    const byId = new Map(sessionsById.map((s) => [s.id, s]));
+    const sessions = idList.flatMap((id) => {
+      const s = byId.get(id);
+      return s ? [s] : [];
+    });
 
     const formatted = sessions.map((s) => {
       const bookedQty = s.orders_lines

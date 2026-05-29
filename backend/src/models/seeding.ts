@@ -105,7 +105,7 @@ async function main() {
     data: faker.helpers.shuffle([...CATEGORIES]).map((title) => ({
       title,
       description: faker.lorem.sentences(2),
-      image_filename: `category-${makeSlug(title)}.jpg`,
+      image_filename: `category-${makeSlug(title)}.webp`,
       slug: makeSlug(title),
     })),
     skipDuplicates: true,
@@ -149,7 +149,7 @@ async function main() {
     data: faker.helpers.shuffle([...ACTIVITIES]).map((title) => ({
       title,
       description: faker.lorem.sentences(2),
-      image_filename: `activity-${makeSlug(title)}.jpg`,
+      image_filename: `activity-${makeSlug(title)}.webp`,
       slug: makeSlug(title),
     })),
     skipDuplicates: true,
