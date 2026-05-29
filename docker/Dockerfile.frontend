@@ -2,8 +2,8 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY vite-frontend/package*.json ./vite-frontend/
+COPY package.json ./
+COPY vite-frontend/package.json ./vite-frontend/
 RUN npm install --workspace=vite-frontend --ignore-scripts
 
 COPY vite-frontend/ ./vite-frontend/
