@@ -1,2 +1,4 @@
 node_modules
 .gstack/
+vite-frontend/public/images/banners/
+vite-frontend/public/images/thumbs/
