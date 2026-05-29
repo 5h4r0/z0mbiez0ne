@@ -21,24 +21,18 @@ function makeStorage(subdir: 'banners' | 'thumbs') {
 const uploadBanner = multer({ storage: makeStorage('banners') });
 const uploadThumb = multer({ storage: makeStorage('thumbs') });
 
-router.post(
-  '/upload/activity-banner',
-  requireAuth,
-  requireRole('admin'),
-  uploadBanner.single('image'),
-  (req, res) => {
-    if (!req.file) { res.status(400).json({ success: false, message: 'No file' }); return; }
-    res.json({ success: true, filename: req.file.filename });
-  },
-);
+router.post('/upload/activity-banner', requireAuth, requireRole('admin'), uploadBanner.single('image'), (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ success: false, message: 'No file' });
+    return;
+  }
+  res.json({ success: true, filename: req.file.filename });
+});
 
-router.post(
-  '/upload/activity-thumb',
-  requireAuth,
-  requireRole('admin'),
-  uploadThumb.single('image'),
-  (req, res) => {
-    if (!req.file) { res.status(400).json({ success: false, message: 'No file' }); return; }
-    res.json({ success: true, filename: req.file.filename });
-  },
-);
+router.post('/upload/activity-thumb', requireAuth, requireRole('admin'), uploadThumb.single('image'), (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ success: false, message: 'No file' });
+    return;
+  }
+  res.json({ success: true, filename: req.file.filename });
+});

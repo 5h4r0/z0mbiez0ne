@@ -260,7 +260,13 @@ export const createActivity = async (req: Request, res: Response): Promise<void>
 /** update */
 export const updateActivity = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { title, description, activities_categories, slug: slugBody, image_filename } = req.body as {
+  const {
+    title,
+    description,
+    activities_categories,
+    slug: slugBody,
+    image_filename,
+  } = req.body as {
     title: string;
     description?: string;
     activities_categories?: number[];
