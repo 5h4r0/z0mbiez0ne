@@ -65,7 +65,7 @@ export default function ImageUploadHero({ currentFilename, slug, onUploaded, onT
     }
   }
 
-  const imgSrc = currentFilename ? `/images/banners/${currentFilename}?v=${version}` : null;
+  const imgSrc = currentFilename ? `/images/uploads/banners/${currentFilename}?v=${version}` : null;
 
   return (
     <button
