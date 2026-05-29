@@ -31,7 +31,7 @@ function resolveIcon(title: string): LucideIcon {
 
 export default function CategoryCard({ category }: Props) {
   const imgSrc = category.image_filename
-    ? `/images/thumbs/${category.image_filename}`
+    ? `/images/uploads/thumbs/${category.image_filename}`
     : `https://placehold.co/400x250/141414/888?text=${encodeURIComponent(category.title)}`;
   const Icon = resolveIcon(category.title);
 

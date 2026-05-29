@@ -23,8 +23,11 @@ services:
     restart: unless-stopped
     env_file:
       - backend/.env.production
+    environment:
+      UPLOAD_DIR: /app/uploads
     volumes:
       - ./backend/.env.production:/app/backend/.env.production:ro
+      - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -42,6 +45,7 @@ services:
       - "443:443"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - uploads:/usr/share/nginx/html/images/uploads
     depends_on:
       - backend
     networks:
@@ -49,6 +53,7 @@ services:
 
 volumes:
   pgdata:
+  uploads:
 
 networks:
   internal:

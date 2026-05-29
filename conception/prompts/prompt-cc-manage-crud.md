@@ -10,7 +10,7 @@ Vérifier : test -d /tmp/zz && echo exists || (git clone https://github.com/5h4r
 # CONTEXTE
 
 Projet fullstack TypeScript monorepo — backend Express 5 + Prisma, frontend React 19 + Vite + Tailwind 4 + SCSS.
-Images : vite-frontend/public/images/banners/ et /thumbs/ — noms comme activity-cabane-du-boucher.webp
+Images : vite-frontend/public/images/uploads/banners/ et /thumbs/ — noms comme activity-cabane-du-boucher.webp
 Auth : JWT httpOnly cookie uniquement. apiFetch() depuis authStore gère le 401/refresh. Admin = role_id === 2.
 Routes admin backend existantes :
   GET/POST   /api/activities          — POST body: { title, description, activities_categories: number[] }
@@ -1039,7 +1039,7 @@ export default function ImageUploadHero({ currentFilename, slug, onUploaded }: P
     }
   }
 
-  const imgSrc = currentFilename ? `/images/banners/${currentFilename}` : null;
+  const imgSrc = currentFilename ? `/images/uploads/banners/${currentFilename}` : null;
 
   return (
     <div

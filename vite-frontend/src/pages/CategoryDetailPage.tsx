@@ -69,7 +69,7 @@ export default function CategoryDetailPage() {
   }
 
   const imgUrl = category.image_filename
-    ? `/images/banners/${category.image_filename}`
+    ? `/images/uploads/banners/${category.image_filename}`
     : `https://placehold.co/1400x600/141414/888?text=${encodeURIComponent(category.title)}`;
 
   return (
