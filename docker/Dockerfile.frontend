@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY vite-frontend/package*.json ./vite-frontend/
-RUN npm ci --workspace=vite-frontend --ignore-scripts
+RUN npm install --workspace=vite-frontend --ignore-scripts
 
 COPY vite-frontend/ ./vite-frontend/
 RUN npm run build --workspace=vite-frontend
