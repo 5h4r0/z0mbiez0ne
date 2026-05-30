@@ -22,9 +22,9 @@
     "lint": "biome check",
     "fix": "biome check --write",
     "lint:prod": "biome check --config-path biome.prod.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test": "dotenv -e .env.test -- vitest run",
+    "test:watch": "dotenv -e .env.test -- vitest",
+    "test:coverage": "dotenv -e .env.test -- vitest run --coverage"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
