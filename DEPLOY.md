@@ -35,7 +35,7 @@ services :
 | `docker/Dockerfile.backend`  | Multi-stage Node 22 Alpine — build TS + runner prod         |
 | `docker/Dockerfile.frontend` | Multi-stage Node 22 Alpine + Nginx Alpine                   |
 | `docker/nginx.conf`          | Redirect HTTP→HTTPS, proxy `/api/` → backend, SPA fallback |
-| `docker-compose.prod.yml`    | Orchestration db/backend/frontend                           |
+| `docker-compose.prod.yaml`    | Orchestration db/backend/frontend                           |
 
 ### Structure dans le container backend (`/app/`)
 
@@ -182,13 +182,13 @@ sudo certbot certonly --standalone -d sharo.fr
 ### 6. Build et démarrage
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yaml up -d --build
 ```
 
 ### 7. Migrations
 
 ```bash
-docker compose -f docker-compose.prod.yml exec -w /app/backend backend \
+docker compose -f docker-compose.prod.yaml exec -w /app/backend backend \
   npx prisma migrate deploy --schema=./src/models/schema.prisma
 ```
 
@@ -196,11 +196,11 @@ docker compose -f docker-compose.prod.yml exec -w /app/backend backend \
 
 ```bash
 # Installer les devDependencies temporairement dans le container
-docker compose -f docker-compose.prod.yml exec -e NODE_ENV=development backend \
+docker compose -f docker-compose.prod.yaml exec -e NODE_ENV=development backend \
   npm install --workspace=backend
 
 # Lancer le seed
-docker compose -f docker-compose.prod.yml exec -w /app/backend backend \
+docker compose -f docker-compose.prod.yaml exec -w /app/backend backend \
   npx tsx --env-file=../backend/.env.production ./src/models/seeding.ts
 ```
 
@@ -213,16 +213,16 @@ docker compose -f docker-compose.prod.yml exec -w /app/backend backend \
 ```bash
 cd /srv/zombiezone
 git pull origin deploy
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yaml up -d --build
 # Si nouvelles migrations :
-docker compose -f docker-compose.prod.yml exec -w /app/backend backend \
+docker compose -f docker-compose.prod.yaml exec -w /app/backend backend \
   npx prisma migrate deploy --schema=./src/models/schema.prisma
 ```
 
 ## Redémarrage sans rebuild
 
 ```bash
-docker compose -f docker-compose.prod.yml restart backend
+docker compose -f docker-compose.prod.yaml restart backend
 ```
 
 ---
@@ -232,9 +232,9 @@ docker compose -f docker-compose.prod.yml restart backend
 Certbot renouvelle automatiquement. Pour forcer :
 
 ```bash
-docker compose -f docker-compose.prod.yml stop frontend
+docker compose -f docker-compose.prod.yaml stop frontend
 sudo certbot renew
-docker compose -f docker-compose.prod.yml start frontend
+docker compose -f docker-compose.prod.yaml start frontend
 ```
 
 ---
@@ -244,30 +244,30 @@ docker compose -f docker-compose.prod.yml start frontend
 ### Backup manuel
 
 ```bash
-docker compose -f docker-compose.prod.yml exec db \
+docker compose -f docker-compose.prod.yaml exec db \
   pg_dump -U zombiezone zombiezone > backup_$(date +%Y%m%d).sql
 ```
 
 ### Restauration
 
 ```bash
-cat backup.sql | docker compose -f docker-compose.prod.yml exec -T db \
+cat backup.sql | docker compose -f docker-compose.prod.yaml exec -T db \
   psql -U zombiezone zombiezone
 ```
 
 ### Reset complet (⚠️ détruit toutes les données)
 
 ```bash
-docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yaml down
 docker volume rm zombiezone_pgdata
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
 ### Shutdown, Start
 
 ```bash
-docker compose -f docker-compose.prod.yml down
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yaml down
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
 ---

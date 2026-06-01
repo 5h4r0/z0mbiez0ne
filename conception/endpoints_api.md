@@ -80,12 +80,13 @@
 
 ## 👥 Users
 
-| Méthode | Endpoint       | Auth requise  | Description          |
-|---------|----------------|---------------|----------------------|
-| GET     | /api/users     | admin         | Liste utilisateurs   |
-| GET     | /api/users/:id | member, admin | Détail utilisateur   |
-| PUT     | /api/users/:id | member, admin | Modifier utilisateur |
-| DELETE  | /api/users/:id | member, admin | Supprimer compte     |
+| Méthode | Endpoint                | Auth requise  | Description           |
+|---------|-------------------------|---------------|-----------------------|
+| GET     | /api/users              | admin         | Liste utilisateurs    |
+| GET     | /api/users/:id          | member, admin | Détail utilisateur    |
+| PUT     | /api/users/:id/password | member, admin | Modifier mot de passe |
+| PUT     | /api/users/:id          | member, admin | Modifier utilisateur  |
+| DELETE  | /api/users/:id          | member, admin | Supprimer compte      |
 
 ---
 
