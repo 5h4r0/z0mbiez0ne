@@ -18,8 +18,6 @@ export async function resetDatabase() {
     prismaTest.users.deleteMany(),
   ]);
   await prismaTest.roles.deleteMany();
-  // Réinitialiser la séquence pour avoir des IDs prévisibles (1=member, 2=admin)
-  await prismaTest.$executeRawUnsafe('ALTER SEQUENCE roles_id_seq RESTART WITH 1');
   await prismaTest.roles.createMany({
     data: [{ name: 'member' }, { name: 'admin' }],
   });
