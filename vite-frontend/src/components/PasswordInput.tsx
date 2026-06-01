@@ -1,6 +1,6 @@
 import { Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
 import type { InputHTMLAttributes } from 'react';
+import { useState } from 'react';
 
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>;
 
