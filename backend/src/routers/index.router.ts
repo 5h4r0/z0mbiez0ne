@@ -1,5 +1,7 @@
-// import path from "node:path";
+import { readFileSync } from 'node:fs';
 import { Router } from 'express';
+import swaggerUi from 'swagger-ui-express';
+import { parse } from 'yaml';
 import { router as activitiesRouter } from './activities.router.js';
 import { router as authRouter } from './auth.router.js';
 import { router as categoriesRouter } from './categories.router.js';
@@ -27,12 +29,6 @@ router.use('/auth', authRouter);
 router.get('/', (_req, res) => {
   res.json({ status: 'Nothing here... but the API is running 🚀' });
 });
-
-
-// Documentation swagger
-import swaggerUi from 'swagger-ui-express';
-import { readFileSync } from 'node:fs';
-import { parse } from 'yaml';
 
 const spec = parse(readFileSync('./openapi.yaml', 'utf-8'));
 router.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
