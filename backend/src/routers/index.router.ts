@@ -30,5 +30,5 @@ router.get('/', (_req, res) => {
   res.json({ status: 'Nothing here... but the API is running 🚀' });
 });
 
-const spec = parse(readFileSync('./openapi.yaml', 'utf-8'));
+const spec = parse(readFileSync(new URL('../../openapi.yaml', import.meta.url), 'utf-8'));
 router.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
