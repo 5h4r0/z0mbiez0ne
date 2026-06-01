@@ -117,7 +117,7 @@ Voir `CLAUDE.md` — source de vérité pour la stack, les commandes, les conven
 - Ne pas mocker Prisma — tester contre une vraie DB en `tmpfs`
 
 ### Infrastructure de test
-- `docker-compose.test.yml` dédié — PostgreSQL sur port `54320`, données en `tmpfs` (RAM, ~3x plus rapide)
+- `docker-compose.test.yaml` dédié — PostgreSQL sur port `54320`, données en `tmpfs` (RAM, ~3x plus rapide)
 - `globalSetup.ts` : démarre le conteneur + `prisma migrate deploy` une seule fois
 - `testSetup.ts` : `beforeEach` → `deleteMany` dans l'ordre FK (RefreshToken → orders_lines → orders → users)
 - Conteneur laissé vivant en local (redémarrage en 3ms), arrêté en CI (`process.env.CI === 'true'`)

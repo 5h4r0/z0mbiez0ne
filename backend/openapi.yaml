@@ -1,0 +1,1832 @@
+openapi: 3.0.3
+info:
+  title: ZombieZone API
+  description: |
+    API REST du parc d'attractions fictif post-apocalyptique ZombieZone.
+    Authentification via cookies httpOnly (accessToken + refreshToken).
+    Les cookies sont automatiquement envoyés par le navigateur — aucun header Authorization requis.
+  version: 1.0.0
+  contact:
+    name: Stéphane R.
+
+servers:
+  - url: https://sharo.fr/api
+    description: Production
+  - url: http://localhost:3000/api
+    description: Développement local
+
+tags:
+  - name: Auth
+    description: Inscription, connexion, déconnexion, refresh token
+  - name: Activities
+    description: Activités du parc
+  - name: Categories
+    description: Catégories d'activités
+  - name: Sessions
+    description: Sessions planifiées d'une activité
+  - name: Orders
+    description: Commandes utilisateur
+  - name: OrdersLines
+    description: Lignes de commande
+  - name: Users
+    description: Comptes utilisateurs
+  - name: Roles
+    description: Rôles (admin, member)
+  - name: Upload
+    description: Upload d'images activités
+
+# ─── Security ────────────────────────────────────────────────────────────────
+# Auth via cookies httpOnly — pas de Bearer token dans les headers.
+# Les routes protégées requièrent un cookie accessToken valide (15 min).
+# Le refresh token est un cookie httpOnly sur /api/auth/refresh (7 jours).
+
+components:
+  schemas:
+    # ── Succès génériques ──
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 42
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 12
+        totalPages:
+          type: integer
+          example: 4
+
+    # ── Auth ──
+    RegisterBody:
+      type: object
+      required: [firstname, lastname, email, role_id, password, confirm]
+      properties:
+        firstname:
+          type: string
+          minLength: 1
+          example: Jean
+        lastname:
+          type: string
+          minLength: 1
+          example: Dupont
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+        role_id:
+          type: integer
+          example: 2
+          description: 1 = admin, 2 = member
+        password:
+          type: string
+          minLength: 8
+          maxLength: 100
+          description: Min 8 car., majuscule + minuscule + chiffre + caractère spécial, pas d'espace
+          example: P@ssw0rd!
+        confirm:
+          type: string
+          example: P@ssw0rd!
+
+    LoginBody:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+        password:
+          type: string
+          example: P@ssw0rd!
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        firstname:
+          type: string
+          example: Jean
+        lastname:
+          type: string
+          example: Dupont
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+        role_id:
+          type: integer
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    # ── Category ──
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Survie
+        slug:
+          type: string
+          example: survie
+        description:
+          type: string
+          nullable: true
+          example: Activités de survie en milieu hostile
+
+    CategoryBody:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          example: Survie
+        description:
+          type: string
+          nullable: true
+
+    # ── Activity ──
+    SessionSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        date:
+          type: string
+          example: "Monday, June 9, 2026, 10:00 AM"
+        capacity:
+          type: integer
+          example: 20
+        unit_price:
+          type: number
+          format: decimal
+          example: 29.99
+        status:
+          type: string
+          enum: [Scheduled, Cancelled, Completed]
+
+    Activity:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Escape Zone
+        slug:
+          type: string
+          example: escape-zone
+        description:
+          type: string
+          nullable: true
+          example: Survivez à l'apocalypse zombie
+        image_filename:
+          type: string
+          nullable: true
+          example: escape-zone.webp
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        sessions_count:
+          type: integer
+          example: 4
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionSummary'
+
+    ActivityBody:
+      type: object
+      required: [title, activities_categories]
+      properties:
+        title:
+          type: string
+          example: Escape Zone
+        description:
+          type: string
+          nullable: true
+        slug:
+          type: string
+          description: Généré automatiquement depuis le title si absent
+          example: escape-zone
+        image_filename:
+          type: string
+          description: Généré automatiquement si absent (activity-{slug}.webp)
+          example: escape-zone.webp
+        activities_categories:
+          type: array
+          items:
+            type: integer
+          description: IDs des catégories associées
+          example: [1, 3]
+
+    # ── Session ──
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        activity_id:
+          type: integer
+          example: 1
+        date:
+          type: string
+          format: date-time
+          example: "2026-06-09T10:00:00.000Z"
+        capacity:
+          type: integer
+          example: 20
+        unit_price:
+          type: number
+          format: decimal
+          example: 29.99
+        status:
+          type: string
+          enum: [Scheduled, Cancelled, Completed]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SessionBody:
+      type: object
+      required: [activity_id, date, capacity, unit_price, status]
+      properties:
+        activity_id:
+          type: integer
+          example: 1
+        date:
+          type: string
+          format: date-time
+          description: Doit être dans le futur
+          example: "2026-09-01T14:00:00.000Z"
+        capacity:
+          type: integer
+          minimum: 1
+          example: 20
+        unit_price:
+          type: number
+          minimum: 0.01
+          example: 29.99
+        status:
+          type: string
+          enum: [Scheduled, Cancelled, Completed]
+          example: Scheduled
+
+    SessionUpdateBody:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Doit être dans le futur
+        capacity:
+          type: integer
+          minimum: 1
+        unit_price:
+          type: number
+          minimum: 0.01
+        status:
+          type: string
+          enum: [Scheduled, Cancelled, Completed]
+
+    # ── Order ──
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 12
+        user_id:
+          type: integer
+          example: 3
+        taxes:
+          type: number
+          example: 5.40
+        total_amount:
+          type: number
+          example: 59.98
+        payment_method:
+          type: string
+          nullable: true
+          example: card
+        payment_date:
+          type: string
+          nullable: true
+          example: "Monday, June 9, 2026, 10:00 AM"
+        status:
+          type: string
+          enum: [Pending, Confirmed, Cancelled, Refunded]
+        created_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    OrderUpdateBody:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [Confirmed, Cancelled, Refunded]
+          description: |
+            Transitions autorisées :
+            Pending → Confirmed | Cancelled
+            Confirmed → Refunded
+
+    # ── OrderLine ──
+    OrderLine:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 8
+        order_id:
+          type: integer
+          example: 12
+        session_id:
+          type: integer
+          example: 5
+        quantity:
+          type: integer
+          example: 2
+        unit_price:
+          type: number
+          example: 29.99
+        subtotal:
+          type: number
+          example: 59.98
+
+    OrderLineBody:
+      type: object
+      required: [order_id, session_id, quantity]
+      properties:
+        order_id:
+          type: integer
+          example: 12
+        session_id:
+          type: integer
+          example: 5
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+
+    # ── User (admin) ──
+    UserAdmin:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        email:
+          type: string
+          format: email
+        firstname:
+          type: string
+        lastname:
+          type: string
+        role:
+          type: string
+          nullable: true
+          example: member
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    UserUpdateBody:
+      type: object
+      required: [email, firstname, lastname]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+        firstname:
+          type: string
+          minLength: 1
+          maxLength: 100
+        lastname:
+          type: string
+          minLength: 1
+          maxLength: 100
+        role_id:
+          type: integer
+          description: Admin seulement
+          example: 2
+
+    PasswordUpdateBody:
+      type: object
+      required: [current_password, new_password]
+      properties:
+        current_password:
+          type: string
+          example: AncienP@ss1
+        new_password:
+          type: string
+          minLength: 8
+          maxLength: 100
+          description: Min 8 car., majuscule + minuscule + chiffre + caractère spécial, pas d'espace
+          example: N0uveauP@ss!
+
+    # ── Role ──
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: member
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: |
+        JWT access token stocké en cookie httpOnly (15 min).
+        Défini automatiquement par /auth/login ou /auth/refresh.
+        credentials: 'include' requis côté client.
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      example: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 12
+      example: 12
+
+  responses:
+    Unauthorized:
+      description: Non authentifié (token absent ou expiré)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Accès refusé (rôle insuffisant ou ressource d'un autre utilisateur)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+# ─── Paths ───────────────────────────────────────────────────────────────────
+
+paths:
+
+  # ── Auth ──────────────────────────────────────────────────────────────────
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Créer un compte utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBody'
+      responses:
+        '201':
+          description: Compte créé — cookies accessToken et refreshToken définis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Validation échouée (Zod)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Se connecter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: Connecté — cookies définis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  expiresInMS:
+                    type: integer
+                    example: 900000
+                  message:
+                    type: string
+        '401':
+          description: Email ou mot de passe incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Se déconnecter
+      description: Révoque le refresh token en BDD et efface les cookies.
+      responses:
+        '200':
+          description: Déconnecté
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: logged out
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Rafraîchir le token d'accès
+      description: |
+        Utilise le cookie refreshToken (httpOnly, path=/api/auth/refresh).
+        Rotation : l'ancien token est révoqué, un nouveau est émis.
+      responses:
+        '200':
+          description: Token rafraîchi — nouveau cookie accessToken défini
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  expiresInMS:
+                    type: integer
+                    example: 900000
+        '401':
+          description: Refresh token absent, invalide ou expiré
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/profile:
+    get:
+      tags: [Auth]
+      summary: Obtenir son profil utilisateur
+      description: Requiert un cookie accessToken valide.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Profil utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Categories ────────────────────────────────────────────────────────────
+
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Liste des catégories
+      responses:
+        '200':
+          description: Liste des catégories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+
+    post:
+      tags: [Categories]
+      summary: Créer une catégorie
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryBody'
+      responses:
+        '201':
+          description: Catégorie créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Category'
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /categories/by-slug/{slug}:
+    get:
+      tags: [Categories]
+      summary: Détail d'une catégorie par slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: survie
+      responses:
+        '200':
+          description: Catégorie trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /categories/{id}:
+    get:
+      tags: [Categories]
+      summary: Détail d'une catégorie par id
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Catégorie trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Categories]
+      summary: Modifier une catégorie
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryBody'
+      responses:
+        '200':
+          description: Catégorie mise à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Categories]
+      summary: Supprimer une catégorie
+      description: Admin uniquement. Échoue (409) si la catégorie est liée à une activité.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Catégorie supprimée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Catégorie liée à une ou plusieurs activités
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Activities ────────────────────────────────────────────────────────────
+
+  /activities:
+    get:
+      tags: [Activities]
+      summary: Liste des activités
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Liste paginée des activités
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Activity'
+
+    post:
+      tags: [Activities]
+      summary: Créer une activité
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityBody'
+      responses:
+        '201':
+          description: Activité créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Activity'
+                  message:
+                    type: string
+        '400':
+          description: Catégorie(s) invalide(s)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /activities/by-slug/{slug}:
+    get:
+      tags: [Activities]
+      summary: Détail d'une activité par slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: escape-zone
+      responses:
+        '200':
+          description: Activité trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Activity'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /activities/{id}:
+    get:
+      tags: [Activities]
+      summary: Détail d'une activité par id
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Activité trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Activity'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Activities]
+      summary: Modifier une activité
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityBody'
+      responses:
+        '200':
+          description: Activité mise à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Activity'
+        '400':
+          description: Catégorie(s) invalide(s)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Activities]
+      summary: Supprimer une activité
+      description: |
+        Admin uniquement. Hard delete.
+        Échoue (400) si l'activité a des sessions ou des lignes de commande associées.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Activité supprimée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Activité liée à des sessions ou des commandes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Sessions ──────────────────────────────────────────────────────────────
+
+  /sessions:
+    get:
+      tags: [Sessions]
+      summary: Liste des sessions
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Liste paginée des sessions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Session'
+
+    post:
+      tags: [Sessions]
+      summary: Créer une session
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionBody'
+      responses:
+        '201':
+          description: Session créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Session'
+                  message:
+                    type: string
+        '400':
+          description: Validation échouée (date passée, champ manquant)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Activité introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sessions/{id}:
+    get:
+      tags: [Sessions]
+      summary: Détail d'une session
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Session trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Session'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Sessions]
+      summary: Modifier une session
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionUpdateBody'
+      responses:
+        '200':
+          description: Session mise à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Sessions]
+      summary: Supprimer une session
+      description: |
+        Admin uniquement. Hard delete.
+        Échoue (400) si la session a des lignes de commande associées.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Session supprimée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Session liée à des lignes de commande
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Orders ────────────────────────────────────────────────────────────────
+
+  /orders:
+    get:
+      tags: [Orders]
+      summary: Liste toutes les commandes
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Liste paginée de toutes les commandes
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags: [Orders]
+      summary: Créer une commande
+      description: Member ou admin. Le user_id est extrait du token JWT (req.user.id).
+      security:
+        - cookieAuth: []
+      responses:
+        '201':
+          description: Commande créée (statut Pending)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /orders/mine:
+    get:
+      tags: [Orders]
+      summary: Liste mes commandes
+      description: Retourne uniquement les commandes de l'utilisateur connecté.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Mes commandes
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Détail d'une commande
+      description: Member (ses propres commandes) ou admin (toutes).
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Commande trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Orders]
+      summary: Modifier le statut d'une commande
+      description: |
+        Transitions autorisées :
+        - Pending → Confirmed | Cancelled
+        - Confirmed → Refunded
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderUpdateBody'
+      responses:
+        '200':
+          description: Statut mis à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          description: Transition de statut invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Orders]
+      summary: Supprimer une commande
+      description: Soft delete. Uniquement si statut Pending.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Commande supprimée (soft delete)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Commande non supprimable (statut != Pending)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Orders Lines ──────────────────────────────────────────────────────────
+
+  /orders_lines:
+    get:
+      tags: [OrdersLines]
+      summary: Liste toutes les lignes de commande
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Liste des lignes de commande
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderLine'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags: [OrdersLines]
+      summary: Créer une ligne de commande
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderLineBody'
+      responses:
+        '201':
+          description: Ligne créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/OrderLine'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /orders_lines/{id}:
+    get:
+      tags: [OrdersLines]
+      summary: Détail d'une ligne de commande
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Ligne trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/OrderLine'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [OrdersLines]
+      summary: Modifier une ligne de commande
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Ligne mise à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/OrderLine'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [OrdersLines]
+      summary: Supprimer une ligne de commande
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Ligne supprimée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Users ─────────────────────────────────────────────────────────────────
+
+  /users:
+    get:
+      tags: [Users]
+      summary: Liste des utilisateurs
+      description: Admin uniquement. Supporte la pagination et la recherche.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Recherche sur nom, prénom ou email (insensible à la casse)
+          example: dupont
+      responses:
+        '200':
+          description: Liste paginée des utilisateurs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserAdmin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Détail d'un utilisateur
+      description: Member (son propre compte) ou admin (tous).
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAdmin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Users]
+      summary: Modifier un utilisateur
+      description: Member (son propre compte) ou admin (tous). Seul l'admin peut modifier le role_id.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateBody'
+      responses:
+        '200':
+          description: Utilisateur mis à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/UserAdmin'
+        '400':
+          description: Validation échouée ou rôle invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Email déjà utilisé par un autre compte
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Users]
+      summary: Supprimer un compte
+      description: |
+        Soft delete. Member (son propre compte) ou admin.
+        Échoue (400) si l'utilisateur a des commandes Pending ou Confirmed.
+        Révoque aussi tous les refresh tokens de l'utilisateur.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Compte supprimé (soft delete)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Commandes actives (Pending ou Confirmed) en cours
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{id}/password:
+    put:
+      tags: [Users]
+      summary: Modifier le mot de passe
+      description: |
+        Member (son propre compte) ou admin.
+        Vérifie le mot de passe actuel, met à jour le hash, et révoque tous les refresh tokens
+        (déconnexion forcée des autres sessions) via une transaction Prisma.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordUpdateBody'
+      responses:
+        '200':
+          description: Mot de passe mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Validation échouée (politique de mot de passe)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Mot de passe actuel incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Roles ─────────────────────────────────────────────────────────────────
+
+  /roles:
+    get:
+      tags: [Roles]
+      summary: Liste des rôles
+      description: Admin uniquement.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Liste des rôles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Role'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /roles/{id}:
+    get:
+      tags: [Roles]
+      summary: Détail d'un rôle
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Rôle trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Role'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Upload ────────────────────────────────────────────────────────────────
+
+  /upload/activity-banner:
+    post:
+      tags: [Upload]
+      summary: Upload image bannière d'une activité
+      description: |
+        Admin uniquement. Fichier multipart/form-data.
+        Stocké dans vite-frontend/public/images/banners/.
+        Nom de fichier passé dans le body (filename), format .webp attendu.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, filename]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Fichier image (.webp recommandé)
+                filename:
+                  type: string
+                  example: escape-zone.webp
+      responses:
+        '200':
+          description: Upload réussi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  filename:
+                    type: string
+                    example: escape-zone.webp
+        '400':
+          description: Aucun fichier reçu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /upload/activity-thumb:
+    post:
+      tags: [Upload]
+      summary: Upload image miniature d'une activité
+      description: |
+        Admin uniquement. Fichier multipart/form-data.
+        Stocké dans vite-frontend/public/images/thumbs/.
+        Le nom de fichier (filename) doit correspondre à l'image bannière.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, filename]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                filename:
+                  type: string
+                  example: escape-zone.webp
+      responses:
+        '200':
+          description: Upload réussi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  filename:
+                    type: string
+                    example: escape-zone.webp
+        '400':
+          description: Aucun fichier reçu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'

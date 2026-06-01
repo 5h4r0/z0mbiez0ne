@@ -3,7 +3,7 @@
 
 ## 🚀 Gérer des services
 
-`docker-compose` permet de **définir et gérer plusieurs conteneurs** à l’aide d’un fichier `docker-compose.yml`.
+`docker-compose` permet de **définir et gérer plusieurs conteneurs** à l’aide d’un fichier `docker-compose.yaml`.
 
 > Ce fichier est au cœur de la configuration et permet de décrire l’ensemble de vos services.
 

@@ -23,7 +23,7 @@ zombiezone/
 ├── vite-frontend/            → SPA React 19 + Vite + React Router 7 + Zustand
 ├── docker/                   → Dockerfiles + nginx.conf
 ├── conception/               → Docs de conception, ERD, mockups, specs
-├── docker-compose.prod.yml   → Orchestration prod
+├── docker-compose.prod.yaml   → Orchestration prod
 ├── CLAUDE.md                 → Référence Claude Code
 ├── CLAUDE_AI.md              → Référence claude.ai
 └── DEPLOY.md                 → Procédure de déploiement VPS
@@ -121,9 +121,9 @@ npm run db:sql              # Appliquer postgres_schema.psql via psql
 ## 🐳 Docker
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build   # Build + démarrage
-docker compose -f docker-compose.prod.yml down             # Arrêt
-docker compose -f docker-compose.prod.yml logs -f          # Logs en temps réel
+docker compose -f docker-compose.prod.yaml up -d --build   # Build + démarrage
+docker compose -f docker-compose.prod.yaml down             # Arrêt
+docker compose -f docker-compose.prod.yaml logs -f          # Logs en temps réel
 ```
 
 Services : `db` (PostgreSQL 16), `backend` (Node 22), `frontend` (Nginx + build Vite).
