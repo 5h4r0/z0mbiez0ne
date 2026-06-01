@@ -41,7 +41,9 @@ describe('POST /api/auth/register', () => {
   });
 
   it('crée un utilisateur et retourne 201', async () => {
-    const res = await request(app).post('/api/auth/register').send(await validUser());
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send(await validUser());
 
     expect(res.status).toBe(201);
     expect(res.body.status).toBe('success');
@@ -50,7 +52,9 @@ describe('POST /api/auth/register', () => {
   });
 
   it('pose les cookies httpOnly accessToken et refreshToken', async () => {
-    const res = await request(app).post('/api/auth/register').send(await validUser());
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send(await validUser());
 
     const access = getCookie(res, 'accessToken');
     const refresh = getCookie(res, 'refreshToken');
@@ -62,8 +66,12 @@ describe('POST /api/auth/register', () => {
   });
 
   it('refuse si email déjà pris — 409', async () => {
-    await request(app).post('/api/auth/register').send(await validUser());
-    const res = await request(app).post('/api/auth/register').send(await validUser());
+    await request(app)
+      .post('/api/auth/register')
+      .send(await validUser());
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send(await validUser());
 
     expect(res.status).toBe(409);
   });
