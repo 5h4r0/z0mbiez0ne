@@ -1,6 +1,7 @@
 // vite-frontend/src/pages/LoginPage.tsx
 import { useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router';
+import { PasswordInput } from '../components/PasswordInput';
 import { ROLE_IDS } from '../lib/roles';
 import { useAuthStore } from '../store/authStore';
 import '../styles/pages.scss';
@@ -113,7 +114,7 @@ export default function LoginPage() {
             </div>
             <div>
               <label htmlFor="login-password" className={labelClass}>Mot de passe</label>
-              <input id="login-password" name="password" type="password" required autoComplete="current-password" className={inputClass} />
+              <PasswordInput id="login-password" name="password" required autoComplete="current-password" className={inputClass} />
             </div>
             <button
               type="submit"
@@ -141,12 +142,12 @@ export default function LoginPage() {
             </div>
             <div>
               <label htmlFor="reg-password" className={labelClass}>Mot de passe</label>
-              <input id="reg-password" name="password" type="password" required autoComplete="new-password" className={inputClass} />
+              <PasswordInput id="reg-password" name="password" required autoComplete="new-password" className={inputClass} />
               <p className="text-[0.72rem] text-(--color-text-muted) mt-1">8 car. min., majuscule, chiffre, caractère spécial.</p>
             </div>
             <div>
               <label htmlFor="reg-confirm" className={labelClass}>Confirmer le mot de passe</label>
-              <input id="reg-confirm" name="confirm" type="password" required autoComplete="new-password" className={inputClass} />
+              <PasswordInput id="reg-confirm" name="confirm" required autoComplete="new-password" className={inputClass} />
             </div>
             <button
               type="submit"
