@@ -7,6 +7,7 @@ export interface BasketItem {
   date: string;
   unitPrice: number;
   quantity: number;
+  availableCapacity: number;
 }
 
 interface BasketStore {

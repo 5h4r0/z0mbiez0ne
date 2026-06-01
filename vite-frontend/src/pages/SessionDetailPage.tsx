@@ -153,6 +153,7 @@ export default function SessionDetailPage() {
                   date: session.date_iso,
                   unitPrice: Number.parseFloat(session.unit_price),
                   quantity,
+                  availableCapacity: session.available_capacity,
                 });
                 navigate('/panier');
               }}
