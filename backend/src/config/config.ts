@@ -1,10 +1,3 @@
-// src/config/config.ts
-
-// -> load env vars once
-import dotenv from 'dotenv';
-
-dotenv.config();
-
 type NodeEnv = 'development' | 'production' | 'test';
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 

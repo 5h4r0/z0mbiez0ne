@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
+import { PasswordInput } from '../../components/PasswordInput';
 import { ROLE_IDS } from '../../lib/roles';
 import { useAuthStore } from '../../store/authStore';
 import '../../components/manage/manage.css';
@@ -63,7 +64,7 @@ export default function ManageLoginPage() {
           </div>
           <div className="manage-form__group">
             <label htmlFor="admin-password" className="manage-form__label">Mot de passe</label>
-            <input id="admin-password" name="password" type="password" required autoComplete="current-password" className="manage-form__input" />
+            <PasswordInput id="admin-password" name="password" required autoComplete="current-password" className="manage-form__input" />
           </div>
           <button
             type="submit"

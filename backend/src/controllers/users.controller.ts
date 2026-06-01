@@ -131,7 +131,7 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
 
     const isMatching = await argon2.verify(user.password_hash, body.current_password);
     if (!isMatching) {
-      throw new UnauthorizedError('current password is incorrect');
+      throw new UnauthorizedError('Le mot de passe actuel saisi est incorrect');
     }
 
     const newHash = await argon2.hash(body.new_password);
