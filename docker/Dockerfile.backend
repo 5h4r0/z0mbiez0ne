@@ -32,6 +32,7 @@ RUN npm ci --workspace=backend --omit=dev
 
 COPY --from=builder /app/backend/dist ./backend/dist
 COPY backend/src/ ./backend/src/
+COPY backend/openapi.yaml ./backend/openapi.yaml
 
 RUN cd backend && npx prisma generate --schema=./src/models/schema.prisma
 
