@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
+import { PasswordInput } from '../../components/PasswordInput';
 import type { AuthUser } from '../../store/authStore';
 import { apiFetch, useAuthStore } from '../../store/authStore';
 import '../../styles/pages.scss';
@@ -95,7 +96,7 @@ function ProfileSection({ user }: { user: AuthUser }) {
       <h2 className="font-montserrat text-[1.1rem] tracking-widest text-(--color-text) mb-5">
         MODIFIER LE PROFIL
       </h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex gap-3">
           <input
             type="text"
@@ -177,9 +178,8 @@ function PasswordSection({ userId }: { userId: number }) {
       <h2 className="font-montserrat text-[1.1rem] tracking-widest text-(--color-text) mb-5">
         MODIFIER LE MOT DE PASSE
       </h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md">
-        <input
-          type="password"
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <PasswordInput
           placeholder="Mot de passe actuel"
           value={current}
           onChange={(e) => setCurrent(e.target.value)}
@@ -187,8 +187,7 @@ function PasswordSection({ userId }: { userId: number }) {
           autoComplete="current-password"
           className="bg-(--color-surface) border border-(--color-border) rounded px-3 py-2 text-sm text-(--color-text) focus:outline-none focus:border-(--color-red)"
         />
-        <input
-          type="password"
+        <PasswordInput
           placeholder="Nouveau mot de passe"
           value={next}
           onChange={(e) => setNext(e.target.value)}
@@ -196,8 +195,7 @@ function PasswordSection({ userId }: { userId: number }) {
           autoComplete="new-password"
           className="bg-(--color-surface) border border-(--color-border) rounded px-3 py-2 text-sm text-(--color-text) focus:outline-none focus:border-(--color-red)"
         />
-        <input
-          type="password"
+        <PasswordInput
           placeholder="Confirmer le nouveau mot de passe"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
@@ -263,7 +261,7 @@ function DeleteSection({ userId }: { userId: number }) {
           Supprimer mon compte
         </button>
       ) : (
-        <div className="flex flex-col gap-3 max-w-md">
+        <div className="flex flex-col gap-3">
           <p className="text-(--color-text) text-sm font-semibold">
             Confirmer la suppression définitive du compte ?
           </p>
