@@ -5,14 +5,18 @@ import { createTestUser, prismaTest, resetDatabase } from './setup.js';
 
 // ─── Helpers ────────────────────────────────────────────────
 
-const VALID_USER = {
+const VALID_USER_BASE = {
   firstname: 'John',
   lastname: 'Doe',
   email: 'john@zombiezone.fr',
   password: 'Test1234!',
   confirm: 'Test1234!',
-  role_id: 2,
 };
+
+async function validUser() {
+  const role = await prismaTest.roles.findUniqueOrThrow({ where: { name: 'member' } });
+  return { ...VALID_USER_BASE, role_id: role.id };
+}
 
 /** Extrait un cookie par nom depuis les headers Set-Cookie */
 function getCookie(res: request.Response, name: string): string | undefined {
@@ -37,16 +41,16 @@ describe('POST /api/auth/register', () => {
   });
 
   it('crée un utilisateur et retourne 201', async () => {
-    const res = await request(app).post('/api/auth/register').send(VALID_USER);
+    const res = await request(app).post('/api/auth/register').send(await validUser());
 
     expect(res.status).toBe(201);
     expect(res.body.status).toBe('success');
-    expect(res.body.data.email).toBe(VALID_USER.email);
+    expect(res.body.data.email).toBe(VALID_USER_BASE.email);
     expect(res.body.data.password_hash).toBeUndefined();
   });
 
   it('pose les cookies httpOnly accessToken et refreshToken', async () => {
-    const res = await request(app).post('/api/auth/register').send(VALID_USER);
+    const res = await request(app).post('/api/auth/register').send(await validUser());
 
     const access = getCookie(res, 'accessToken');
     const refresh = getCookie(res, 'refreshToken');
@@ -58,8 +62,8 @@ describe('POST /api/auth/register', () => {
   });
 
   it('refuse si email déjà pris — 409', async () => {
-    await request(app).post('/api/auth/register').send(VALID_USER);
-    const res = await request(app).post('/api/auth/register').send(VALID_USER);
+    await request(app).post('/api/auth/register').send(await validUser());
+    const res = await request(app).post('/api/auth/register').send(await validUser());
 
     expect(res.status).toBe(409);
   });
@@ -67,7 +71,7 @@ describe('POST /api/auth/register', () => {
   it('refuse si mot de passe trop faible — 400', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ ...VALID_USER, email: 'other@zombiezone.fr', password: 'weak', confirm: 'weak' });
+      .send({ ...VALID_USER_BASE, email: 'other@zombiezone.fr', password: 'weak', confirm: 'weak' });
 
     expect(res.status).toBe(400);
   });
@@ -75,7 +79,7 @@ describe('POST /api/auth/register', () => {
   it('refuse si passwords ne correspondent pas — 400', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ ...VALID_USER, confirm: 'Mismatch1!' });
+      .send({ ...VALID_USER_BASE, confirm: 'Mismatch1!' });
 
     expect(res.status).toBe(400);
   });
@@ -83,7 +87,7 @@ describe('POST /api/auth/register', () => {
   it('refuse si role_id invalide — 400', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ ...VALID_USER, email: 'other2@zombiezone.fr', role_id: 999 });
+      .send({ ...VALID_USER_BASE, email: 'other2@zombiezone.fr', role_id: 999 });
 
     expect(res.status).toBe(400);
   });
