@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../../');
-const COMPOSE_FILE = path.join(ROOT, 'docker-compose.test.yml');
+const COMPOSE_FILE = path.join(ROOT, 'docker-compose.test.yaml');
 
 export async function setup() {
   if (process.env.CI) return; // Docker fourni par GitHub Actions

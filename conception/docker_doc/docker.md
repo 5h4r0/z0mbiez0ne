@@ -213,7 +213,7 @@ mon-projet/
 ├── src/
 │   └── index.ts
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yaml
 ├── package.json
 ├── tsconfig.json
 ├── .env
@@ -237,7 +237,7 @@ Ces variables seront utilisées par `docker compose` pour :
 
 ---
 
-### 🐳 Fichier `docker-compose.yml` (explication + exemple)
+### 🐳 Fichier `docker-compose.yaml` (explication + exemple)
 
 ```yaml
 version: "3.9"
