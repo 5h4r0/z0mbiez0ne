@@ -24,7 +24,9 @@
     "lint:prod": "biome check --config-path biome.prod.json",
     "test": "dotenv -e .env.test -- vitest run",
     "test:watch": "dotenv -e .env.test -- vitest",
-    "test:coverage": "dotenv -e .env.test -- vitest run --coverage"
+    "test:coverage": "dotenv -e .env.test -- vitest run --coverage",
+    "test:integration": "vitest run src/__tests__",
+    "test:unit": "dotenv -e .env.test -- vitest run src/lib src/utils src/helpers"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
