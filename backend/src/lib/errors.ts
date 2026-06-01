@@ -4,7 +4,7 @@ export class HttpClientError extends Error {
 
   constructor(message: string, { status }: { status: number }) {
     super(message);
-    this.name = this.constructor.name; // force keeping the name of the subclass for errors, UnauthorizedError etc.
+    this.name = this.constructor.name; // forcer la conservation du nom de la sous-classe pour les erreurs, UnauthorizedError, etc.
     this.status = status;
   }
 }
