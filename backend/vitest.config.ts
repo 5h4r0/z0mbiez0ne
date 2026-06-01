@@ -7,8 +7,8 @@ export default defineConfig({
     globals: true,
     env: {
       NODE_ENV: 'test',
-      DATABASE_URL: 'postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test',
-      TEST_DATABASE_URL: 'postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test',
+      DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test',
+      TEST_DATABASE_URL: process.env.TEST_DATABASE_URL ?? 'postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test',
     },
     setupFiles: ['./src/__tests__/setup.ts'],
     include: ['src/**/*.test.ts'],
