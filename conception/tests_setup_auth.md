@@ -36,15 +36,15 @@ backend/
 │           ├── logout.test.ts             ← nouveau
 │           ├── refresh.test.ts            ← nouveau
 │           └── profile.test.ts            ← nouveau
-└── docker-compose.test.yml                ← nouveau
+└── docker-compose.test.yaml                ← nouveau
 ```
 
 ---
 
-## 3. `docker-compose.test.yml`
+## 3. `docker-compose.test.yaml`
 
 ```yaml
-# backend/docker-compose.test.yml
+# backend/docker-compose.test.yaml
 services:
   postgres-test:
     image: postgres:16-alpine
@@ -135,7 +135,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../../../');   // = backend/
-const COMPOSE_FILE = path.join(ROOT, 'docker-compose.test.yml');
+const COMPOSE_FILE = path.join(ROOT, 'docker-compose.test.yaml');
 
 export async function setup() {
   console.log('\n🐘 Démarrage PostgreSQL de test...');
@@ -163,7 +163,7 @@ export async function teardown() {
   if (process.env.CI === 'true') {
     const COMPOSE_FILE_PATH = path.join(
       path.dirname(fileURLToPath(import.meta.url)),
-      '../../../docker-compose.test.yml'
+      '../../../docker-compose.test.yaml'
     );
     execSync(`docker compose -f ${COMPOSE_FILE_PATH} down`, { stdio: 'inherit' });
     console.log('🛑 PostgreSQL test arrêtée (CI)');
@@ -687,7 +687,7 @@ describe('GET /api/auth/profile', () => {
 ## 17. Ordre d'implémentation recommandé (CC)
 
 ```
-1. docker-compose.test.yml
+1. docker-compose.test.yaml
 2. .env.test  (+ ajouter à .gitignore)
 3. vitest.config.ts
 4. package.json scripts test

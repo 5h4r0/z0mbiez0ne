@@ -37,14 +37,14 @@ git clone <repo-url> /srv/zombiezone
 cd /srv/zombiezone
 cp backend/.env.example backend/.env.production
 # remplir .env.production
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yaml up -d --build
 docker compose exec backend npm run db:deploy
 ```
 
 ### Mise à jour
 ```bash
 git pull origin main
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yaml up -d --build
 docker compose exec backend npm run db:deploy
 ```
 
@@ -70,7 +70,7 @@ LOG_LEVEL=warn
 
 ## Fichiers manquants à créer (TODO)
 
-- `docker-compose.prod.yml`
+- `docker-compose.prod.yaml`
 - `Dockerfile` backend
 - `Dockerfile` frontend (Nginx)
 - Config Nginx (routing `/api` → backend, `/` → frontend, SSL)
