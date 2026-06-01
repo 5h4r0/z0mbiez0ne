@@ -6,7 +6,6 @@ export const prismaTest = new PrismaClient({
   log: [],
 });
 
-// Reset BDD entre chaque suite — ordre FK obligatoire
 export async function resetDatabase() {
   await prismaTest.$transaction([
     prismaTest.orders_lines.deleteMany(),
@@ -17,10 +16,8 @@ export async function resetDatabase() {
     prismaTest.activities.deleteMany(),
     prismaTest.categories.deleteMany(),
     prismaTest.users.deleteMany(),
-    prismaTest.roles.deleteMany(),
   ]);
-
-  // Ordre identique au seed de prod : member en premier, admin en second
+  await prismaTest.roles.deleteMany();
   await prismaTest.roles.createMany({
     data: [{ name: 'member' }, { name: 'admin' }],
   });

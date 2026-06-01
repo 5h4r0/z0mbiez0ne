@@ -121,8 +121,9 @@ export default function BasketPage() {
                     <button
                       type="button"
                       aria-label="Augmenter la quantité"
-                      onClick={() => updateQuantity(item.sessionId, item.quantity + 1)}
-                      className="bg-(--color-border) border-none text-(--color-text) w-8 h-8 rounded cursor-pointer text-base"
+                      onClick={() => updateQuantity(item.sessionId, Math.min(item.availableCapacity, item.quantity + 1))}
+                      disabled={item.quantity >= item.availableCapacity}
+                      className="bg-(--color-border) border-none text-(--color-text) w-8 h-8 rounded cursor-pointer text-base disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       +
                     </button>
