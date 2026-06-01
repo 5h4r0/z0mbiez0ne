@@ -1,11 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { describe, expect, it } from 'vitest';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyAccessToken,
-  verifyRefreshToken,
-} from './tokens.js';
+import { generateAccessToken, generateRefreshToken, verifyAccessToken, verifyRefreshToken } from './tokens.js';
 
 describe('generateAccessToken', () => {
   it('returns a valid JWT string', () => {
@@ -33,9 +28,7 @@ describe('generateRefreshToken', () => {
     const { jwt: token, tokenId } = generateRefreshToken(1);
     expect(typeof token).toBe('string');
     expect(token.split('.')).toHaveLength(3);
-    expect(tokenId).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-    );
+    expect(tokenId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   });
 
   it('embeds userId and tokenId in the payload', () => {
