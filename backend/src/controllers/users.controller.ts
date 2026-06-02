@@ -84,14 +84,17 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
     if (user) {
       // -> side-effect only, no return
       res.status(200).json({
-        id: user.id,
-        email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        deleted_at: user.deleted_at,
-        role: user.role?.name ?? null,
+        success: true,
+        data: {
+          id: user.id,
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+          deleted_at: user.deleted_at,
+          role: user.role?.name ?? null,
+        },
       });
     } else {
       res.status(404).json({ success: false, message: buildErrorMessage('not_found', 'user', String(userId)) });

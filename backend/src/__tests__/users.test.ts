@@ -77,7 +77,8 @@ describe('GET /api/users/:id', () => {
     const res = await agent.get(`/api/users/${user.id}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.email).toBe('reader@zombiezone.fr');
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.email).toBe('reader@zombiezone.fr');
   });
 
   it('404 si utilisateur inexistant', async () => {
