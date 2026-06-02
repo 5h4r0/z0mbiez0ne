@@ -67,6 +67,7 @@ export default function ManageOrdersPage() {
     { header: 'ID', accessor: 'id' },
     { header: 'Statut', render: (row) => STATUS_LABEL[row.status] ?? row.status, cellClassName: (row) => STATUS_CLASS[row.status] ?? '' },
     { header: 'Total', render: (row) => `€${Number(row.total_amount).toFixed(2)}` },
+    { header: 'Client', render: (row) => `${row.lastname ?? ''} ${row.firstname ?? ''}`.trim() || '—' },
     { header: 'Paiement', render: (row) => row.payment_method ?? '—' },
     { header: 'Créée le', render: (row) => formatDate(row.created_at) },
   ];

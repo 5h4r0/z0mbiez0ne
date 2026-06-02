@@ -225,6 +225,16 @@ docker compose -f docker-compose.prod.yaml exec -w /app/backend backend \
 docker compose -f docker-compose.prod.yaml restart backend
 ```
 
+## Pull, build tout
+
+```bash
+steph@ubuntu:/srv/zombiezone$ git pull origin master && docker compose -f docker-compose.prod.yaml up -d --build
+
+# -f — flag (ou option) pour spécifier le fichier Compose à utiliser (au lieu du docker-compose.yml par défaut)
+# -d — mode detached : les containers tournent en arrière-plan, le terminal est libéré
+# --build — force le rebuild des images avant de démarrer
+```
+
 ---
 
 ## Renouvellement SSL
