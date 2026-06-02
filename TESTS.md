@@ -7,11 +7,11 @@
 
 ### Les 3 types de tests
 
-| Type | Ce qu'on teste | Vitesse | Priorité |
-|------|---------------|---------|----------|
-| **Intégration** | Route HTTP → controller → BDD (plusieurs couches ensemble) | Moyen | ⭐ 1 |
-| **Unitaire** | Fonction isolée (helper, validator, util) | Rapide | ⭐ 2 |
-| **E2E** | Flow complet navigateur (login → commande → annulation) | Lent | ⭐ 3 |
+| Type            | Ce qu'on teste                                             | Vitesse | Priorité |
+|-----------------|------------------------------------------------------------|---------|----------|
+| **Intégration** | Route HTTP → controller → BDD (plusieurs couches ensemble) | Moyen   | ⭐ 1      |
+| **Unitaire**    | Fonction isolée (helper, validator, util)                  | Rapide  | ⭐ 2      |
+| **E2E**         | Flow complet navigateur (login → commande → annulation)    | Lent    | ⭐ 3      |
 
 **Pourquoi l'intégration en premier ?**
 Un test d'intégration couvre router + controller + BDD en une seule passe — meilleur ROI pour un backend Express.
@@ -38,9 +38,9 @@ Objectif zombiezone : **≥ 80%** sur le backend.
 
 ### Stack retenue
 
-| Outil | Rôle |
-|-------|------|
-| **Vitest** | Runner — exécute les tests, fournit `describe` / `it` / `expect`, génère le coverage |
+| Outil         | Rôle                                                                                         |
+|---------------|----------------------------------------------------------------------------------------------|
+| **Vitest**    | Runner — exécute les tests, fournit `describe` / `it` / `expect`, génère le coverage         |
 | **Supertest** | Simule des requêtes HTTP sur l'app Express **sans démarrer de serveur** (pas de port ouvert) |
 
 Ce sont des outils **complémentaires**, pas concurrents :
@@ -63,21 +63,23 @@ backend/
 └── src/
     ├── __tests__/                ← intégration uniquement (multi-couches)
     │   ├── setup.ts              ← BDD test, resetDatabase(), helpers
+    │   ├── globalSetup.ts        ← démarrage Docker + db push + seed roles
+    │   ├── tsconfig.json         ← types Node + vitest/globals pour VSCode
     │   ├── auth.test.ts          ✅ 18 tests
     │   ├── orders.test.ts        ✅ 21 tests
     │   ├── activities.test.ts    ✅ 19 tests
     │   ├── categories.test.ts    ✅ 22 tests
     │   ├── sessions.test.ts      ✅ 24 tests
-    │   └── users.test.ts         ✅ 12 tests
+    │   └── users.test.ts         ✅ 25 tests
     ├── utils/
     │   ├── slugify.ts
-    │   └── slugify.test.ts       ← unitaire colocalisé (à faire)
+    │   └── slugify.test.ts       ✅
     ├── helpers/
     │   ├── pagination.ts
-    │   └── pagination.test.ts    ← unitaire colocalisé (à faire)
+    │   └── pagination.test.ts    ✅
     └── lib/
         ├── tokens.ts
-        └── tokens.test.ts        ← unitaire colocalisé (à faire)
+        └── tokens.test.ts        ✅
 ```
 
 **Règle simple :**
@@ -101,12 +103,12 @@ git commit -m "build: 🛠 add vitest + supertest"
 
 ### `npm install` vs `npm ci`
 
-| | `npm install` | `npm ci` |
-|---|---|---|
-| Usage | Dev local | CI / Docker prod |
-| Lock file | Met à jour si besoin | Échoue si désynchronisé |
-| `node_modules` | Incrémental | Supprime et recrée |
-| Garantie | Non | Reproductible exact |
+|                | `npm install`        | `npm ci`                |
+|----------------|----------------------|-------------------------|
+| Usage          | Dev local            | CI / Docker prod        |
+| Lock file      | Met à jour si besoin | Échoue si désynchronisé |
+| `node_modules` | Incrémental          | Supprime et recrée      |
+| Garantie       | Non                  | Reproductible exact     |
 
 Dans `Dockerfile.backend` prod : `npm ci --omit=dev` — installe uniquement les `dependencies`, pas les `devDependencies`.
 
@@ -125,9 +127,18 @@ Vitest expose ses types nativement — `@types/vitest` est déprécié depuis la
 Dans `backend/package.json` :
 
 ```json
-"test": "vitest run",
-"test:watch": "vitest",
-"test:coverage": "vitest run --coverage"
+"test": "dotenv -e .env.test -- vitest run",
+"test:watch": "dotenv -e .env.test -- vitest",
+"test:coverage": "dotenv -e .env.test -- vitest run --coverage",
+"test:integration": "vitest run src/__tests__",
+"test:unit": "dotenv -e .env.test -- vitest run src/lib src/utils src/helpers"
+```
+Dans /backend :
+```
+npm test                    # tous les tests
+npm run test:integration    # intégration seulement
+npm run test:unit           # unitaires seulement
+npm run test:coverage       # avec coverage
 ```
 
 ---
@@ -147,11 +158,11 @@ Jamais sur la BDD de prod.
 
 ## Où tournent les tests ?
 
-| Contexte | Quand | BDD |
-|----------|-------|-----|
-| Local | `npm run test` manuel | `zombiezone_test` locale |
+| Contexte          | Quand                  | BDD                                       |
+|-------------------|------------------------|-------------------------------------------|
+| Local             | `npm run test` manuel  | `zombiezone_test` locale                  |
 | CI GitHub Actions | push sur `master` / PR | `zombiezone_test` éphémère dans le runner |
-| Prod (VPS) | jamais | — |
+| Prod (VPS)        | jamais                 | —                                         |
 
 ---
 
@@ -159,13 +170,13 @@ Jamais sur la BDD de prod.
 
 ### Hard delete vs Soft delete
 
-| Entité | Stratégie | Note |
-|--------|-----------|------|
-| `users` | Soft delete (`deleted_at`) | ✅ cohérent |
-| `orders` | Soft delete (`deleted_at`) | ✅ cohérent |
-| `activities` | Hard delete | intentionnel — permet suppression fichier image |
-| `categories` | Hard delete | intentionnel — permet suppression fichier image |
-| `sessions` | Hard delete | intentionnel |
+| Entité       | Stratégie                  | Note                                            |
+|--------------|----------------------------|-------------------------------------------------|
+| `users`      | Soft delete (`deleted_at`) | ✅ cohérent                                      |
+| `orders`     | Soft delete (`deleted_at`) | ✅ cohérent                                      |
+| `activities` | Hard delete                | intentionnel — permet suppression fichier image |
+| `categories` | Hard delete                | intentionnel — permet suppression fichier image |
+| `sessions`   | Hard delete                | intentionnel                                    |
 
 ⚠️ `deleted_at` présent dans le schéma sur `activities`, `categories`, `sessions` mais inutilisé — migration à prévoir pour nettoyer.
 
@@ -177,23 +188,23 @@ Jamais sur la BDD de prod.
 
 ## Plan d'implémentation
 
-### Priorité 1 — Intégration backend ✅ 116/116
+### Priorité 1 — Intégration backend ✅ 129/129
 
-| Suite | Tests | Couverture |
-|-------|-------|-----------|
-| `auth.test.ts` ✅ | 18 | register, login, logout, refresh (rotation), profile, cookies httpOnly |
-| `orders.test.ts` ✅ | 21 | POST/GET/PUT/DELETE, taxes, user_id sécurisé, transitions statut, soft delete |
-| `activities.test.ts` ✅ | 19 | CRUD, slug auto, hard delete, 401/403/404 |
-| `categories.test.ts` ✅ | 22 | CRUD, slug auto, hard delete, 409 si liée à activity |
-| `sessions.test.ts` ✅ | 24 | CRUD, filtre statut, hard delete, 400 si order_lines |
-| `users.test.ts` ✅ | 12 | GET list admin, GET/:id, PUT, soft delete, 401/403 |
+| Suite                  | Tests | Couverture                                                                              |
+|------------------------|-------|-----------------------------------------------------------------------------------------|
+| `auth.test.ts` ✅       | 18    | register, login, logout, refresh (rotation), profile, cookies httpOnly                  |
+| `orders.test.ts` ✅     | 21    | POST/GET/PUT/DELETE, taxes, user_id sécurisé, transitions statut, soft delete           |
+| `activities.test.ts` ✅ | 19    | CRUD, slug auto, hard delete, 401/403/404                                               |
+| `categories.test.ts` ✅ | 22    | CRUD, slug auto, hard delete, 409 si liée à activity                                   |
+| `sessions.test.ts` ✅   | 24    | CRUD, filtre statut, hard delete, 400 si order_lines                                   |
+| `users.test.ts` ✅      | 25    | GET list admin, GET/:id, PUT, PUT password, révocation refresh tokens, soft delete, 401/403 |
 
-### Priorité 2 — Unitaires ⬜
+### Priorité 2 — Unitaires ✅ 35 tests
 
 - `lib/tokens.test.ts` — `generateAccessToken` / `generateRefreshToken`
+- `lib/auth.test.ts` — helpers auth
 - `utils/slugify.test.ts` — `slugify()`
-- `helpers/pagination.test.ts` — `getPagination()`
-- Validators Zod (inputs malformés, champs manquants)
+- `helpers/getPagination.test.ts` — `getPagination()`
 
 ### Priorité 3 — E2E Playwright ⬜
 
@@ -205,7 +216,7 @@ Jamais sur la BDD de prod.
 ## setup.ts — fonctionnement
 
 - **`prismaTest`** : client Prisma connecté à `TEST_DATABASE_URL`
-- **`resetDatabase()`** : vide toutes les tables dans l'ordre FK + recrée les rôles (`skipDuplicates: true`)
+- **`resetDatabase()`** : vide les tables dans l'ordre FK sans toucher aux rôles. Les rôles sont seedés une seule fois dans `globalSetup.ts` via `roles.createMany({ skipDuplicates: true })`.
 - **`createTestUser()`** : crée un user member en BDD avec mot de passe hashé
 - **`createTestAdmin()`** : idem avec `role_id: 1`
 
@@ -213,9 +224,8 @@ Jamais sur la BDD de prod.
 
 ```
 orders_lines → orders → RefreshToken → activities_categories
-→ sessions → activities → categories → users → roles
+→ sessions → activities → categories → users
 ```
-Puis seed : `roles.createMany({ data: [{id:1, name:'admin'}, {id:2, name:'member'}], skipDuplicates: true })`
 
 ---
 
@@ -240,12 +250,16 @@ Sans ça, `resetDatabase()` vide la BDD de test mais Express continue de lire la
 
 ---
 
-## CI/CD (à venir)
+## CI/CD ✅
 
-Les tests s'intégreront dans GitHub Actions :
+Pipeline actif sur GitHub Actions :
 
 ```
 lint → test → build → deploy
 ```
-
-Voir `TODO global` : item 9 — CI/CD GitHub Actions.
+Dans /backend ou /vite-frontend :
+```
+npm run lint        # dev
+npm run lint:prod   # prod (config Biome stricte)
+npm run fix         # autofix
+```
