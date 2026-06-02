@@ -66,4 +66,6 @@
 ## 📧 Emails (post-examen)
 
 - [ ] Validation création compte — Nodemailer ou Resend
+- [ ] Oubli mot de passe + page publique (ou /dashboard/settings directement par lien de connexion ?) — Nodemailer ou Resend
 - [ ] Confirmation commande — lignes HT + total TTC
+
