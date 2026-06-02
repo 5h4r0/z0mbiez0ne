@@ -1,0 +1,72 @@
+erDiagram
+  ROLES ||--o{ USERS : "caractérise"
+  USERS ||--o{ ORDERS : "passe"
+  USERS ||--o{ REFRESH_TOKEN : "possède"
+  ACTIVITIES ||--o{ SESSIONS : "planifie"
+  ACTIVITIES ||--o{ ACTIVITIES_CATEGORIES : "associe"
+  CATEGORIES ||--o{ ACTIVITIES_CATEGORIES : "regroupe"
+  ORDERS ||--|{ ORDERS_LINES : "contient"
+  SESSIONS ||--o{ ORDERS_LINES : "cible"
+
+  ROLES {
+    int id PK
+    string name "member | admin"
+  }
+  USERS {
+    int id PK
+    int role_id FK
+    string email
+    string firstname
+    string lastname
+    string password_hash
+    timestamp deleted_at "soft delete"
+  }
+  ACTIVITIES {
+    int id PK
+    string title
+    string slug
+    string image_filename
+  }
+  CATEGORIES {
+    int id PK
+    string title
+    string slug
+    string image_filename
+  }
+  ACTIVITIES_CATEGORIES {
+    int activity_id FK
+    int category_id FK
+  }
+  SESSIONS {
+    int id PK
+    int activity_id FK
+    timestamp date
+    int capacity
+    decimal unit_price
+    enum status "Scheduled | Cancelled | Completed"
+  }
+  ORDERS {
+    int id PK
+    int user_id FK
+    decimal taxes
+    decimal total_amount
+    string payment_method
+    timestamp payment_date
+    enum status "Pending | Confirmed | Cancelled | Refunded"
+    timestamp deleted_at "soft delete"
+  }
+  ORDERS_LINES {
+    int id PK
+    int order_id FK
+    int session_id FK
+    int tickets_qty
+    decimal amount
+  }
+  REFRESH_TOKEN {
+    int id PK
+    int user_id FK
+    string token_id
+    text token_hash
+    timestamp issued_at
+    timestamp expired_at
+  }
