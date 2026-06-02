@@ -55,13 +55,6 @@
 
 ---
 
-## 🟠 Schema / technique
-
-- [ ] Migration Prisma — supprimer `deleted_at` sur `activities`, `categories`, `sessions` (champ inutilisé)
-- [ ] Harmoniser `GET /api/users/:id` — ajouter wrapper `{ success, data }` + adapter frontend
-
----
-
 ## 📋 Dossiers CDA — priorité absolue avant le 2026-06-09
 
 - [ ] **Dossier projet** — à partir du référentiel RNCP CDA niveau 6
