@@ -13,6 +13,38 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.klaroConfig = {
+        version: 1,
+        elementID: 'klaro',
+        lang: 'fr',
+        acceptAll: true,
+        hideDeclineAll: false,
+        cookieName: 'zombiezone-consent',
+        cookieExpiresAfterDays: 365,
+        translations: {
+          fr: {
+            consentNotice: {
+              description: 'zØmbie zØne utilise des cookies fonctionnels pour votre session. Aucun cookie publicitaire ou de tracking.',
+            },
+            acceptAll: 'Accepter',
+            declineAll: 'Refuser',
+            close: 'Fermer',
+          },
+        },
+        services: [
+          {
+            name: 'session',
+            title: 'Cookies de session',
+            description: "Nécessaires au fonctionnement de l'authentification (httpOnly, sécurisés).",
+            required: true,
+            purposes: ['security'],
+          },
+        ],
+      };
+    </script>
+    <link rel="stylesheet" href="/klaro/klaro.min.css" />
+    <script defer src="/klaro/klaro.js" data-config="klaroConfig"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
