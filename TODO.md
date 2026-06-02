@@ -55,13 +55,6 @@
 
 ---
 
-## 🟠 Schema / technique
-
-- [ ] Migration Prisma — supprimer `deleted_at` sur `activities`, `categories`, `sessions` (champ inutilisé)
-- [ ] Harmoniser `GET /api/users/:id` — ajouter wrapper `{ success, data }` + adapter frontend
-
----
-
 ## 📋 Dossiers CDA — priorité absolue avant le 2026-06-09
 
 - [ ] **Dossier projet** — à partir du référentiel RNCP CDA niveau 6
@@ -73,4 +66,19 @@
 ## 📧 Emails (post-examen)
 
 - [ ] Validation création compte — Nodemailer ou Resend
+- [ ] Oubli mot de passe + page publique (ou /dashboard/settings directement par lien de connexion ?) — Nodemailer ou Resend
 - [ ] Confirmation commande — lignes HT + total TTC
+
+---
+
+## Détails en /manage/sessions/:id et /manage/commandes/:id (post-examen)
+
+### Sessions
+- Page détail : date, activité, statut, capacité/dispo
+- Tableau des inscrits : orders_lines liées à la session → order.user → nom/prénom + qty + statut commande
+- Backend : enrichir GET /api/sessions/:id avec orders_lines + users
+
+### Orders
+- Page détail : date, statut, total
+- Tableau des lignes : orders_lines → session (date, activité) + qty + montant
+- Backend : GET /api/orders/:id existe déjà — vérifier si orders_lines sont incluses

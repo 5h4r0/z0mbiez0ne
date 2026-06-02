@@ -50,13 +50,18 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
         take: limit,
         skip,
         orderBy: [{ status: 'asc' }, { created_at: 'desc' }],
+        include: { user: { select: { firstname: true, lastname: true } } },
       }),
       prisma.orders.count(),
     ]);
 
     res.status(200).json({
       success: true,
-      data: orders.map(formatOrder),
+      data: orders.map((o) => ({
+        ...formatOrder(o),
+        firstname: o.user?.firstname ?? null,
+        lastname: o.user?.lastname ?? null,
+      })),
       total,
       page,
       limit,
