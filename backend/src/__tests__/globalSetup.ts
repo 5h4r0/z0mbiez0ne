@@ -6,7 +6,9 @@ import { PrismaClient } from '@prisma/client';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../../');
 const COMPOSE_FILE = path.join(ROOT, 'docker-compose.test.yaml');
-const TEST_DATABASE_URL = 'postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test';
+const TEST_DATABASE_URL = 
+  process.env.DATABASE_URL ?? 
+  'postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test';
 
 export async function setup() {
   if (!process.env.CI) {
