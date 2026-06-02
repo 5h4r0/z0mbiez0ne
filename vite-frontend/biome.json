@@ -34,7 +34,7 @@
         "noUnusedVariables": "error"
       }
     },
-    "includes": ["**", "!/dist/**"]
+    "includes": ["**", "!/dist/**", "!public/**"]
   },
   "assist": {
     "enabled": true
