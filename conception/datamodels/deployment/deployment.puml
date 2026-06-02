@@ -1,0 +1,110 @@
+@startuml deployment
+title Diagramme de déploiement — zØmbie zØne
+
+skinparam backgroundColor #FFFFFF
+skinparam node {
+  BackgroundColor #F5F5F5
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam artifact {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam component {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam database {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam cloud {
+  BackgroundColor #F5F5F5
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam arrow {
+  Color #333333
+  FontColor #000000
+}
+skinparam titleFontColor #000000
+skinparam titleFontSize 16
+skinparam noteFontColor #000000
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #999999
+
+' ─── Client ───────────────────────────────────────────────────────────────────
+node "Navigateur\n(Client)" as browser {
+  component "React SPA\n(JS/CSS/HTML)" as spa
+}
+
+' ─── GitHub ───────────────────────────────────────────────────────────────────
+cloud "GitHub" as github {
+  component "Repository\ngithub.com/5h4r0/z0mbiez0ne" as repo
+  component "GitHub Actions\nCI/CD Pipeline" as ci
+  note right of ci
+    push master :
+    lint → test (151) → build → deploy SSH
+  end note
+}
+
+' ─── VPS Ionos ────────────────────────────────────────────────────────────────
+node "VPS Ionos\nUbuntu 24.04 LTS\n2 vCPU / 2 GB RAM / 80 GB NVMe\nIP : 82.165.180.54" as vps {
+
+  component "Certbot / Let's Encrypt\n(SSL auto-renew)" as certbot
+
+  node "Docker Engine" as docker {
+
+    node "Container : frontend\n(Nginx Alpine)" as cnginx {
+      component "Nginx\nReverse Proxy + SSL\nports 80/443" as nginx
+      artifact "Build Vite\n(dist/ statique)" as vitebuild
+    }
+
+    node "Container : backend\n(Node 22 Alpine)" as cbackend {
+      component "Express 5 API\nport 3000 (interne)" as express
+      artifact "dist/\n(TypeScript compilé)" as tsdist
+    }
+
+    node "Container : db\n(PostgreSQL 16 Alpine)" as cdb {
+      database "PostgreSQL 16\nport 5432 (interne)\nvolume pgdata persistant" as pg
+    }
+  }
+}
+
+' ─── Relations ────────────────────────────────────────────────────────────────
+
+browser --> vps : HTTPS 443\n(sharo.fr)
+
+nginx --> vitebuild : sert les fichiers\nstatiques
+nginx --> express : proxy_pass\n/api/ → backend:3000
+express --> pg : Prisma ORM\n(réseau Docker interne)
+
+certbot --> nginx : certificat TLS\n(Let's Encrypt)
+
+repo --> ci : push master\ndéclenche le pipeline
+ci --> vps : SSH deploy\ngit pull + docker compose\nup --build -d
+
+' ─── Notes ────────────────────────────────────────────────────────────────────
+note bottom of cdb
+  Port 5432 non exposé
+  publiquement — réseau
+  Docker interne uniquement
+end note
+
+note bottom of cbackend
+  Multi-stage build :
+  builder (tsc) → runner (dist/ seul)
+  .env.production sur VPS uniquement
+end note
+
+note right of nginx
+  HTTP → HTTPS redirect
+  SPA fallback : try_files $uri /index.html
+  /api/docs → Swagger UI
+end note
+
+@enduml

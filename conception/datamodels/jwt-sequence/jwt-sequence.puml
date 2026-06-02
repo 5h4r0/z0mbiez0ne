@@ -1,0 +1,76 @@
+@startuml jwt-sequence
+title Cycle d'authentification JWT — zØmbie zØne
+
+skinparam sequenceMessageAlign center
+skinparam backgroundColor #FFFFFF
+skinparam sequence {
+  ArrowColor #333333
+  ActorBorderColor #333333
+  LifeLineBorderColor #333333
+  ParticipantBackgroundColor #F5F5F5
+  ParticipantBorderColor #333333
+  ParticipantFontColor #000000
+  ArrowFontColor #000000
+  BoxLineColor #666666
+  BoxBackgroundColor #EEEEEE
+  NoteBackgroundColor #FFFDE7
+  NoteBorderColor #999999
+  NoteFontColor #000000
+}
+skinparam titleFontColor #000000
+skinparam titleFontSize 16
+
+participant "Client\n(React SPA)" as C
+participant "Backend\n(Express 5)" as B
+database "PostgreSQL\n(Prisma)" as DB
+
+== Connexion ==
+
+C -> B : POST /api/auth/login\n{ email, password }
+B -> DB : findFirst({ where: { email } })
+DB --> B : { id, email, passwordHash, role }
+B -> B : argon2.verify(password, hash)
+B -> B : generateAccessToken()\n(JWT, 15 min)
+B -> B : generateRefreshToken()\n(UUID token_id + JWT, 7j)
+B -> DB : INSERT RefreshToken\n{ userId, tokenId, hash(jwt) }
+DB --> B : OK
+B --> C : 200 OK  { success: true, data: { id, email } }\nSet-Cookie: accessToken (httpOnly, 15min)\nSet-Cookie: refreshToken (httpOnly, Path=/api/auth/refresh, 7j)
+
+note over C : Aucun token en JS —\ncookies httpOnly uniquement
+
+== Accès à une ressource protégée ==
+
+C -> B : GET /api/orders/mine\n(cookie accessToken envoyé automatiquement)
+B -> B : requireAuth middleware\njwt.verify(accessToken)
+B --> C : 200 OK { success: true, data: [...] }
+
+== Token expiré → Refresh automatique ==
+
+C -> B : GET /api/orders/mine\n(accessToken expiré)
+B -> B : jwt.verify() → TokenExpiredError
+B --> C : 401 Unauthorized
+
+note over C : apiFetch intercepte 401\n(promise singleton anti race-condition\nReact StrictMode)
+
+C -> B : POST /api/auth/refresh\n(cookie refreshToken Path=/api/auth/refresh)
+B -> DB : findFirst({ where: { userId } })\n+ argon2.verify(jwt, hash)
+DB --> B : RefreshToken valide
+B -> DB : DELETE ancien RefreshToken\n(rotation — révocation immédiate)
+B -> DB : INSERT nouveau RefreshToken
+DB --> B : OK
+B -> B : generateAccessToken()\ngenerateRefreshToken()
+B --> C : 200 OK\nSet-Cookie: nouveaux accessToken + refreshToken
+
+C -> B : GET /api/orders/mine (retry)\n(nouveau accessToken)
+B --> C : 200 OK { success: true, data: [...] }
+
+== Déconnexion ==
+
+C -> B : POST /api/auth/logout\n(cookie refreshToken)
+B -> DB : DELETE RefreshToken\n(révocation en base)
+DB --> B : OK
+B --> C : 200 OK\nSet-Cookie: accessToken (MaxAge=0)\nSet-Cookie: refreshToken (MaxAge=0)
+
+note over C : Cookies effacés —\ntoken révoqué en base
+
+@enduml

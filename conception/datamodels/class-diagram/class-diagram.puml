@@ -1,0 +1,168 @@
+@startuml class-diagram
+title Diagramme de classes — zØmbie zØne
+
+skinparam backgroundColor #FFFFFF
+skinparam class {
+  BackgroundColor #F5F5F5
+  BorderColor #333333
+  FontColor #000000
+  HeaderBackgroundColor #E0E0E0
+  HeaderFontColor #000000
+  ArrowColor #333333
+  AttributeFontColor #000000
+}
+skinparam titleFontColor #000000
+skinparam titleFontSize 16
+skinparam noteFontColor #000000
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #999999
+skinparam enumBackgroundColor #FAFAFA
+skinparam enumBorderColor #333333
+
+' ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum OrderStatus {
+  Pending
+  Confirmed
+  Cancelled
+  Refunded
+}
+
+enum SessionStatus {
+  Scheduled
+  Cancelled
+  Completed
+}
+
+' ─── Classes ──────────────────────────────────────────────────────────────────
+
+class roles {
+  +id : Int
+  +name : String
+}
+
+class users {
+  +id : Int
+  +role_id : Int
+  +email : String
+  +firstname : String
+  +lastname : String
+  +password_hash : String
+  +created_at : DateTime
+  +updated_at : DateTime
+  +deleted_at : DateTime?
+}
+
+class RefreshToken {
+  +id : Int
+  +token_id : String
+  +token_hash : String
+  +user_id : Int
+  +issued_at : DateTime
+  +expired_at : DateTime
+}
+
+class activities {
+  +id : Int
+  +title : String
+  +slug : String
+  +description : String?
+  +image_filename : String?
+  +created_at : DateTime
+  +updated_at : DateTime
+}
+
+class categories {
+  +id : Int
+  +title : String
+  +slug : String
+  +description : String?
+  +image_filename : String?
+  +created_at : DateTime
+  +updated_at : DateTime
+}
+
+class activities_categories {
+  +activity_id : Int
+  +category_id : Int
+}
+
+class sessions {
+  +id : Int
+  +activity_id : Int
+  +date : DateTime
+  +capacity : Int
+  +unit_price : Decimal
+  +status : SessionStatus
+  +created_at : DateTime
+  +updated_at : DateTime
+}
+
+class orders {
+  +id : Int
+  +user_id : Int
+  +taxes : Decimal
+  +total_amount : Decimal
+  +payment_method : String?
+  +payment_date : DateTime?
+  +status : OrderStatus
+  +created_at : DateTime
+  +updated_at : DateTime
+  +deleted_at : DateTime?
+}
+
+class orders_lines {
+  +id : Int
+  +order_id : Int
+  +session_id : Int
+  +tickets_qty : Int
+  +amount : Decimal
+  +created_at : DateTime
+  +updated_at : DateTime
+}
+
+' ─── Relations ────────────────────────────────────────────────────────────────
+
+roles "1" --> "0..*" users : caractérise
+
+users "1" --> "0..*" orders : passe
+users "1" --> "0..*" RefreshToken : possède
+
+activities "1" --> "0..*" sessions : planifie
+activities "1" --> "0..*" activities_categories
+categories "1" --> "0..*" activities_categories
+
+orders "1" *-- "1..*" orders_lines : contient
+sessions "1" --> "0..*" orders_lines : est réservée dans
+
+orders ..> OrderStatus : utilise
+sessions ..> SessionStatus : utilise
+
+' ─── Notes ────────────────────────────────────────────────────────────────────
+note right of users
+  Soft delete : deleted_at NULL = actif
+  onDelete Restrict sur role_id
+end note
+
+note right of orders
+  Soft delete : deleted_at NULL = actif
+  onDelete NoAction sur user_id
+end note
+
+note bottom of orders_lines
+  amount figé à la commande
+  (indépendant des évolutions tarifaires)
+  Contrainte UNIQUE (order_id, session_id)
+end note
+
+note right of RefreshToken
+  Rotation à chaque refresh
+  onDelete Cascade sur user_id
+end note
+
+note bottom of activities_categories
+  Clé primaire composite
+  (activity_id, category_id)
+end note
+
+@enduml
