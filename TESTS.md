@@ -133,6 +133,13 @@ Dans `backend/package.json` :
 "test:integration": "vitest run src/__tests__",
 "test:unit": "dotenv -e .env.test -- vitest run src/lib src/utils src/helpers"
 ```
+Dans /backend :
+```
+npm test                    # tous les tests
+npm run test:integration    # intégration seulement
+npm run test:unit           # unitaires seulement
+npm run test:coverage       # avec coverage
+```
 
 ---
 
@@ -249,4 +256,10 @@ Pipeline actif sur GitHub Actions :
 
 ```
 lint → test → build → deploy
+```
+Dans /backend ou /vite-frontend :
+```
+npm run lint        # dev
+npm run lint:prod   # prod (config Biome stricte)
+npm run fix         # autofix
 ```
