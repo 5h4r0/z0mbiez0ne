@@ -16,11 +16,8 @@ export async function resetDatabase() {
     prismaTest.activities.deleteMany(),
     prismaTest.categories.deleteMany(),
     prismaTest.users.deleteMany(),
+    // roles: initialized once in globalSetup, never reset between tests
   ]);
-  await prismaTest.roles.deleteMany();
-  await prismaTest.roles.createMany({
-    data: [{ name: 'member' }, { name: 'admin' }],
-  });
 }
 
 beforeAll(async () => {
