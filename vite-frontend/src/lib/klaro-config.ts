@@ -10,7 +10,7 @@ const klaroConfig = {
     fr: {
       consentNotice: {
         description:
-          'zØmbie zØne utilise des cookies fonctionnels pour votre session. Aucun cookie publicitaire ou de tracking.',
+          'zOmbie zOne utilise des cookies fonctionnels pour votre session. Aucun cookie publicitaire ou de tracking.',
       },
       acceptAll: 'Accepter',
       declineAll: 'Refuser',
@@ -21,11 +21,11 @@ const klaroConfig = {
     {
       name: 'session',
       title: 'Cookies de session',
-      description: "Nécessaires au fonctionnement de l'authentification (httpOnly, sécurisés).",
+      description: "Necessaires au fonctionnement de l'authentification (httpOnly, securises).",
       required: true,
       purposes: ['security'],
     },
   ],
-}
+};
 
-export default klaroConfig
+export default klaroConfig;
