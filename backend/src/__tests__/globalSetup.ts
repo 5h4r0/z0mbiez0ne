@@ -9,11 +9,10 @@ const COMPOSE_FILE = path.join(ROOT, 'docker-compose.test.yaml');
 const TEST_DATABASE_URL = 'postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test';
 
 export async function setup() {
-  if (process.env.CI) return;
-
-  console.log('\n🐘 Démarrage PostgreSQL de test...');
-
-  execSync(`docker compose -f ${COMPOSE_FILE} up -d --wait`, { stdio: 'inherit' });
+  if (!process.env.CI) {
+    console.log('\n🐘 Démarrage PostgreSQL de test...');
+    execSync(`docker compose -f ${COMPOSE_FILE} up -d --wait`, { stdio: 'inherit' });
+  }
 
   process.env.DATABASE_URL = TEST_DATABASE_URL;
 
@@ -24,7 +23,7 @@ export async function setup() {
   });
 
   // Seed roles once — shared across all test workers
-  const prisma = new PrismaClient({ datasources: { db: { url: TEST_DATABASE_URL } } });
+  const prisma = new PrismaClient({ datasourceUrl: TEST_DATABASE_URL });
   await prisma.$connect();
   await prisma.roles.createMany({
     data: [{ name: 'member' }, { name: 'admin' }],
