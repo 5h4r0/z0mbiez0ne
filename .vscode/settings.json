@@ -5,7 +5,7 @@
   "plantuml.server": "https://www.plantuml.com/plantuml",
   "plantuml.render": "PlantUMLServer",
   "plantuml.exportFormat": "png",
-  "plantuml.exportOutDir": "conception/datamodels",
+  "plantuml.exportOutDir": "/",
   "[typescript]": {
     "editor.insertSpaces": true,
     "editor.tabSize": 2

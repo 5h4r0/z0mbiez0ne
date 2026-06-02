@@ -1,0 +1,139 @@
+@startuml component-diagram
+title Diagramme de composants — Architecture multicouche — zØmbie zØne
+
+skinparam backgroundColor #FFFFFF
+skinparam component {
+  BackgroundColor #F5F5F5
+  BorderColor #333333
+  FontColor #000000
+  ArrowColor #333333
+}
+skinparam package {
+  BackgroundColor #FAFAFA
+  BorderColor #555555
+  FontColor #000000
+}
+skinparam database {
+  BackgroundColor #F5F5F5
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam node {
+  BackgroundColor #F0F0F0
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam interface {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam titleFontColor #000000
+skinparam titleFontSize 16
+skinparam noteFontColor #000000
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #999999
+skinparam arrowColor #333333
+skinparam arrowFontColor #000000
+
+' ─── Client ───────────────────────────────────────────────────────────────────
+node "Navigateur" as browser {
+  package "React SPA" as frontend {
+    component "Pages\n(React Router 7)" as pages
+    component "Composants UI" as ui
+    component "Zustand Store\n(auth, basket)" as store
+    component "apiFetch\n(intercepteur JWT)" as apifetch
+  }
+}
+
+' ─── Backend ──────────────────────────────────────────────────────────────────
+node "Backend — Express 5" as backend {
+
+  package "Couche Routage" as routing {
+    component "Router\n/api/auth\n/api/activities\n/api/sessions\n/api/categories\n/api/orders\n/api/users" as router
+  }
+
+  package "Couche Middlewares" as middlewares {
+    component "requireAuth\n(jwt.verify)" as mauth
+    component "requireRole\n(admin guard)" as mrole
+    component "validateBody\n(Zod schemas)" as mzod
+    component "errorHandler\n(global)" as merror
+  }
+
+  package "Couche Contrôleurs" as controllers {
+    component "AuthController" as cauth
+    component "ActivitiesController" as cact
+    component "SessionsController" as csess
+    component "CategoriesController" as ccat
+    component "OrdersController" as cord
+    component "UsersController" as cuser
+  }
+
+  package "Couche Accès Données" as dal {
+    component "Prisma Client\n(requêtes paramétrées\ntransactions $transaction)" as prisma
+  }
+}
+
+' ─── Infrastructure ───────────────────────────────────────────────────────────
+node "Infrastructure" as infra {
+  component "Nginx\n(reverse proxy + SSL)" as nginx
+  database "PostgreSQL 16\n(Docker volume)" as pg
+}
+
+' ─── Relations ────────────────────────────────────────────────────────────────
+
+browser --> nginx : HTTPS\ncredentials: include\n(cookies httpOnly)
+nginx --> router : proxy_pass /api/
+
+pages --> store : lit/modifie l'état
+pages --> apifetch : appels API
+apifetch --> nginx : fetch + cookies
+store --> apifetch : refreshToken()
+
+router --> mauth : protected routes
+router --> mrole : admin routes
+router --> mzod : body validation
+mauth --> cauth
+mrole --> cauth
+mzod --> cauth
+mzod --> cact
+mzod --> csess
+mzod --> ccat
+mzod --> cord
+mzod --> cuser
+
+cauth --> prisma
+cact --> prisma
+csess --> prisma
+ccat --> prisma
+cord --> prisma
+cuser --> prisma
+
+prisma --> pg : SQL\n(réseau Docker interne)
+
+router --> merror : uncaught errors
+
+' ─── Notes ────────────────────────────────────────────────────────────────────
+note right of mauth
+  Vérifie accessToken (httpOnly cookie)
+  jwt.verify() → req.user
+end note
+
+note right of mzod
+  Zod valide tous les inputs
+  avant d'atteindre le contrôleur
+end note
+
+note bottom of prisma
+  Requêtes paramétrées → 0 injection SQL
+  select explicite → 0 fuite de données
+  $transaction pour les opérations critiques
+end note
+
+note right of apifetch
+  Intercepte les 401 :
+  refresh automatique (promise singleton)
+  puis retry de la requête initiale
+end note
+
+@enduml

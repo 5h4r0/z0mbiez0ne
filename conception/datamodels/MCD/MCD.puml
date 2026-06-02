@@ -1,0 +1,105 @@
+@startuml mcd
+title Modèle Conceptuel de Données (MCD) — zØmbie zØne
+
+skinparam backgroundColor #FFFFFF
+skinparam class {
+  BackgroundColor #F5F5F5
+  BorderColor #333333
+  FontColor #000000
+  HeaderBackgroundColor #E0E0E0
+  HeaderFontColor #000000
+  ArrowColor #333333
+}
+skinparam titleFontColor #000000
+skinparam titleFontSize 16
+skinparam noteFontColor #000000
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #999999
+
+' ─── Entités ──────────────────────────────────────────────────────────────────
+
+entity "ROLE" as ROLE {
+  nom
+}
+
+entity "UTILISATEUR" as USER {
+  email
+  prénom
+  nom
+  mot de passe (hash)
+  supprimé le (soft delete)
+}
+
+entity "ACTIVITÉ" as ACTIVITY {
+  titre
+  slug
+  image
+}
+
+entity "CATÉGORIE" as CATEGORY {
+  titre
+  slug
+  image
+}
+
+entity "SESSION" as SESSION {
+  date
+  capacité
+  prix unitaire HT
+  TVA
+  statut
+}
+
+entity "COMMANDE" as ORDER {
+  montant taxes
+  montant total TTC
+  moyen de paiement
+  date de paiement
+  statut
+  supprimée le (soft delete)
+}
+
+entity "LIGNE DE COMMANDE" as ORDER_LINE {
+  quantité billets
+  prix unitaire HT (figé)
+  taux TVA (figé)
+  montant ligne
+}
+
+entity "REFRESH TOKEN" as TOKEN {
+  token_id (UUID)
+  hash du token
+  émis le
+  expire le
+}
+
+' ─── Relations avec cardinalités Merise ───────────────────────────────────────
+
+ROLE "1,1" --{ "0,N" USER : caractérise
+
+USER "1,1" --{ "0,N" ORDER : passe
+
+USER "1,1" --{ "0,N" TOKEN : possède
+
+ACTIVITY "1,1" --{ "0,N" SESSION : planifie
+
+ACTIVITY "0,N" }--{ "0,N" CATEGORY : appartient à
+
+ORDER "1,1" --{ "1,N" ORDER_LINE : contient
+
+SESSION "1,1" --{ "0,N" ORDER_LINE : est réservée dans
+
+' ─── Notes ────────────────────────────────────────────────────────────────────
+note bottom of ORDER_LINE
+  prix unitaire HT et taux TVA
+  figés à la commande —
+  indépendants des évolutions tarifaires
+end note
+
+note bottom of TOKEN
+  Rotation à chaque refresh.
+  Révocation en base (logout,
+  changement de mot de passe).
+end note
+
+@enduml

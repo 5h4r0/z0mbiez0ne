@@ -1,0 +1,106 @@
+@startuml use-cases
+title Diagramme des cas d'utilisation — zØmbie zØne
+
+skinparam backgroundColor #FFFFFF
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam usecase {
+  BackgroundColor #F5F5F5
+  BorderColor #333333
+  FontColor #000000
+  ArrowColor #333333
+}
+skinparam rectangle {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  FontColor #000000
+}
+skinparam arrow {
+  Color #333333
+  FontColor #000000
+  FontSize 11
+}
+skinparam titleFontColor #000000
+skinparam titleFontSize 16
+skinparam noteFontColor #000000
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #999999
+
+' ─── Acteurs ──────────────────────────────────────────────────────────────────
+actor "Visiteur" as V
+actor "Membre" as M
+actor "Administrateur" as A
+
+M --|> V
+A --|> M
+
+' ─── Système ──────────────────────────────────────────────────────────────────
+rectangle "zØmbie zØne" {
+
+  ' --- Visiteur ---
+  usecase "Parcourir les activités" as UC1
+  usecase "Voir le détail d'une activité" as UC2
+  usecase "Voir les sessions disponibles" as UC3
+  usecase "S'inscrire" as UC4
+  usecase "Se connecter" as UC5
+
+  ' --- Membre ---
+  usecase "Ajouter au panier" as UC6
+  usecase "Passer une commande" as UC7
+  usecase "Confirmer / payer" as UC8
+  usecase "Annuler une commande\n(statut Pending)" as UC9
+  usecase "Consulter l'historique\ndes commandes" as UC10
+  usecase "Modifier son profil" as UC11
+  usecase "Changer son mot de passe" as UC12
+  usecase "Supprimer son compte" as UC13
+  usecase "Se déconnecter" as UC14
+
+  ' --- Admin ---
+  usecase "CRUD Activités\n+ upload images" as UC15
+  usecase "CRUD Sessions" as UC16
+  usecase "CRUD Catégories" as UC17
+  usecase "Consulter les utilisateurs" as UC18
+  usecase "Modifier un utilisateur" as UC19
+  usecase "Consulter toutes\nles commandes" as UC20
+  usecase "Modifier le statut\nd'une commande" as UC21
+
+  ' --- Include / Extend ---
+  UC7 ..> UC5 : <<include>>
+  UC7 ..> UC8 : <<include>>
+  UC8 ..> UC7 : <<extend>>\nStripe (TODO)
+  UC15 ..> UC16 : <<extend>>
+}
+
+' ─── Associations acteurs ─────────────────────────────────────────────────────
+V --> UC1
+V --> UC2
+V --> UC3
+V --> UC4
+V --> UC5
+
+M --> UC6
+M --> UC7
+M --> UC9
+M --> UC10
+M --> UC11
+M --> UC12
+M --> UC13
+M --> UC14
+
+A --> UC15
+A --> UC16
+A --> UC17
+A --> UC18
+A --> UC19
+A --> UC20
+A --> UC21
+
+note bottom of A
+  Administrateur hérite de tous
+  les droits Membre et Visiteur
+end note
+
+@enduml
