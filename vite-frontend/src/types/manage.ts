@@ -23,6 +23,8 @@ export interface ManageOrder {
   payment_date: string | null;
   created_at: string;
   deleted_at: string | null;
+  firstname: string | null;
+  lastname: string | null;
 }
 
 export interface ManageOrderLine {
@@ -109,6 +111,8 @@ export const manageOrderSchema = z.object({
   payment_date: z.string().nullable(),
   created_at: z.string(),
   deleted_at: z.string().nullable(),
+  firstname: z.string().nullable(),
+  lastname: z.string().nullable(),
 });
 
 export const manageActivitySchema = z.object({
