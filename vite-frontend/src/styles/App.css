@@ -34,3 +34,77 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Klaro consent banner — zombie theme override */
+#klaro .klaro .cookie-notice {
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-red);
+  color: var(--color-text);
+  font-family: 'Montserrat', sans-serif;
+  padding: 1.2rem 1.5rem;
+}
+
+#klaro .klaro .cookie-notice p,
+#klaro .klaro .cookie-notice span {
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+#klaro .klaro .cm-link {
+  color: var(--color-gold);
+  text-decoration: underline;
+}
+
+#klaro .klaro .cm-btn {
+  border-radius: 4px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.45rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+#klaro .klaro .cm-btn.cm-btn-success {
+  background: var(--color-green);
+  color: #0a0a0a;
+}
+
+#klaro .klaro .cm-btn.cm-btn-success:hover {
+  background: #27ae60;
+}
+
+#klaro .klaro .cm-btn.cm-btn-danger {
+  background: var(--color-red);
+  color: var(--color-text);
+}
+
+#klaro .klaro .cm-btn.cm-btn-danger:hover {
+  background: var(--color-red-hover);
+}
+
+/* Modal (Laissez-moi choisir) */
+#klaro .klaro .cookie-modal .cm-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-family: 'Montserrat', sans-serif;
+}
+
+#klaro .klaro .cookie-modal .cm-modal .title {
+  color: var(--color-red);
+}
+
+#klaro .klaro .cookie-modal .cm-btn.cm-btn-accept-all {
+  background: var(--color-green);
+  color: #0a0a0a;
+}
+
+#klaro .klaro .cookie-modal .cm-btn.cm-btn-decline {
+  background: var(--color-red);
+  color: var(--color-text);
+}
+
+#klaro .klaro a {
+  color: var(--color-gold);
+}

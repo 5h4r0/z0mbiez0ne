@@ -1,0 +1,11 @@
+```mermaid
+erDiagram
+  ROLES ||--o{ USERS : "caractérise"
+  USERS ||--o{ ORDERS : "passe"
+  USERS ||--o{ REFRESH_TOKEN : "possède"
+  ACTIVITIES ||--o{ SESSIONS : "planifie"
+  ACTIVITIES ||--o{ ACTIVITIES_CATEGORIES : "associe"
+  CATEGORIES ||--o{ ACTIVITIES_CATEGORIES : "regroupe"
+  ORDERS ||--|{ ORDERS_LINES : "contient"
+  SESSIONS ||--o{ ORDERS_LINES : "cible"
+```
