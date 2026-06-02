@@ -11,7 +11,7 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     ...(testDbUrl ? { datasources: { db: { url: testDbUrl } } } : {}),
-    log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'info', 'warn', 'error'],
+    log: process.env.NODE_ENV === 'production' ? ['error'] : ['warn', 'error'],
   });
 
 // in development mode, assign Prisma instance to globalThis to avoid multiple connections
