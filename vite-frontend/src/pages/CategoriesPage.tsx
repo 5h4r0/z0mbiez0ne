@@ -26,13 +26,13 @@ export default function CategoriesPage() {
 
       <div className="list-page__content">
         {loading && <SkeletonGrid />}
-        {error && <p className="list-page__error">Les catégories ne sont pas disponibles pour le moment.</p>}
+        {error !== null && <p className="list-page__error">Les catégories ne sont pas disponibles pour le moment.</p>}
 
-        {!loading && !error && categories.length === 0 && (
+        {!loading && error === null && categories.length === 0 && (
           <p className="list-page__empty">Aucune catégorie disponible pour le moment.</p>
         )}
 
-        {!loading && !error && categories.length > 0 && (
+        {!loading && error === null && categories.length > 0 && (
           <>
             <div className="list-page__grid">
               {categories.map((c) => (
