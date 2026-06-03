@@ -48,7 +48,7 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
         data: { user_id: user.id, token_hash: tokenHash, expires_at: expiresAt },
       });
 
-      const resetUrl = `https://sharo.fr/reset-password?token=${rawToken}`;
+      const resetUrl = `${process.env.FRONTEND_URL ?? 'https://sharo.fr'}/reset-password?token=${rawToken}`;
       await sendPasswordResetEmail(user.email, resetUrl);
     }
 
