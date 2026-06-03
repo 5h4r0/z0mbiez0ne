@@ -54,7 +54,7 @@ export default function Header() {
         <ZombieLogo />
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8" aria-label="Navigation principale">
+        <nav className="hidden nav:flex items-center gap-8" aria-label="Navigation principale">
           {NAV_LINKS.map(({ label, to }) => (
             <NavLink
               key={to}
@@ -130,7 +130,7 @@ export default function Header() {
           type="button"
           aria-label="Menu"
           onClick={() => setMenuOpen((o) => !o)}
-          className="block md:hidden bg-transparent border-none cursor-pointer text-(--color-text) p-1"
+          className="block nav:hidden bg-transparent border-none cursor-pointer text-(--color-text) p-1"
         >
           <span className="text-2xl">{menuOpen ? '✕' : '☰'}</span>
         </button>
