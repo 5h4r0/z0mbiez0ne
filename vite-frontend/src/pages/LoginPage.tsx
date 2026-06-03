@@ -1,6 +1,6 @@
 // vite-frontend/src/pages/LoginPage.tsx
 import { useState } from 'react';
-import { Navigate, useNavigate, useSearchParams } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { PasswordInput } from '../components/PasswordInput';
 import { ROLE_IDS } from '../lib/roles';
 import { useAuthStore } from '../store/authStore';
@@ -19,8 +19,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { login, register, user, isHydrating } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') ?? '/dashboard';
+  const successMessage = (location.state as { message?: string } | null)?.message;
 
   if (isHydrating) {
     return (
@@ -100,6 +102,12 @@ export default function LoginPage() {
           ))}
         </div>
 
+        {successMessage && (
+          <div className="mb-4 rounded border border-green-700 bg-green-950/40 px-4 py-3 text-green-300 text-sm">
+            {successMessage}
+          </div>
+        )}
+
         {error && (
           <p className="bg-red-950/40 border border-(--color-red) text-(--color-red) text-sm rounded px-4 py-3 mb-6">
             {error}
@@ -123,6 +131,11 @@ export default function LoginPage() {
             >
               {loading ? 'Connexion…' : 'Se connecter'}
             </button>
+            <p className="text-center text-sm">
+              <Link to="/forgot-password" className="text-(--color-text-muted) hover:text-(--color-red) transition-colors">
+                Mot de passe oublié ?
+              </Link>
+            </p>
           </form>
         ) : (
           <form onSubmit={handleRegister} className="flex flex-col gap-4">

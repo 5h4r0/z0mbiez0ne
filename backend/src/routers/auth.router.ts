@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
+import * as passwordResetController from '../controllers/passwordReset.controller.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 
 export const router = Router();
@@ -16,3 +17,8 @@ router.post('/refresh', authController.refreshAccessToken);
 
 // protected profile
 router.get('/profile', requireAuth, authController.getAuthenticatedUser);
+
+// password reset (public)
+router.post('/forgot-password', passwordResetController.forgotPassword);
+router.get('/validate-reset-token', passwordResetController.validateResetToken);
+router.post('/reset-password', passwordResetController.resetPassword);
