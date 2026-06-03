@@ -239,6 +239,18 @@
 - Recherche : "OpenAPI 3.0 Swagger Express Node.js best practices"
 - Recherche : "Prisma soft delete vs hard delete GDPR" — CNIL guide développeurs
 
+- **feat/forgot-password** : flux complet de réinitialisation de mot de passe (04/06/2026)
+  - Nouveau modèle Prisma `PasswordResetToken` (migration `add_password_reset_tokens`)
+  - 3 nouveaux endpoints : `POST /forgot-password`, `GET /validate-reset-token`, `POST /reset-password`
+  - Token : `crypto.randomBytes(32)`, haché argon2, TTL 30 min, usage unique
+  - Révocation de tous les RefreshTokens à la réinitialisation
+  - Anti-leak : réponse 200 identique que l'email existe ou non
+  - Service mailer `backend/src/lib/mailer.ts` (Nodemailer SMTP)
+  - Template email HTML thème zombie (fond #1a1a1a, rouge #c0392b)
+  - Pages frontend : ForgotPasswordPage + ResetPasswordPage
+  - Lien "Mot de passe oublié ?" sur LoginPage
+  - Message de confirmation post-reset sur LoginPage via `location.state`
+
 ---
 
 ## BILAN GLOBAL

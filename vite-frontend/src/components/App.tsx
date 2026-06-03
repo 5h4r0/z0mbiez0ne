@@ -12,6 +12,7 @@ import AccountSettingsPage from '../pages/dashboard/AccountSettingsPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
 import OrderDetailPage from '../pages/dashboard/OrderDetailPage';
 import FaqPage from '../pages/FaqPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import MentionsLegalesPage from '../pages/MentionsLegalesPage';
@@ -27,6 +28,7 @@ import ManageSessionsPage from '../pages/manage/ManageSessionsPage';
 import ManageUsersPage from '../pages/manage/ManageUsersPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import PlanPage from '../pages/PlanPage';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
 import SessionDetailPage from '../pages/SessionDetailPage';
 import SessionsPage from '../pages/SessionsPage';
 import TarifsPage from '../pages/TarifsPage';
@@ -98,6 +100,8 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/panier" element={<BasketPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
           <Route path="/dashboard/commandes/:id" element={<OrderDetailPage />} />
