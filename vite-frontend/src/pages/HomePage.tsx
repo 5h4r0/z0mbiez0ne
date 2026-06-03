@@ -57,8 +57,8 @@ export default function HomePage() {
           <h2 className="home-section__title">PROCHAINES SESSIONS</h2>
 
           {sessionsLoading && <SkeletonGrid count={4} gridClass="home-section__grid" />}
-          {sessionsError && <p className="home-section__error">Les sessions ne sont pas disponibles pour le moment.</p>}
-          {!sessionsLoading && !sessionsError && (
+          {sessionsError !== null && <p className="home-section__error">Les sessions ne sont pas disponibles pour le moment.</p>}
+          {!sessionsLoading && sessionsError === null && (
             <div className="home-section__grid">
               {sessions.map((s, i) => (
                 <SessionCard key={s.id} session={s} index={i} />
@@ -78,10 +78,10 @@ export default function HomePage() {
           <h2 className="home-section__title">LES ÉPREUVES DE LA ZONE</h2>
 
           {activitiesLoading && <SkeletonGrid count={4} gridClass="home-section__grid" />}
-          {activitiesError && (
+          {activitiesError !== null && (
             <p className="home-section__error">Les épreuves ne sont pas disponibles pour le moment.</p>
           )}
-          {!activitiesLoading && !activitiesError && (
+          {!activitiesLoading && activitiesError === null && (
             <div className="home-section__grid">
               {activities.map((a, i) => (
                 <ActivityCard key={a.id} activity={a} index={i} />
@@ -101,10 +101,10 @@ export default function HomePage() {
           <h2 className="home-section__title">EXPLOREZ NOS CATÉGORIES</h2>
 
           {categoriesLoading && <SkeletonGrid count={4} gridClass="home-section__grid" />}
-          {categoriesError && (
+          {categoriesError !== null && (
             <p className="home-section__error">Les catégories ne sont pas disponibles pour le moment.</p>
           )}
-          {!categoriesLoading && !categoriesError && (
+          {!categoriesLoading && categoriesError === null && (
             <div className="home-section__grid">
               {categories.map((c) => (
                 <CategoryCard key={c.id} category={c} />
