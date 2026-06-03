@@ -56,13 +56,13 @@ export default function SessionsPage() {
 
       <div className="list-page__content">
         {loading && <SkeletonGrid />}
-        {error && <p className="list-page__error">Les sessions ne sont pas disponibles pour le moment.</p>}
+        {error !== null && <p className="list-page__error">Les sessions ne sont pas disponibles pour le moment.</p>}
 
-        {!loading && !error && sessions.length === 0 && (
+        {!loading && error === null && sessions.length === 0 && (
           <p className="list-page__empty">Aucune session disponible pour le moment.</p>
         )}
 
-        {!loading && !error && sessions.length > 0 && (
+        {!loading && error === null && sessions.length > 0 && (
           <>
             <div className="list-page__grid">
               {sessions.map((s, i) => (
