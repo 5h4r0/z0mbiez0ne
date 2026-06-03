@@ -44,13 +44,13 @@ export default function ActivitiesPage() {
 
       <div className="list-page__content">
         {loading && <SkeletonGrid />}
-        {error && <p className="list-page__error">Les épreuves ne sont pas disponibles pour le moment.</p>}
+        {error !== null && <p className="list-page__error">Les épreuves ne sont pas disponibles pour le moment.</p>}
 
-        {!loading && !error && filtered.length === 0 && (
+        {!loading && error === null && filtered.length === 0 && (
           <p className="list-page__empty">Aucune épreuve ne correspond à votre recherche.</p>
         )}
 
-        {!loading && !error && filtered.length > 0 && (
+        {!loading && error === null && filtered.length > 0 && (
           <>
             <div className="list-page__grid">
               {filtered.map((a, i) => (
