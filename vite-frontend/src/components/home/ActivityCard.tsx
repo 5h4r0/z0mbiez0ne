@@ -15,7 +15,15 @@ export default function ActivityCard({ activity }: Props) {
   return (
     <Link to={`/${activity.slug}`} className="block no-underline" aria-label={`Découvrir l'activité ${activity.title}`}>
       <article className="bg-(--color-surface) border border-(--color-border) rounded-lg overflow-hidden flex flex-col transition-colors duration-200 hover:bg-(--color-surface-hover) cursor-pointer">
-        <img src={imgSrc} alt={activity.title} className="w-full h-40 object-cover block" />
+        <img
+          src={imgSrc}
+          alt={activity.title}
+          className="w-full h-40 object-cover block"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src =
+              `https://placehold.co/400x250/141414/888?text=${encodeURIComponent(activity.title)}`;
+          }}
+        />
 
         <div className="p-4 flex-1 flex flex-col">
           <h3 className="font-bold text-base text-(--color-text) mb-2">{activity.title}</h3>

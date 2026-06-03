@@ -39,7 +39,15 @@ export default function CategoryCard({ category }: Props) {
     <Link to={`/${category.slug}`} className="block no-underline" aria-label={`Voir la catégorie ${category.title}`}>
       <article className="bg-(--color-surface) border border-(--color-border) rounded-lg overflow-hidden flex flex-col transition-colors duration-200 hover:bg-(--color-surface-hover) cursor-pointer">
         <div className="relative">
-          <img src={imgSrc} alt={category.title} className="w-full h-40 object-cover block" />
+          <img
+            src={imgSrc}
+            alt={category.title}
+            className="w-full h-40 object-cover block"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src =
+                `https://placehold.co/400x250/141414/888?text=${encodeURIComponent(category.title)}`;
+            }}
+          />
           <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
             <Icon size={36} color="#fff" />
             <span className="font-bold text-white text-base uppercase tracking-wider">{category.title}</span>
