@@ -87,9 +87,6 @@ export default function ManageCategoryFormPage() {
         <h1 className="manage-page__title">{isEdit ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h1>
         {isEdit && slug && (
           <div className="manage-page__view-links">
-            <a href="/categories-epreuves" target="_blank" rel="noreferrer" className="manage-page__view-link">
-              Voir les catégories
-            </a>
             <a href={`/${slug}`} target="_blank" rel="noreferrer" className="manage-page__view-link">
               Voir la catégorie ⟶ {title}
             </a>

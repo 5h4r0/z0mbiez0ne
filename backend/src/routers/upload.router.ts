@@ -10,7 +10,7 @@ export const router = Router();
 function makeStorage(subdir: 'banners' | 'thumbs') {
   return multer.diskStorage({
     destination: (_req, _file, cb) => {
-      const base = process.env.UPLOAD_DIR ?? path.resolve('..', 'vite-frontend', 'public', 'images');
+      const base = process.env.UPLOAD_DIR ?? path.resolve('..', 'vite-frontend', 'public', 'images', 'uploads');
       const dest = path.join(base, subdir);
       fs.mkdirSync(dest, { recursive: true });
       cb(null, dest);

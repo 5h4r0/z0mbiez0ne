@@ -7,7 +7,7 @@ import ManageTable, { type Column } from '../../components/manage/ManageTable';
 import '../../components/manage/manage.css';
 import '../../styles/manage.scss';
 import { apiFetch } from '../../store/authStore';
-import { type ManageOrder, manageOrderSchema } from '../../types/manage';
+import { type ManageOrder, manageOrderSchema, type OrderStatus } from '../../types/manage';
 
 const listSchema = z.object({
   data: z.array(manageOrderSchema),
@@ -19,6 +19,13 @@ const STATUS_LABEL: Record<string, string> = {
   Confirmed: 'Confirmée',
   Cancelled: 'Annulée',
   Refunded: 'Remboursée',
+};
+
+const VALID_TRANSITIONS: Record<string, OrderStatus[]> = {
+  Pending:   ['Confirmed', 'Cancelled'],
+  Confirmed: ['Refunded'],
+  Cancelled: [],
+  Refunded:  [],
 };
 
 const STATUS_CLASS: Record<string, string> = {
@@ -39,6 +46,22 @@ export default function ManageOrdersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+
+  async function handleStatusChange(orderId: number, newStatus: OrderStatus) {
+    setUpdatingId(orderId);
+    const res = await apiFetch(`/api/orders/${orderId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (res.ok) {
+      setItems(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    } else {
+      setError('Erreur lors de la mise à jour du statut.');
+    }
+    setUpdatingId(null);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +88,30 @@ export default function ManageOrdersPage() {
 
   const columns: Column<ManageOrder>[] = [
     { header: 'ID', accessor: 'id' },
-    { header: 'Statut', render: (row) => STATUS_LABEL[row.status] ?? row.status, cellClassName: (row) => STATUS_CLASS[row.status] ?? '' },
+    {
+      header: 'Statut',
+      render: (row) => {
+        const transitions = VALID_TRANSITIONS[row.status] ?? [];
+        if (transitions.length === 0) {
+          return <span className={STATUS_CLASS[row.status] ?? ''}>{STATUS_LABEL[row.status] ?? row.status}</span>;
+        }
+        return (
+          <select
+            disabled={updatingId === row.id}
+            value={row.status}
+            onChange={(e) => handleStatusChange(row.id, e.target.value as OrderStatus)}
+            className={STATUS_CLASS[row.status] ?? ''}
+            style={{ width: 'fit-content', fontSize: 'inherit' }}
+          >
+            <option value={row.status} disabled>{STATUS_LABEL[row.status] ?? row.status}</option>
+            {transitions.map(s => (
+              <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+            ))}
+          </select>
+        );
+      },
+      cellClassName: (row) => STATUS_CLASS[row.status] ?? '',
+    },
     { header: 'Total', render: (row) => `€${Number(row.total_amount).toFixed(2)}` },
     { header: 'Client', render: (row) => `${row.lastname ?? ''} ${row.firstname ?? ''}`.trim() || '—' },
     { header: 'Paiement', render: (row) => row.payment_method ?? '—' },
