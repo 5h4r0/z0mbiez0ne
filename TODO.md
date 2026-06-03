@@ -1,5 +1,5 @@
 # TODO.md — zØmbie zØone
-> État au 2026-06-02 — examen CDA le 2026-06-09
+> État au 2026-06-03 — examen CDA le 2026-06-09
 
 ---
 
@@ -26,10 +26,12 @@
 ### Frontend
 - [x] Site vitrine — HomePage, ActivitiesPage, SessionsPage, CategoriesPage, pages détail
 - [x] Espace client — DashboardPage, OrderDetailPage
-- [x] Backoffice admin — CRUD activités, sessions, catégories, utilisateurs (read-only), commandes (read-only)
+- [x] Backoffice admin — CRUD activités, sessions, catégories, utilisateurs (read-only), commandes avec changement de statut
 - [x] Auth — login, register, logout, refresh, guard bfcache
 - [x] Panier — basketStore (Zustand)
 - [x] `apiFetch` — intercepteur 401 + retry après refresh
+- [x] `useFetch` — error string + status HTTP exposés
+- [x] Menu burger — breakpoint 910px (Tailwind v4 custom breakpoint `nav:`)
 
 ### Infrastructure
 - [x] Docker — dev + prod
@@ -43,15 +45,19 @@
 
 ---
 
-## 🟡 Anomalies ouvertes
+## 🟡 Anomalies — état final
 
-- [ ] `#2` — `useFetch` sans gestion 401 (routes publiques — non bloquant)
-- [ ] `#6` — `basketStore` persist localStorage (non bloquant, validation backend protège)
-- [ ] `#7` — Stripe TODO (hors MVP selon specs)
-- [ ] **BUG-4** — images manquantes dans le seed
-- [ ] **BUG-9** — TipTap console warning
-- [ ] **BUG-10** — pages Orders/Users en read-only dans le backoffice admin
-- [ ] **BUG-12, BUG-13** — UX polish
+| # | Description | Statut |
+|---|-------------|--------|
+| #2 | `useFetch` sans gestion 401 | ✅ Fermé — error string + status HTTP |
+| #4 / BUG-4 | Images manquantes dans le seed | ✅ Fermé — `image_filename: null` + `onError` fallback |
+| #5 | Zustand persist token supprimé | ✅ Fermé (audit 2026-05-26) |
+| #6 | `basketStore` persist localStorage | 🟡 Accepté — validation backend protège |
+| #7 | Stripe | 🟡 Hors MVP selon specs |
+| BUG-9 | TipTap console warning | ✅ Fermé — `onChangeRef` + `setContent` corrigé |
+| BUG-10 | Commandes en read-only dans le backoffice | ✅ Fermé — select statut inline avec transitions |
+| BUG-12 | Modale double confirmation | ✅ Comportement voulu — protection délibérée |
+| BUG-13 | Hero portrait mobile | ✅ Vérifié OK — pas de débordement |
 
 ---
 
@@ -66,7 +72,7 @@
 ## 📧 Emails (post-examen)
 
 - [ ] Validation création compte — Nodemailer ou Resend
-- [ ] Oubli mot de passe + page publique (ou /dashboard/settings directement par lien de connexion ?) — Nodemailer ou Resend
+- [ ] Oubli mot de passe + page publique (ou /dashboard/settings directement par lien de connexion ?)
 - [ ] Confirmation commande — lignes HT + total TTC
 
 ---

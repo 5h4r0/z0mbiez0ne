@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-nav: 910px;
+}
 
 @font-face {
   font-family: 'anglican_text'; /* Nom que vous utiliserez dans votre CSS */
