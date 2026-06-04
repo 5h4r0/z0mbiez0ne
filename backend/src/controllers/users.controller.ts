@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import argon2 from 'argon2';
 import type { Request, Response } from 'express';
 import z from 'zod';
+import { createAndSendVerificationToken } from '../lib/emailVerification.js';
 import { ConflictError, ForbiddenError, UnauthorizedError } from '../lib/errors.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { passwordSchema } from '../lib/schemas/password.js';
@@ -195,12 +196,29 @@ export const updateUser = async (req: Request, res: Response) => {
       throw new ConflictError(buildErrorMessage('already_exists', 'user', body.email));
     }
 
+    const currentUser = await prisma.users.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    const emailChanged = currentUser && body.email !== currentUser.email;
+
     const { role_id, ...rest } = body;
+    const updateData = role_id !== undefined ? { ...rest, role_id } : rest;
+    if (emailChanged) Object.assign(updateData, { email_verified_at: null });
+
     const updatedUser = await prisma.users.update({
       where: { id: Number(id) },
-      data: role_id !== undefined ? { ...rest, role_id } : rest,
+      data: updateData,
       select: { id: true, firstname: true, lastname: true, email: true, role_id: true },
     });
+
+    if (emailChanged) {
+      try {
+        await createAndSendVerificationToken(userId, body.email);
+      } catch (err) {
+        console.error('sendVerificationEmail after email change failed:', err);
+      }
+    }
 
     res.status(200).json({
       success: true,

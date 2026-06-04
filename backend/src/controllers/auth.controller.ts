@@ -1,7 +1,9 @@
+import * as argon2 from 'argon2';
 import type { Request, Response } from 'express';
 import z from 'zod';
 import { config } from '../config/config.js';
 import { comparePassword, hashPassword } from '../lib/auth.js';
+import { createAndSendVerificationToken } from '../lib/emailVerification.js';
 import { ConflictError, UnauthorizedError } from '../lib/errors.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../lib/tokens.js';
 import { prisma } from '../models/index.js';
@@ -44,6 +46,12 @@ export async function registerUser(req: Request, res: Response) {
     await persistRefreshToken(newUser.id, tokenId);
     setAccessCookie(res, accessToken);
     setRefreshCookie(res, refreshJwt);
+
+    try {
+      await createAndSendVerificationToken(newUser.id, newUser.email);
+    } catch (err) {
+      console.error('sendVerificationEmail after register failed:', err);
+    }
 
     res.status(201).json({ status: 'success', data: newUser });
   } catch (error) {
@@ -157,6 +165,69 @@ export async function getAuthenticatedUser(req: Request, res: Response) {
     res.json(user);
   } catch (error) {
     handleError(res, error, 'failed to get user');
+  }
+}
+
+const verifyEmailQuerySchema = z.object({ token: z.string().min(1) });
+
+export async function sendVerificationEmailController(req: Request, res: Response): Promise<void> {
+  try {
+    if (!req.user) throw new UnauthorizedError('not authenticated');
+    const user = await prisma.users.findUnique({
+      where: { id: req.user.id },
+      select: { email: true },
+    });
+    if (!user) throw new UnauthorizedError('user not found');
+    await createAndSendVerificationToken(req.user.id, user.email);
+    res.status(200).json({ success: true, message: 'Email de vérification envoyé.' });
+  } catch (error) {
+    handleError(res, error, 'Failed to send verification email');
+  }
+}
+
+export async function verifyEmail(req: Request, res: Response): Promise<void> {
+  const parsed = verifyEmailQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: 'Token invalide ou expiré.' });
+    return;
+  }
+
+  const { token } = parsed.data;
+
+  try {
+    const records = await prisma.emailVerificationToken.findMany({
+      where: { used_at: null, expires_at: { gt: new Date() } },
+      select: { id: true, user_id: true, token_hash: true },
+    });
+
+    let matched: (typeof records)[number] | null = null;
+    for (const record of records) {
+      const isValid = await argon2.verify(record.token_hash, token);
+      if (isValid) {
+        matched = record;
+        break;
+      }
+    }
+
+    if (!matched) {
+      res.status(400).json({ success: false, message: 'Token invalide ou expiré.' });
+      return;
+    }
+
+    await prisma.$transaction([
+      prisma.users.update({
+        where: { id: matched.user_id },
+        data: { email_verified_at: new Date() },
+      }),
+      prisma.emailVerificationToken.update({
+        where: { id: matched.id },
+        data: { used_at: new Date() },
+      }),
+    ]);
+
+    res.status(200).json({ success: true, message: 'Adresse email confirmée.' });
+  } catch (error) {
+    handleError(res, error, 'Failed to verify email');
   }
 }
 
