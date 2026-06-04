@@ -54,6 +54,7 @@ async function main() {
       lastname: faker.person.lastName(),
       password_hash: faker.internet.password(),
       role_id: memberRole.id,
+      email_verified_at: new Date(),
     })),
     skipDuplicates: true,
   });
@@ -73,6 +74,7 @@ async function main() {
         lastname: ADMIN_LASTNAME,
         password_hash: passwordHash,
         role_id: adminRole.id,
+        email_verified_at: new Date(),
       },
       create: {
         email: ADMIN_EMAIL,
@@ -80,6 +82,7 @@ async function main() {
         lastname: ADMIN_LASTNAME,
         password_hash: passwordHash,
         role_id: adminRole.id,
+        email_verified_at: new Date(),
       },
     });
   } catch (e) {
