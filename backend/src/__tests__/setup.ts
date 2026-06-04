@@ -49,6 +49,7 @@ export async function createTestUser(
       email,
       password_hash,
       role_id,
+      email_verified_at: new Date(),
     },
     select: { id: true, email: true, role_id: true },
   });

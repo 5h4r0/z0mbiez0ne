@@ -10,6 +10,9 @@ export default function BasketPage() {
   const navigate = useNavigate();
   const [orderError, setOrderError] = useState('');
   const [ordering, setOrdering] = useState(false);
+  const [emailUnverified, setEmailUnverified] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
 
   function formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString('fr-FR', {
@@ -27,6 +30,8 @@ export default function BasketPage() {
     }
 
     setOrderError('');
+    setEmailUnverified(false);
+    setResendMessage('');
     setOrdering(true);
     try {
       const res = await apiFetch('/api/orders', {
@@ -42,6 +47,10 @@ export default function BasketPage() {
       });
 
       const data = await res.json() as { success: boolean; message?: string; data?: { id: number } };
+      if (res.status === 403) {
+        setEmailUnverified(true);
+        return;
+      }
       if (!res.ok) throw new Error(data.message ?? 'La commande a échoué');
 
       clearBasket();
@@ -50,6 +59,20 @@ export default function BasketPage() {
       setOrderError((err as Error).message);
     } finally {
       setOrdering(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    setResending(true);
+    setResendMessage('');
+    try {
+      const res = await apiFetch('/api/auth/send-verification-email', { method: 'POST' });
+      const data = await res.json() as { message?: string };
+      setResendMessage(data.message ?? 'Email envoyé.');
+    } catch {
+      setResendMessage("Erreur lors de l'envoi. Réessayez plus tard.");
+    } finally {
+      setResending(false);
     }
   }
 
@@ -160,6 +183,24 @@ export default function BasketPage() {
               <p className="bg-red-950/40 border border-(--color-red) text-(--color-red) text-sm rounded px-4 py-3 mb-6">
                 {orderError}
               </p>
+            )}
+
+            {emailUnverified && (
+              <div className="bg-red-950/40 border border-(--color-red) text-(--color-red) text-sm rounded px-4 py-3 mb-6 flex flex-col gap-3">
+                <p>Vous devez confirmer votre adresse email avant de passer commande.</p>
+                {resendMessage ? (
+                  <p className="text-green-400">{resendMessage}</p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={resending}
+                    className="self-start bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-4 py-2 rounded text-xs font-bold uppercase tracking-[0.06em] cursor-pointer transition-colors duration-200 disabled:opacity-50"
+                  >
+                    {resending ? 'Envoi…' : "Renvoyer l'email de confirmation"}
+                  </button>
+                )}
+              </div>
             )}
 
             <div className="border-t border-(--color-border) pt-6 flex justify-between items-center flex-wrap gap-4">
