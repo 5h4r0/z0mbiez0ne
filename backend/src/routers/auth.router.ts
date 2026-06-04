@@ -22,3 +22,7 @@ router.get('/profile', requireAuth, authController.getAuthenticatedUser);
 router.post('/forgot-password', passwordResetController.forgotPassword);
 router.get('/validate-reset-token', passwordResetController.validateResetToken);
 router.post('/reset-password', passwordResetController.resetPassword);
+
+// email verification
+router.post('/send-verification-email', requireAuth, authController.sendVerificationEmailController);
+router.get('/verify-email', authController.verifyEmail);
