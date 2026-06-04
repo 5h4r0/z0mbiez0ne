@@ -20,11 +20,18 @@ if (!secure) {
   if (refreshSecret === 'jwt-refresh-secret') console.warn('⚠️  Using default JWT_REFRESH_SECRET, define it in .env');
 }
 
+const frontendUrl = process.env.FRONTEND_URL;
+if (secure && !frontendUrl) throw new Error('FRONTEND_URL must be set in production');
+if (!secure && !frontendUrl) console.warn('⚠️  FRONTEND_URL is not defined');
+
 const allowedOrigins: string[] = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
   : ['*'];
 
 export const config = {
+  app: {
+    frontendUrl: frontendUrl ?? '',
+  },
   server: {
     env: nodeEnv,
     port: parseInt(process.env.PORT || '3000', 10),
