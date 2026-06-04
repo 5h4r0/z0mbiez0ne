@@ -1,5 +1,5 @@
 # 📡 Endpoints API
-> État au 2026-05-26 — branche `global-audit-and-fixes`
+> État au 2026-06-04 — branche `master`
 
 ---
 
@@ -11,7 +11,10 @@
 | POST    | /api/auth/login       | —            | Se connecter                   |
 | POST    | /api/auth/refresh     | —            | Rafraîchir le token JWT        |
 | POST    | /api/auth/logout      | —            | Se déconnecter                 |
-| GET     | /api/auth/profile     | member, admin| Obtenir son profil utilisateur |
+| GET     | /api/auth/profile                  | member, admin| Obtenir son profil utilisateur                            |
+| POST    | /api/auth/forgot-password          | —            | Demande de réinitialisation mot de passe (envoie email)   |
+| GET     | /api/auth/validate-reset-token     | —            | Vérifie validité d'un token de reset (?token=xxx)         |
+| POST    | /api/auth/reset-password           | —            | Réinitialise le mot de passe via token                    |
 
 ---
 
