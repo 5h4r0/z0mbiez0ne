@@ -225,6 +225,18 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    const userRecord = await prisma.users.findUnique({
+      where: { id: req.user.id },
+      select: { email_verified_at: true },
+    });
+    if (!userRecord?.email_verified_at) {
+      res.status(403).json({
+        success: false,
+        message: 'Vous devez confirmer votre adresse email avant de passer commande.',
+      });
+      return;
+    }
+
     const { payment_method, lines } = await bodySchema.parseAsync(req.body);
     const user_id = req.user.id;
 

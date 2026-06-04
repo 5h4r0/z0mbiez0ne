@@ -32,6 +32,7 @@ import ResetPasswordPage from '../pages/ResetPasswordPage';
 import SessionDetailPage from '../pages/SessionDetailPage';
 import SessionsPage from '../pages/SessionsPage';
 import TarifsPage from '../pages/TarifsPage';
+import VerifyEmailPage from '../pages/VerifyEmailPage';
 import { useAuthStore } from '../store/authStore';
 import '../styles/App.css';
 import Footer from './Footer';
@@ -102,6 +103,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/settings" element={<AccountSettingsPage />} />
           <Route path="/dashboard/commandes/:id" element={<OrderDetailPage />} />
