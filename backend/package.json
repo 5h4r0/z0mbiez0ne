@@ -26,7 +26,9 @@
     "test:watch": "dotenv -e .env.test -- vitest",
     "test:coverage": "dotenv -e .env.test -- vitest run --coverage",
     "test:integration": "vitest run src/__tests__",
-    "test:unit": "dotenv -e .env.test -- vitest run src/lib src/utils src/helpers"
+    "test:unit": "dotenv -e .env.test -- vitest run src/lib src/utils src/helpers",
+    "db:reset:test": "DATABASE_URL='postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test' prisma migrate reset --force --schema=./src/models/schema.prisma",
+    "db:seed:test": "DATABASE_URL='postgresql://zz_test:zz_test_pass@localhost:54320/zombiezone_test' npx tsx ./src/models/seeding.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
