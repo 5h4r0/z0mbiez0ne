@@ -4,14 +4,6 @@
   --breakpoint-nav: 910px;
 }
 
-@font-face {
-  font-family: 'anglican_text'; /* Nom que vous utiliserez dans votre CSS */
-  src: url('/fonts/anglican_text.woff2') format('woff2');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap; /* Recommandé pour éviter un texte invisible au chargement */
-}
-
 :root {
   --color-bg: #0a0a0a;
   --color-surface: #141414;
