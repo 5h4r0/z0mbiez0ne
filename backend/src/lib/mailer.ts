@@ -19,12 +19,12 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
 <!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8" /><title>Réinitialisation mot de passe</title></head>
-<body style="background:#1a1a1a;color:#e0e0e0;font-family:sans-serif;padding:40px 20px;margin:0;">
+<body style="background:#ffffff;color:#e0e0e0;font-family:sans-serif;padding:40px 20px;margin:0;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td align="center">
-        <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid #c0392b;border-radius:8px;padding:40px;">
-          <tr><td>
+        <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid #c0392b;border-radius:8px;">
+          <tr><td style="padding:40px;">
             <h1 style="color:#c0392b;font-size:24px;margin-bottom:8px;">zØmbie zØne</h1>
             <p style="color:#aaa;margin-bottom:24px;">Réinitialisation de votre mot de passe</p>
             <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
@@ -34,7 +34,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
                 Réinitialiser mon mot de passe
               </a>
             </p>
-            <p style="font-size:12px;color:#666;">Ou copiez ce lien : ${resetUrl}</p>
+            <p style="font-size:12px;color:#ffffff;">Ou copiez ce lien : ${resetUrl}</p>
           </td></tr>
         </table>
       </td>
@@ -54,12 +54,12 @@ export async function sendVerificationEmail(to: string, verifyUrl: string): Prom
 <!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8" /><title>Confirmation email</title></head>
-<body style="background:#1a1a1a;color:#e0e0e0;font-family:sans-serif;padding:40px 20px;margin:0;">
+<body style="background:#ffffff;color:#e0e0e0;font-family:sans-serif;padding:40px 20px;margin:0;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td align="center">
-        <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid #c0392b;border-radius:8px;padding:40px;">
-          <tr><td>
+        <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid #c0392b;border-radius:8px;">
+          <tr><td style="padding:40px;">
             <h1 style="color:#c0392b;font-size:24px;margin-bottom:8px;">zØmbie zØne</h1>
             <p style="color:#aaa;margin-bottom:24px;">Confirmation de votre adresse email</p>
             <p>Cliquez sur le bouton ci-dessous pour confirmer votre adresse email.</p>
@@ -69,7 +69,7 @@ export async function sendVerificationEmail(to: string, verifyUrl: string): Prom
                 Confirmer mon adresse email
               </a>
             </p>
-            <p style="font-size:12px;color:#666;">Ou copiez ce lien : ${verifyUrl}</p>
+            <p style="font-size:12px;color:#ffffff;">Ou copiez ce lien : ${verifyUrl}</p>
           </td></tr>
         </table>
       </td>
