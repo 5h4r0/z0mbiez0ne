@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import * as argon2 from 'argon2';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
+import { config } from '../config/config.js';
 import { sendPasswordResetEmail } from '../lib/mailer.js';
 import { passwordSchema } from '../lib/schemas/password.js';
 import { prisma } from '../models/index.js';
@@ -48,7 +49,9 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
         data: { user_id: user.id, token_hash: tokenHash, expires_at: expiresAt },
       });
 
-      const resetUrl = `${process.env.FRONTEND_URL ?? 'https://sharo.fr'}/reset-password?token=${rawToken}`;
+      const frontendUrl = config.app.frontendUrl;
+      if (!frontendUrl) throw new Error('FRONTEND_URL is not defined');
+      const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
       await sendPasswordResetEmail(user.email, resetUrl);
     }
 
