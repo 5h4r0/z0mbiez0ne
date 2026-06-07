@@ -281,7 +281,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
   await transporter.sendMail({
     from: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
     to: userEmail,
-    cc: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
+    bcc: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
     subject: `zØmbie zØne — Confirmation de commande #${orderId}`,
     html: `
 <!DOCTYPE html>
