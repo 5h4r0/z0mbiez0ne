@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 type VerifyState = 'loading' | 'success' | 'error';
@@ -7,8 +7,11 @@ export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const [state, setState] = useState<VerifyState>('loading');
+  const called = useRef(false);
 
   useEffect(() => {
+    if (called.current) return;
+    called.current = true;
     if (!token) {
       setState('error');
       return;

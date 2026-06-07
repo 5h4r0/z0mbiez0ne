@@ -1,3 +1,4 @@
 node_modules
 .gstack/
 vite-frontend/public/images/uploads/
+.env
