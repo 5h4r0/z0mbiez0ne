@@ -44,7 +44,7 @@ export async function registerUser(req: Request, res: Response) {
     const accessToken = generateAccessToken(newUser.id, newUser.role_id);
     const { jwt: refreshJwt, tokenId } = generateRefreshToken(newUser.id);
 
-    await persistRefreshToken(newUser.id, tokenId);
+    await persistRefreshToken(newUser.id, tokenId, refreshJwt);
     setAccessCookie(res, accessToken);
     setRefreshCookie(res, refreshJwt);
 
@@ -93,7 +93,7 @@ export async function loginUser(req: Request, res: Response) {
     const accessToken = generateAccessToken(user.id, user.role_id);
     const { jwt: refreshJwt, tokenId } = generateRefreshToken(user.id);
 
-    await persistRefreshToken(user.id, tokenId);
+    await persistRefreshToken(user.id, tokenId, refreshJwt);
     setAccessCookie(res, accessToken);
     setRefreshCookie(res, refreshJwt);
 
@@ -138,7 +138,7 @@ export async function refreshAccessToken(req: Request, res: Response) {
       throw new UnauthorizedError('refresh token invalid or expired');
     }
 
-    const valid = await comparePassword(tokenId, stored.token_hash);
+    const valid = await comparePassword(raw, stored.token_hash);
     if (!valid) throw new UnauthorizedError('refresh token hash mismatch');
 
     // DELETE atomique — count 0 = token déjà consommé (race condition)
@@ -160,7 +160,7 @@ export async function refreshAccessToken(req: Request, res: Response) {
     const accessToken = generateAccessToken(user.id, user.role_id);
     const { jwt: newRefreshJwt, tokenId: newTokenId } = generateRefreshToken(user.id);
 
-    await persistRefreshToken(user.id, newTokenId);
+    await persistRefreshToken(user.id, newTokenId, newRefreshJwt);
     setAccessCookie(res, accessToken);
     setRefreshCookie(res, newRefreshJwt);
 
@@ -249,8 +249,8 @@ export async function verifyEmail(req: Request, res: Response): Promise<void> {
 
 // ─── Helpers ────────────────────────────────────────────────
 
-async function persistRefreshToken(userId: number, tokenId: string): Promise<void> {
-  const token_hash = await hashPassword(tokenId);
+async function persistRefreshToken(userId: number, tokenId: string, jwt: string): Promise<void> {
+  const token_hash = await hashPassword(jwt);
   await prisma.refreshToken.create({
     data: {
       token_id: tokenId,
