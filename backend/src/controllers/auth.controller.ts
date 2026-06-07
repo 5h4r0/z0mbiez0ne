@@ -5,6 +5,7 @@ import { config } from '../config/config.js';
 import { comparePassword, hashPassword } from '../lib/auth.js';
 import { createAndSendVerificationToken } from '../lib/emailVerification.js';
 import { ConflictError, UnauthorizedError } from '../lib/errors.js';
+import { sendNewUserEmail } from '../lib/mailer.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../lib/tokens.js';
 import { prisma } from '../models/index.js';
 
@@ -51,6 +52,13 @@ export async function registerUser(req: Request, res: Response) {
       await createAndSendVerificationToken(newUser.id, newUser.email);
     } catch (err) {
       console.error('sendVerificationEmail after register failed:', err);
+    }
+
+    try {
+      const ip = (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ?? req.ip ?? 'inconnue';
+      await sendNewUserEmail(newUser.id, newUser.firstname, newUser.lastname, newUser.email, newUser.role_id, ip, new Date());
+    } catch (err) {
+      console.error('sendNewUserEmail after register failed:', err);
     }
 
     res.status(201).json({ status: 'success', data: newUser });
