@@ -10,6 +10,23 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
+function emailFooter(disclaimer?: string): string {
+  const year = new Date().getFullYear();
+  const frontendUrl = process.env.FRONTEND_URL ?? 'https://zombiezone.fr';
+  const disclaimerHtml = disclaimer ? `<p style="font-size:12px;color:#aaa;margin:0 0 12px;">${disclaimer}</p>` : '';
+  return `
+          <tr><td style="border-top:1px solid #333;padding:24px 40px 32px;">
+            ${disclaimerHtml}
+            <p style="font-size:12px;color:#555;margin:0 0 4px;">
+              E-mail envoyé par le site
+              <a href="${frontendUrl}" style="color:#f1c40f;text-decoration:none;">${frontendUrl}</a>.
+              zØmbie zØne respecte votre
+              <a href="${frontendUrl}/confidentialite" style="color:#f1c40f;text-decoration:none;">Confidentialité</a>.
+            </p>
+            <p style="font-size:12px;color:#555;margin:0;">© ${year} the zØmbie zØne. Tous droits réservés.</p>
+          </td></tr>`;
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
   await transporter.sendMail({
     from: process.env.SMTP_FROM ?? 'noreply@sharo.fr',
@@ -30,12 +47,13 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
             <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
             <p>Ce lien est valable <strong>30 minutes</strong>. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
             <p style="margin:32px 0;text-align:center;">
-              <a href="${resetUrl}" style="background:#c0392b;color:#fff;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:bold;display:inline-block;">
+              <a href="${resetUrl}" style="background:#f1c40f;color:#111;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:bold;display:inline-block;">
                 Réinitialiser mon mot de passe
               </a>
             </p>
-            <p style="font-size:12px;color:#ffffff;">Ou copiez ce lien : ${resetUrl}</p>
+            <p style="font-size:12px;color:#f1c40f;">Ou cliquez, ou copiez, ce lien : ${resetUrl}</p>
           </td></tr>
+          ${emailFooter('Si cet e-mail ne vous concerne pas, veuillez ne pas en tenir compte.')}
         </table>
       </td>
     </tr>
@@ -65,12 +83,13 @@ export async function sendVerificationEmail(to: string, verifyUrl: string): Prom
             <p>Cliquez sur le bouton ci-dessous pour confirmer votre adresse email.</p>
             <p>Ce lien est valable <strong>24 heures</strong>. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
             <p style="margin:32px 0;text-align:center;">
-              <a href="${verifyUrl}" style="background:#c0392b;color:#fff;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:bold;display:inline-block;">
+              <a href="${verifyUrl}" style="background:#f1c40f;color:#111;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:bold;display:inline-block;">
                 Confirmer mon adresse email
               </a>
             </p>
-            <p style="font-size:12px;color:#ffffff;">Ou copiez ce lien : ${verifyUrl}</p>
+            <p style="font-size:12px;color:#f1c40f;">Ou cliquez, ou copiez, ce lien : ${verifyUrl}</p>
           </td></tr>
+          ${emailFooter('Si cet e-mail ne vous concerne pas, veuillez ne pas en tenir compte.')}
         </table>
       </td>
     </tr>
@@ -122,7 +141,7 @@ export async function sendNewUserEmail(
               <tr>
                 <td style="color:#aaa;font-size:13px;padding:6px 0;">Email</td>
                 <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">
-                  <a href="mailto:${email}" style="color:#c0392b;">${email}</a>
+                  <a href="mailto:${email}" style="color:#f1c40f;">${email}</a>
                 </td>
               </tr>
               <tr>
@@ -139,6 +158,7 @@ export async function sendNewUserEmail(
               </tr>
             </table>
           </td></tr>
+          ${emailFooter()}
         </table>
       </td>
     </tr>
@@ -184,7 +204,7 @@ export async function sendContactEmail(nom: string, email: string, sujet: string
               <tr>
                 <td style="color:#aaa;font-size:13px;padding:6px 0;">Email</td>
                 <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">
-                  <a href="mailto:${email}" style="color:#c0392b;">${email}</a>
+                  <a href="mailto:${email}" style="color:#f1c40f;">${email}</a>
                 </td>
               </tr>
               <tr>
@@ -199,6 +219,7 @@ export async function sendContactEmail(nom: string, email: string, sujet: string
               Répondre directement à cet email pour contacter l'expéditeur.
             </p>
           </td></tr>
+          ${emailFooter()}
         </table>
       </td>
     </tr>
