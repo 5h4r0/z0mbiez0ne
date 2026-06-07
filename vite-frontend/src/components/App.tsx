@@ -1,6 +1,6 @@
 // vite-frontend/src/components/App.tsx
 import { useEffect } from 'react';
-import { Outlet, Route, Routes } from 'react-router';
+import { Navigate, Outlet, Route, Routes } from 'react-router';
 import ActivitiesPage from '../pages/ActivitiesPage';
 import BasketPage from '../pages/BasketPage';
 import CategoriesPage from '../pages/CategoriesPage';
@@ -83,6 +83,7 @@ function App() {
             <Route path="commandes" element={<ManageOrdersPage />} />
             <Route path="users" element={<ManageUsersPage />} />
             <Route path="utilisateurs" element={<ManageUsersPage />} />
+            <Route path="*" element={<Navigate to="/manage" replace />} />
           </Route>
         </Route>
 
