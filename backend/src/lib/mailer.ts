@@ -89,12 +89,7 @@ const SUJET_LABELS: Record<string, string> = {
   autre: 'Autre',
 };
 
-export async function sendContactEmail(
-  nom: string,
-  email: string,
-  sujet: string,
-  message: string,
-): Promise<void> {
+export async function sendContactEmail(nom: string, email: string, sujet: string, message: string): Promise<void> {
   const sujetLabel = SUJET_LABELS[sujet] ?? sujet;
   await transporter.sendMail({
     from: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
