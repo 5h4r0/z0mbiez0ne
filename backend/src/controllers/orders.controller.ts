@@ -4,6 +4,7 @@ import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
 import z from 'zod';
 import { TAXES_MULTIPLIER, TAXES_RATE } from '../lib/constants.js';
+import { sendOrderConfirmationEmail } from '../lib/mailer.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
@@ -227,7 +228,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     const userRecord = await prisma.users.findUnique({
       where: { id: req.user.id },
-      select: { email_verified_at: true },
+      select: { email_verified_at: true, firstname: true, email: true },
     });
     if (!userRecord?.email_verified_at) {
       res.status(403).json({
@@ -259,12 +260,18 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
           order_id: number;
           session_id: number;
           tickets_qty: number;
+          unit_price: Prisma.Decimal;
+          session_date: Date;
+          activity_title: string | null;
         }[] = [];
 
         for (const line of lines) {
           const { session_id, tickets_qty } = line;
 
-          const session = await tx.sessions.findUnique({ where: { id: session_id } });
+          const session = await tx.sessions.findUnique({
+            where: { id: session_id },
+            include: { activity: { select: { title: true } } },
+          });
           if (!session) throw { type: 'sessionNotFound', id: session_id };
 
           // check remaining capacity: capacity - already booked tickets for this session
@@ -285,14 +292,19 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
           const orderLine = await tx.orders_lines.create({
             data: { order_id: order.id, session_id, tickets_qty, amount },
           });
-          createdLines.push(orderLine);
+          createdLines.push({
+            ...orderLine,
+            unit_price: session.unit_price,
+            session_date: session.date,
+            activity_title: session.activity?.title ?? null,
+          });
         }
 
         // recalculate total_amount = SUM(lines.amount) * (1 + taxes_rate)
         const subtotal = createdLines.reduce((s, l) => s.add(l.amount), new Prisma.Decimal('0'));
         const total_amount = subtotal.mul(TAXES_MULTIPLIER);
 
-        return tx.orders.update({
+        const updatedOrder = await tx.orders.update({
           where: { id: order.id },
           data: { total_amount },
           include: {
@@ -303,15 +315,19 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
             },
           },
         });
+
+        return { order: updatedOrder, lines: createdLines };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
 
+    const { order: resultOrder, lines: resultLines } = result;
+
     res.status(201).json({
       success: true,
       data: {
-        ...formatOrder(result),
-        lines: result.orders_lines.map((ol) => ({
+        ...formatOrder(resultOrder),
+        lines: resultOrder.orders_lines.map((ol) => ({
           id: ol.id,
           session_id: ol.session_id,
           tickets_qty: ol.tickets_qty,
@@ -326,8 +342,30 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
           },
         })),
       },
-      message: buildCudMessage('created', 'order', String(result.id)),
+      message: buildCudMessage('created', 'order', String(resultOrder.id)),
     });
+
+    try {
+      const subtotalHT = resultLines.reduce((s, l) => s + Number(l.amount), 0);
+      await sendOrderConfirmationEmail({
+        orderId: resultOrder.id,
+        userFirstname: userRecord.firstname,
+        userEmail: userRecord.email,
+        lines: resultLines.map((l) => ({
+          activity_title: l.activity_title,
+          session_date: formatDate(l.session_date),
+          tickets_qty: l.tickets_qty,
+          unit_price: Number(l.unit_price),
+          amount: Number(l.amount),
+        })),
+        subtotalHT,
+        taxes: TAXES_RATE,
+        totalTTC: Number(resultOrder.total_amount),
+        createdAt: resultOrder.created_at,
+      });
+    } catch (err) {
+      console.error('sendOrderConfirmationEmail failed:', err);
+    }
   } catch (error) {
     const err = error as { type?: string; id?: number };
     if (error instanceof z.ZodError) {
