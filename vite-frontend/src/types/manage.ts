@@ -120,7 +120,7 @@ export const manageActivitySchema = z.object({
   title: z.string(),
   slug: z.string(),
   description: z.string(),
-  image_filename: z.string(),
+  image_filename: z.string().nullable(),
   categories: z.array(z.object({ id: z.number(), title: z.string() })).optional(),
   sessions_count: z.number().optional(),
 });
@@ -130,7 +130,7 @@ export const manageCategorySchema = z.object({
   title: z.string(),
   slug: z.string(),
   description: z.string(),
-  image_filename: z.string(),
+  image_filename: z.string().nullable(),
   activities_count: z.number().optional(),
   activities: z.array(z.object({ id: z.number(), title: z.string(), slug: z.string() })),
 });
