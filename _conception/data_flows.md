@@ -1,5 +1,5 @@
 # Flux de données — sharo.fr
-> Branche `global-audit-and-fixes` — état au 2026-05-26
+> Branche `master` — état au 2026-06-08
 > Trois lectures : D (tableaux + anomalies), C (diagrammes ASCII), B (flux narratif par type)
 
 ---
@@ -105,9 +105,11 @@
 | 6 | `store/basketStore.ts` | **Sécurité mineure** | `basketStore` persiste tout le store en localStorage (pas de `partialize`). Données panier modifiables par XSS, mais validation backend protège (capacity + prix recalculé en BDD). Non bloquant. |
 | 7 | `controllers/orders.controller.ts` | **TODO** | `updateOrder` (statut → `Confirmed`) simule un paiement sans Stripe. Hors MVP — documenté. |
 | 8 | `pages/` (manage) | ~~Manquant~~ | ~~Aucune page `/manage` implémentée frontend.~~ **✅ Résolu** (`admin-backoffice-dev`) — CRUD complet activités, sessions, catégories, orders, users. |
+| 9 | `docker/nginx.conf` | **✅ Résolu** (2026-06-08) | Headers de sécurité HTTP ajoutés : `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Strict-Transport-Security`, `Referrer-Policy`. |
 | B1 | `controllers/orders.controller.ts` | ~~Sécurité~~ | ~~`user_id` venait du body — n'importe quel membre pouvait créer une commande au nom d'autrui.~~ **✅ Résolu** (`global-audit-and-fixes`) — `user_id` retiré du schema Zod, remplacé par `req.user.id`. |
 | B2 | `controllers/users.controller.ts` | ~~Incohérence~~ | ~~`deleteUser` faisait un hard delete (`prisma.users.delete`).~~ **✅ Résolu** (`global-audit-and-fixes`) — soft delete `{ deleted_at: new Date() }`. |
 | B3 | `controllers/users.controller.ts` | ~~Robustesse~~ | ~~`updateUser` sans validation Zod sur le body.~~ **✅ Résolu** (`global-audit-and-fixes`) — schema Zod ajouté, vérification existence rôle en BDD, `ZodError` géré. |
+| B4 | `controllers/auth.controller.ts` | ~~Sécurité~~ | ~~`persistRefreshToken` hashait le `tokenId` (UUID) plutôt que le JWT.~~ **✅ Résolu** (PR #40 `fix/refresh-token-hash-jwt`) — `hashPassword(jwt)` + `comparePassword(raw, stored.token_hash)`. |
 
 ---
 
@@ -217,11 +219,15 @@ AUTH — flux de démarrage (App.tsx)
 App.tsx  useEffect au montage
   → localStorage.removeItem('zz-auth')  [nettoyage sessions persistées legacy]
   → store/authStore.ts → refreshToken()
+  → [déduplication via refreshPromise — évite double appel React StrictMode]
   → fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
   → POST /api/auth/refresh  (lit cookie httpOnly refreshToken)
   → routers/auth.router.ts
   → controllers/auth.controller.ts → refreshAccessToken()
-  → PostgreSQL : RefreshToken (findUnique → DELETE → create)
+  → jwt.verify(raw) → extrait { userId, tokenId }
+  → PostgreSQL : RefreshToken.findUnique({ token_id })
+  → comparePassword(raw, stored.token_hash)  [argon2 — vérifie le JWT contre le hash]
+  → DELETE ancien token + INSERT nouveau token
   → Set-Cookie: accessToken (httpOnly, 15min) + refreshToken (httpOnly, 7j)
   → si OK : fetch('/api/auth/profile', { credentials: 'include' })
             → GET /api/auth/profile
@@ -240,7 +246,9 @@ LoginPage.tsx  formulaire login → handleLogin()
   → controllers/auth.controller.ts → loginUser()
   → lib/auth.ts → comparePassword() [argon2]
   → lib/tokens.ts → generateAccessToken() + generateRefreshToken()
-  → PostgreSQL : RefreshToken.create (token_id + token_hash argon2)
+  → persistRefreshToken(userId, tokenId, jwt)
+  → PostgreSQL : RefreshToken.create { token_id, token_hash: hashPassword(jwt) }
+  [✅ PR #40 — c'est le JWT qui est hashé, pas le tokenId]
   → Set-Cookie: accessToken + refreshToken
   → fetch('/api/auth/profile', { credentials: 'include' })
   → [MW] requireAuth
@@ -257,7 +265,7 @@ LoginPage.tsx  formulaire register → handleRegister()
   → lib/auth.ts → hashPassword() [argon2]
   → PostgreSQL : users.create
   → lib/tokens.ts → generateAccessToken() + generateRefreshToken()
-  → PostgreSQL : RefreshToken.create
+  → persistRefreshToken(userId, tokenId, jwt)  [hash argon2 du JWT]
   → Set-Cookie: accessToken + refreshToken
   → store.set({ user: data.data })
   [note : register ne re-fetche pas /profile — user vient directement du body de réponse]
@@ -292,7 +300,8 @@ ORDERS — liste
 DashboardPage.tsx  useEffect (déclenché quand user !== null)
   → store/authStore.ts → apiFetch('/api/orders/mine')
   → fetch('/api/orders/mine', { credentials: 'include' })
-  → si 401 : apiFetch → POST /api/auth/refresh → retry
+  → si 401 et !isRefreshing : apiFetch déclenche POST /api/auth/refresh → retry
+  [isRefreshing = flag module-level évite les boucles infinies sur 401 concurrent]
   → GET /api/orders/mine  (auth)
   → routers/orders.router.ts
   → [MW] requireAuth → lit cookie accessToken → req.user.id
@@ -326,7 +335,7 @@ BasketPage.tsx  bouton "Commander"
   → controllers/orders.controller.ts → createOrder()
   → user_id = req.user.id  [body ignoré — ✅ corrigé #B1]
   → PostgreSQL : $transaction sérialisé
-                 orders.create (Pending) → loop lines (vérif capacity) → orders.update (total TTC)
+                 orders.create (Pending) → loop lines (vérif capacity atomique) → orders.update (total TTC)
   → clearBasket()
   → navigate('/dashboard/commandes/:id')
 
@@ -418,7 +427,6 @@ UTILISATEURS — liste admin
 ──────────────────────────────────────────────────────────────────────────────
 ManageUsersPage.tsx
   → apiFetch('/api/users')  GET (admin)
-  → controllers/users.controller.ts → getUsers()
   → apiFetch('/api/users/:id', PUT)  — updateUser() avec Zod + vérif rôle  [✅ corrigé #B3]
   → apiFetch('/api/users/:id', DELETE)  — soft delete { deleted_at }  [✅ corrigé #B2]
 ```
@@ -471,7 +479,7 @@ ManageUsersPage.tsx
 `BasketPage` appelle `POST /api/orders` via `apiFetch`. `createOrder()` ignore le `user_id` du body et utilise `req.user.id` (injecté par `requireAuth`). La transaction Prisma sérialisée crée la commande vide, vérifie la capacité atomiquement pour chaque ligne, calcule le total TTC, et retourne la commande complète. `BasketPage` redirige vers `OrderDetailPage` après succès.
 
 **Lecture (membre — mes commandes)**
-`DashboardPage` déclenche `apiFetch('/api/orders/mine')` uniquement quand `user !== null`. `apiFetch` gère le refresh automatique sur 401 via un flag module-level `isRefreshing`. `getMyOrders()` filtre par `user_id: req.user.id`, retourne les lignes avec session + activity title.
+`DashboardPage` déclenche `apiFetch('/api/orders/mine')` uniquement quand `user !== null`. `apiFetch` gère le refresh automatique sur 401 via le flag module-level `isRefreshing` — évite les boucles infinies si plusieurs 401 arrivent simultanément. `getMyOrders()` filtre par `user_id: req.user.id`, retourne les lignes avec session + activity title.
 
 **Lecture (membre — détail)**
 `OrderDetailPage` appelle `apiFetch('/api/orders/:id')`. `getOrder()` filtre par `user_id: req.user.id` pour les membres (les admins voient tout).
@@ -487,10 +495,10 @@ ManageUsersPage.tsx
 ### 5. Auth
 
 **Démarrage de l'application**
-`App.tsx` appelle `localStorage.removeItem('zz-auth')` pour nettoyer les sessions persistées legacy, puis `refreshToken()` dans un `useEffect` au montage. `refreshAccessToken()` lit le cookie httpOnly `refreshToken`, extrait `tokenId` (UUID), vérifie le hash argon2, puis fait un `deleteMany` atomique. Un nouveau pair `accessToken` / `refreshToken` est émis. Housekeeping silencieux des tokens expirés.
+`App.tsx` appelle `localStorage.removeItem('zz-auth')` pour nettoyer les sessions persistées legacy, puis `refreshToken()` dans un `useEffect` au montage. La déduplication via `refreshPromise` (variable module-level) évite le double appel en React StrictMode. `refreshAccessToken()` lit le cookie httpOnly `refreshToken`, extrait `tokenId` via `jwt.verify`, cherche en base par `token_id`, vérifie le JWT brut contre `token_hash` via `comparePassword(raw, stored.token_hash)` [argon2 — ✅ PR #40 : c'est le JWT qui est hashé], puis fait un `deleteMany` atomique. Un nouveau pair `accessToken` / `refreshToken` est émis.
 
 **Login**
-`loginUser()` valide email + password via Zod, compare via argon2, génère access + refresh tokens, persiste le refresh en BDD (hash argon2 du tokenId), pose les deux cookies httpOnly. Le frontend enchaîne avec `GET /api/auth/profile`.
+`loginUser()` valide email + password via Zod, compare via argon2, génère access + refresh tokens, persiste le refresh en BDD via `persistRefreshToken(userId, tokenId, jwt)` — hash argon2 du JWT [✅ PR #40], pose les deux cookies httpOnly. Le frontend enchaîne avec `GET /api/auth/profile`.
 
 **Register**
 Identique au login côté cookies. Le `user` est extrait du body de réponse sans re-fetch profile. Le `role_id: 1` est hardcodé côté frontend.
@@ -502,7 +510,7 @@ Identique au login côté cookies. Le `user` est extrait du body de réponse san
 `DashboardPage` a un `useEffect` qui appelle `navigate('/login', { replace: true })` si `!user && !isHydrating`. Ce guard se re-déclenche sur restauration bfcache, contrairement au render-time `<Navigate>` qui lui est conservé pour le premier rendu synchrone.
 
 **Intercepteur 401 (`apiFetch`)**
-Sur 401, si `isRefreshing` est false : déclenche `POST /api/auth/refresh`, si OK retry la requête originale, si KO appelle `logout()` et redirige vers `/login`.
+Sur 401, si `isRefreshing` est false : déclenche `POST /api/auth/refresh`, si OK retry la requête originale, si KO appelle `logout()` et redirige vers `/login`. Le flag `isRefreshing` est remis à false dans le bloc `finally`.
 
 ---
 
@@ -514,4 +522,20 @@ Note : `basketStore` persiste tout le store en localStorage (anomalie #6 ouverte
 
 ---
 
-*Fin du document — mis à jour le 2026-05-26, branche `global-audit-and-fixes`.*
+### 7. Infrastructure & sécurité
+
+**Headers de sécurité HTTP (✅ ajouté 2026-06-08)**
+`docker/nginx.conf` — ajout de 4 headers sur toutes les réponses HTTPS :
+- `X-Frame-Options: DENY` — empêche l'intégration dans une iframe (clickjacking)
+- `X-Content-Type-Options: nosniff` — empêche le navigateur de deviner le type MIME
+- `Strict-Transport-Security: max-age=31536000; includeSubDomains` — force HTTPS pour 1 an
+- `Referrer-Policy: strict-origin-when-cross-origin` — limite les infos transmises dans le header Referer
+
+**Logs disponibles**
+- Logs Nginx : access log + error log (`/var/log/nginx/`) — automatiques
+- Logs Docker : `docker compose logs backend` — capture stdout/stderr du container Node
+- Logs applicatifs : `console.error` dans les blocs catch des controllers
+
+---
+
+*Fin du document — mis à jour le 2026-06-08, branche `master`.*

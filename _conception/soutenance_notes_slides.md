@@ -181,6 +181,23 @@
 
 ---
 
+## Ce qui est vérifiable et vrai dans le projet
+
+- 244 commits conventionnels sur GitHub
+- 24 PR mergées
+- 151 tests (116 intégration + 35 unitaires)
+- CI verte
+- Application déployée en prod : sharo.fr
+- Code public : github.com/5h4r0/z0mbiez0ne
+- Headers de sécurité HTTP actifs en prod
+- "zéro any TypeScript" → pas absolu
+
+## Ce qui n'a pas eu lieu
+
+- GitHub Projects Kanban → pas utilisé
+- Lazy loading images → pas implémenté
+- Sprints formalisés / daily stand-up → pas fait
+
 ---
 
 # ENTRETIEN TECHNIQUE — Questions probables & Réponses
