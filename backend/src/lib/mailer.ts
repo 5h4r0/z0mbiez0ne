@@ -269,7 +269,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
         <tr>
           <td style="padding:8px 4px;color:#e0e0e0;font-size:13px;border-bottom:1px solid #2a2a2a;">
             ${l.activity_title ?? 'Activité'}<br/>
-            <span style="color:#888;font-size:11px;">${l.session_date} — ${l.tickets_qty} billet(s) × ${fmt(l.unit_price)} HT</span>
+            <span style="color:#fff;font-size:11px;font-weight:bold">${l.session_date} — ${l.tickets_qty} billet(s) × ${fmt(l.unit_price)} HT</span>
           </td>
           <td style="padding:8px 4px;color:#e0e0e0;font-size:13px;border-bottom:1px solid #2a2a2a;text-align:right;white-space:nowrap;">
             ${fmt(l.amount)}
@@ -281,6 +281,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
   await transporter.sendMail({
     from: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
     to: userEmail,
+    bcc: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
     subject: `zØmbie zØne — Confirmation de commande #${orderId}`,
     html: `
 <!DOCTYPE html>
@@ -294,7 +295,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
           <tr><td style="padding:40px;">
             <h1 style="color:#c0392b;font-size:24px;margin-bottom:8px;">zØmbie zØne</h1>
             <p style="color:#aaa;margin-bottom:4px;">Confirmation de commande</p>
-            <p style="color:#555;font-size:12px;margin-top:0;">Commande #${orderId} — ${dateStr}</p>
+            <p style="color:#fff;font-size:12px;margin-top:0;">Commande #${orderId} — ${dateStr}</p>
 
             <p style="margin-top:24px;">Bonjour <strong>${userFirstname}</strong>,</p>
             <p style="color:#aaa;font-size:14px;">
