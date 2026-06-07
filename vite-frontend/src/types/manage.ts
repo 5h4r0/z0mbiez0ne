@@ -52,7 +52,7 @@ export interface ManageActivity {
   title: string;
   slug: string;
   description: string;
-  image_filename: string;
+  image_filename: string | null;
   categories?: { id: number; title: string }[];
   sessions_count?: number;
 }
@@ -62,7 +62,7 @@ export interface ManageCategory {
   title: string;
   slug: string;
   description: string;
-  image_filename: string;
+  image_filename: string | null;
   activities: { id: number; title: string; slug: string }[];
 }
 
