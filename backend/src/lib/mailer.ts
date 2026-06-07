@@ -228,3 +228,117 @@ export async function sendContactEmail(nom: string, email: string, sujet: string
 </html>`,
   });
 }
+
+interface OrderConfirmationLine {
+  activity_title: string | null;
+  session_date: string;
+  tickets_qty: number;
+  unit_price: number;
+  amount: number;
+}
+
+interface OrderConfirmationData {
+  orderId: number;
+  userFirstname: string;
+  userEmail: string;
+  lines: OrderConfirmationLine[];
+  subtotalHT: number;
+  taxes: number;
+  totalTTC: number;
+  createdAt: Date;
+}
+
+export async function sendOrderConfirmationEmail(data: OrderConfirmationData): Promise<void> {
+  const { orderId, userFirstname, userEmail, lines, subtotalHT, taxes, totalTTC, createdAt } = data;
+
+  const fmt = (n: number) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+
+  const dateStr = createdAt.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Paris',
+  });
+
+  const linesHtml = lines
+    .map(
+      (l) => `
+        <tr>
+          <td style="padding:8px 4px;color:#e0e0e0;font-size:13px;border-bottom:1px solid #2a2a2a;">
+            ${l.activity_title ?? 'Activité'}<br/>
+            <span style="color:#888;font-size:11px;">${l.session_date} — ${l.tickets_qty} billet(s) × ${fmt(l.unit_price)} HT</span>
+          </td>
+          <td style="padding:8px 4px;color:#e0e0e0;font-size:13px;border-bottom:1px solid #2a2a2a;text-align:right;white-space:nowrap;">
+            ${fmt(l.amount)}
+          </td>
+        </tr>`,
+    )
+    .join('');
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
+    to: userEmail,
+    subject: `zØmbie zØne — Confirmation de commande #${orderId}`,
+    html: `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8" /><title>Confirmation de commande</title></head>
+<body style="background:#ffffff;color:#e0e0e0;font-family:sans-serif;padding:40px 20px;margin:0;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid #c0392b;border-radius:8px;">
+          <tr><td style="padding:40px;">
+            <h1 style="color:#c0392b;font-size:24px;margin-bottom:8px;">zØmbie zØne</h1>
+            <p style="color:#aaa;margin-bottom:4px;">Confirmation de commande</p>
+            <p style="color:#555;font-size:12px;margin-top:0;">Commande #${orderId} — ${dateStr}</p>
+
+            <p style="margin-top:24px;">Bonjour <strong>${userFirstname}</strong>,</p>
+            <p style="color:#aaa;font-size:14px;">
+              Votre commande a bien été enregistrée. Vous trouverez ci-dessous le récapitulatif.
+            </p>
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;color:#888;font-size:11px;text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid #333;">Activité / Session</th>
+                  <th style="text-align:right;color:#888;font-size:11px;text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid #333;">Montant HT</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${linesHtml}
+              </tbody>
+            </table>
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+              <tr>
+                <td style="color:#888;font-size:13px;padding:4px 0;">Sous-total HT</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:4px 0;text-align:right;">${fmt(subtotalHT)}</td>
+              </tr>
+              <tr>
+                <td style="color:#888;font-size:13px;padding:4px 0;">TVA (${Math.round(taxes * 100)} %)</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:4px 0;text-align:right;">${fmt(totalTTC - subtotalHT)}</td>
+              </tr>
+              <tr>
+                <td style="color:#fff;font-size:15px;font-weight:bold;padding:10px 0 4px;">Total TTC</td>
+                <td style="color:#c0392b;font-size:15px;font-weight:bold;padding:10px 0 4px;text-align:right;">${fmt(totalTTC)}</td>
+              </tr>
+            </table>
+
+            <p style="margin-top:28px;font-size:13px;color:#aaa;">
+              Retrouvez le détail de vos commandes dans votre
+              <a href="${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/dashboard" style="color:#f1c40f;">espace personnel</a>.
+            </p>
+          </td></tr>
+          ${emailFooter()}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+  });
+}
