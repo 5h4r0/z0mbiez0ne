@@ -56,7 +56,15 @@ export async function registerUser(req: Request, res: Response) {
 
     try {
       const ip = (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ?? req.ip ?? 'inconnue';
-      await sendNewUserEmail(newUser.id, newUser.firstname, newUser.lastname, newUser.email, newUser.role_id, ip, new Date());
+      await sendNewUserEmail(
+        newUser.id,
+        newUser.firstname,
+        newUser.lastname,
+        newUser.email,
+        newUser.role_id,
+        ip,
+        new Date(),
+      );
     } catch (err) {
       console.error('sendNewUserEmail after register failed:', err);
     }
