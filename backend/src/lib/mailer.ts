@@ -79,3 +79,63 @@ export async function sendVerificationEmail(to: string, verifyUrl: string): Prom
 </html>`,
   });
 }
+
+const SUJET_LABELS: Record<string, string> = {
+  reservation: 'Réservation de groupe',
+  annulation: 'Annulation / Remboursement',
+  info: 'Informations générales',
+  presse: 'Presse & Partenariats',
+  zombie: 'Signalement zombie (urgent)',
+  autre: 'Autre',
+};
+
+export async function sendContactEmail(nom: string, email: string, sujet: string, message: string): Promise<void> {
+  const sujetLabel = SUJET_LABELS[sujet] ?? sujet;
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
+    to: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
+    replyTo: email,
+    subject: `[Contact] ${sujetLabel} — ${nom}`,
+    html: `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8" /><title>Message de contact</title></head>
+<body style="background:#ffffff;color:#e0e0e0;font-family:sans-serif;padding:40px 20px;margin:0;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid #c0392b;border-radius:8px;">
+          <tr><td style="padding:40px;">
+            <h1 style="color:#c0392b;font-size:24px;margin-bottom:8px;">zØmbie zØne</h1>
+            <p style="color:#aaa;margin-bottom:24px;">Nouveau message de contact</p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;width:90px;">Nom</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">${nom}</td>
+              </tr>
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;">Email</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">
+                  <a href="mailto:${email}" style="color:#c0392b;">${email}</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;">Sujet</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">${sujetLabel}</td>
+              </tr>
+            </table>
+            <div style="background:#1a1a1a;border-left:3px solid #c0392b;padding:16px;border-radius:4px;">
+              <p style="margin:0;font-size:14px;line-height:1.6;white-space:pre-wrap;">${message}</p>
+            </div>
+            <p style="font-size:12px;color:#555;margin-top:24px;">
+              Répondre directement à cet email pour contacter l'expéditeur.
+            </p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+  });
+}
