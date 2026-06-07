@@ -4,7 +4,7 @@ import { enUS } from 'date-fns/locale';
 import type { Request, Response } from 'express';
 import z from 'zod';
 import { TAXES_MULTIPLIER, TAXES_RATE } from '../lib/constants.js';
-import { sendOrderConfirmationEmail } from '../lib/mailer.js';
+import { sendOrderAdminEmail, sendOrderConfirmationEmail } from '../lib/mailer.js';
 import { buildCudMessage, buildErrorMessage } from '../lib/messages.js';
 import { prisma } from '../models/index.js';
 
@@ -228,7 +228,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     const userRecord = await prisma.users.findUnique({
       where: { id: req.user.id },
-      select: { email_verified_at: true, firstname: true, email: true },
+      select: { email_verified_at: true, firstname: true, lastname: true, email: true },
     });
     if (!userRecord?.email_verified_at) {
       res.status(403).json({
@@ -240,6 +240,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     const { payment_method, lines } = await bodySchema.parseAsync(req.body);
     const user_id = req.user.id;
+    const ip = (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ?? req.ip ?? 'inconnue';
 
     const result = await prisma.$transaction(
       async (tx) => {
@@ -347,24 +348,27 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     try {
       const subtotalHT = resultLines.reduce((s, l) => s + Number(l.amount), 0);
-      await sendOrderConfirmationEmail({
+      const emailLines = resultLines.map((l) => ({
+        activity_title: l.activity_title,
+        session_date: formatDate(l.session_date),
+        tickets_qty: l.tickets_qty,
+        unit_price: Number(l.unit_price),
+        amount: Number(l.amount),
+      }));
+      const emailBase = {
         orderId: resultOrder.id,
         userFirstname: userRecord.firstname,
         userEmail: userRecord.email,
-        lines: resultLines.map((l) => ({
-          activity_title: l.activity_title,
-          session_date: formatDate(l.session_date),
-          tickets_qty: l.tickets_qty,
-          unit_price: Number(l.unit_price),
-          amount: Number(l.amount),
-        })),
+        lines: emailLines,
         subtotalHT,
         taxes: TAXES_RATE,
         totalTTC: Number(resultOrder.total_amount),
         createdAt: resultOrder.created_at,
-      });
+      };
+      await sendOrderConfirmationEmail(emailBase);
+      await sendOrderAdminEmail({ ...emailBase, userLastname: userRecord.lastname, ip });
     } catch (err) {
-      console.error('sendOrderConfirmationEmail failed:', err);
+      console.error('order emails failed:', err);
     }
   } catch (error) {
     const err = error as { type?: string; id?: number };
