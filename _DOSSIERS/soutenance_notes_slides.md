@@ -63,7 +63,7 @@
 >
 > Le prix unitaire HT et le taux de TVA sont figés dans orders_lines au moment de la commande. Si un admin modifie le prix d'une activité plus tard, les commandes passées restent intactes — c'est une exigence métier fondamentale.
 >
-> Pour les refresh tokens : je stocke un token_id UUID dans le cookie et le hash argon2 en base. Ça permet un lookup O(1) par UUID, et la comparaison sécurisée par argon2.verify — jamais le token brut en base."
+> Pour les refresh tokens : token_id UUID en clair en base pour le lookup O(1). Le JWT entier est hashé via argon2 — token_hash = argon2(JWT). Au refresh, on retrouve la ligne par token_id, puis argon2.verify(cookie, token_hash) confirme que le cookie est authentique. Jamais le JWT brut en base."
 
 ---
 
@@ -192,6 +192,9 @@
 
 **Q : Qu'est-ce que la rotation du refresh token ?**
 > À chaque appel /refresh, on supprime l'ancien refresh token en base et on en génère un nouveau. Si un attaquant vole un refresh token et tente de l'utiliser après que le client légitime l'a déjà rotaté, le token_id est absent en base → 401 immédiat.
+
+**Q : Que stockes-tu en base pour les refresh tokens, et pourquoi ?**
+> Deux colonnes : token_id (UUID en clair, pour le lookup O(1)) et token_hash (argon2 du JWT entier). Au refresh, on retrouve la ligne par token_id, puis argon2.verify(cookie, token_hash) confirme que le cookie est authentique. Si la base fuite, le JWT hashé est inutilisable sans le secret JWT. Hacher le token_id n'aurait aucun sens — il est déjà en clair dans la même ligne.
 
 **Q : Pourquoi argon2id plutôt que bcrypt ?**
 > argon2id est résistant aux attaques GPU et ASIC — il paramètre la mémoire requise, pas seulement le temps de calcul. C'est la recommandation OWASP depuis 2023, supérieur à bcrypt sur ce critère.
