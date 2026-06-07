@@ -1,33 +1,35 @@
 # 📡 Endpoints API
-> État au 2026-06-04 — branche `master`
+> État au 2026-06-07 — branche `master`
 
 ---
 
 ## 🔑 Authentification
 
-| Méthode | Endpoint              | Auth requise | Description                    |
-|---------|-----------------------|--------------|--------------------------------|
-| POST    | /api/auth/register    | —            | Créer un compte utilisateur    |
-| POST    | /api/auth/login       | —            | Se connecter                   |
-| POST    | /api/auth/refresh     | —            | Rafraîchir le token JWT        |
-| POST    | /api/auth/logout      | —            | Se déconnecter                 |
-| GET     | /api/auth/profile                  | member, admin| Obtenir son profil utilisateur                            |
-| POST    | /api/auth/forgot-password          | —            | Demande de réinitialisation mot de passe (envoie email)   |
-| GET     | /api/auth/validate-reset-token     | —            | Vérifie validité d'un token de reset (?token=xxx)         |
-| POST    | /api/auth/reset-password           | —            | Réinitialise le mot de passe via token                    |
+| Méthode | Endpoint                          | Auth requise  | Description                                             |
+|---------|-----------------------------------|---------------|---------------------------------------------------------|
+| POST    | /api/auth/register                | —             | Créer un compte utilisateur                             |
+| POST    | /api/auth/login                   | —             | Se connecter                                            |
+| POST    | /api/auth/refresh                 | —             | Rafraîchir le token JWT                                 |
+| POST    | /api/auth/logout                  | —             | Se déconnecter                                          |
+| GET     | /api/auth/profile                 | member, admin | Obtenir son profil utilisateur                          |
+| POST    | /api/auth/forgot-password         | —             | Demande de réinitialisation mot de passe (envoie email) |
+| GET     | /api/auth/validate-reset-token    | —             | Vérifie validité d'un token de reset (?token=xxx)       |
+| POST    | /api/auth/reset-password          | —             | Réinitialise le mot de passe via token                  |
+| POST    | /api/auth/send-verification-email | member, admin | Renvoie l'email de vérification                         |
+| GET     | /api/auth/verify-email            | —             | Vérifie l'email via token (?token=xxx)                  |
 
 ---
 
 ## 📂 Categories
 
-| Méthode | Endpoint                      | Auth requise | Description              |
-|---------|-------------------------------|--------------|--------------------------|
-| GET     | /api/categories               | —            | Liste catégories         |
-| GET     | /api/categories/by-slug/:slug | —            | Détail catégorie par slug|
-| GET     | /api/categories/:id           | —            | Détail catégorie par id  |
-| POST    | /api/categories               | admin        | Créer catégorie          |
-| PUT     | /api/categories/:id           | admin        | Modifier catégorie       |
-| DELETE  | /api/categories/:id           | admin        | Supprimer catégorie      |
+| Méthode | Endpoint                      | Auth requise | Description               |
+|---------|-------------------------------|--------------|---------------------------|
+| GET     | /api/categories               | —            | Liste catégories          |
+| GET     | /api/categories/by-slug/:slug | —            | Détail catégorie par slug |
+| GET     | /api/categories/:id           | —            | Détail catégorie par id   |
+| POST    | /api/categories               | admin        | Créer catégorie           |
+| PUT     | /api/categories/:id           | admin        | Modifier catégorie        |
+| DELETE  | /api/categories/:id           | admin        | Supprimer catégorie       |
 
 ---
 
@@ -67,6 +69,8 @@
 | PUT     | /api/orders/:id   | member, admin | Modifier le statut d'une commande  |
 | DELETE  | /api/orders/:id   | member, admin | Supprimer une commande (Pending)   |
 
+> `POST /api/orders` retourne **403** si `email_verified_at` est NULL (email non vérifié).
+
 ---
 
 ## 📋 Orders Lines
@@ -90,6 +94,8 @@
 | PUT     | /api/users/:id/password | member, admin | Modifier mot de passe |
 | PUT     | /api/users/:id          | member, admin | Modifier utilisateur  |
 | DELETE  | /api/users/:id          | member, admin | Supprimer compte      |
+
+> `email_verified_at` : timestamp nullable. NULL = email non vérifié. Renseigné lors de `GET /api/auth/verify-email`.
 
 ---
 
