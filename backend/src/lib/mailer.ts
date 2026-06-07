@@ -51,7 +51,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
                 Réinitialiser mon mot de passe
               </a>
             </p>
-            <p style="font-size:12px;color:#f1c40f;">Ou cliquez, ou copiez, ce lien : ${resetUrl}</p>
+            <p style="font-size:12px;">Ou cliquez, ou copiez, ce lien : <a href="${resetUrl}" style="color:#f1c40f;">${resetUrl}</a></p>
           </td></tr>
           ${emailFooter('Si cet e-mail ne vous concerne pas, veuillez ne pas en tenir compte.')}
         </table>
@@ -87,7 +87,7 @@ export async function sendVerificationEmail(to: string, verifyUrl: string): Prom
                 Confirmer mon adresse email
               </a>
             </p>
-            <p style="font-size:12px;color:#f1c40f;">Ou cliquez, ou copiez, ce lien : ${verifyUrl}</p>
+            <p style="font-size:12px;">Ou cliquez, ou copiez, ce lien : <a href="${verifyUrl}" style="color:#f1c40f;">${verifyUrl}</a></p>
           </td></tr>
           ${emailFooter('Si cet e-mail ne vous concerne pas, veuillez ne pas en tenir compte.')}
         </table>
