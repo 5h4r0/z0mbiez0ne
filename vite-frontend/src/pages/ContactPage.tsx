@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import '../styles/pages.scss';
 
 interface FormData {
@@ -21,16 +21,34 @@ const sectionHeadCls =
 export default function ContactPage() {
   const [form, setForm] = useState<FormData>(INITIAL);
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  function handleChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
-    console.log('Contact form submitted:', form);
-    setSent(true);
-    setForm(INITIAL);
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setSent(true);
+        setForm(INITIAL);
+      } else {
+        setError('Une erreur est survenue. Veuillez réessayer.');
+      }
+    } catch {
+      setError('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -43,7 +61,7 @@ export default function ContactPage() {
           <div>
             {sent ? (
               <div className="bg-(--color-surface) border border-[#2ecc71] rounded-lg p-8 text-center">
-                <p className="text-[1.1rem] font-bold text-[#2ecc71] mb-3">Message envoyé dans le vide !</p>
+                <p className="text-[1.1rem] font-bold text-[#2ecc71] mb-3">Message envoyé !</p>
                 <p className="text-(--color-text-muted) text-sm">
                   Un membre de notre équipe (vivant) vous répondra dans les 48h. En cas de non-réponse, vérifiez que
                   votre interlocuteur n'a pas été converti.
@@ -130,10 +148,12 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-6 py-3 rounded text-sm font-bold tracking-[0.06em] uppercase cursor-pointer transition-colors duration-200 self-start"
+                  disabled={loading}
+                  className="bg-(--color-red) hover:bg-(--color-red-hover) text-white border-none px-6 py-3 rounded text-sm font-bold tracking-[0.06em] uppercase cursor-pointer transition-colors duration-200 self-start disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Envoyer dans le vide
+                  {loading ? 'Envoi…' : 'Envoyer en enfer'}
                 </button>
+                {error && <p className="text-[0.85rem] text-[#c0392b] mt-1">{error}</p>}
               </form>
             )}
           </div>

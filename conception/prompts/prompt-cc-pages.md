@@ -193,7 +193,7 @@ Style commun : fond `--color-bg`, max-width 900px centré, padding généreux, t
 
 - Titre `CONTACTEZ LA ZONE`
 - Layout 2 colonnes :
-  - **Gauche** : formulaire (Nom, Email, Sujet, Message, bouton `Envoyer dans le vide`), pas de logique d'envoi — `console.log` + message de confirmation UI après submit
+  - **Gauche** : formulaire (Nom, Email, Sujet, Message, bouton `Envoyer en enfer`), pas de logique d'envoi — `console.log` + message de confirmation UI après submit
   - **Droite** : infos de contact fictives (adresse, email, téléphone), horaires d'ouverture, carte SVG inline minimaliste (juste un rectangle avec marqueur de position)
 - Style cohérent avec le reste
 

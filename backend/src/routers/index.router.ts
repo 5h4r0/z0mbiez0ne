@@ -5,6 +5,7 @@ import { parse } from 'yaml';
 import { router as activitiesRouter } from './activities.router.js';
 import { router as authRouter } from './auth.router.js';
 import { router as categoriesRouter } from './categories.router.js';
+import { router as contactRouter } from './contact.router.js';
 import { router as ordersLinesRouter } from './order.lines.router.js';
 import { router as ordersRouter } from './orders.router.js';
 import { router as rolesRouter } from './roles.router.js';
@@ -20,6 +21,7 @@ router.use(sessionsRouter);
 router.use(ordersRouter);
 router.use(ordersLinesRouter);
 
+router.use(contactRouter);
 router.use(uploadRouter);
 router.use(rolesRouter);
 router.use(usersRouter);
