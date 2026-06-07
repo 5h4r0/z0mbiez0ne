@@ -80,6 +80,74 @@ export async function sendVerificationEmail(to: string, verifyUrl: string): Prom
   });
 }
 
+export async function sendNewUserEmail(
+  id: number,
+  firstname: string,
+  lastname: string,
+  email: string,
+  roleId: number,
+  ip: string,
+  registeredAt: Date,
+): Promise<void> {
+  const dateStr = registeredAt.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
+    to: process.env.SMTP_FROM ?? 'z0mbiez0ne@sharo.fr',
+    subject: `[Inscription] ${firstname} ${lastname} <${email}>`,
+    html: `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8" /><title>Nouvelle inscription</title></head>
+<body style="background:#ffffff;color:#e0e0e0;font-family:sans-serif;padding:40px 20px;margin:0;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table width="520" cellpadding="0" cellspacing="0" style="background:#111;border:1px solid #c0392b;border-radius:8px;">
+          <tr><td style="padding:40px;">
+            <h1 style="color:#c0392b;font-size:24px;margin-bottom:8px;">zØmbie zØne</h1>
+            <p style="color:#aaa;margin-bottom:24px;">Nouvelle inscription</p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;width:110px;">ID</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">#${id}</td>
+              </tr>
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;">Prénom</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">${firstname}</td>
+              </tr>
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;">Nom</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">${lastname}</td>
+              </tr>
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;">Email</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">
+                  <a href="mailto:${email}" style="color:#c0392b;">${email}</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;">Rôle (id)</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">${roleId}</td>
+              </tr>
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;">Adresse IP</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">${ip}</td>
+              </tr>
+              <tr>
+                <td style="color:#aaa;font-size:13px;padding:6px 0;">Date / Heure</td>
+                <td style="color:#e0e0e0;font-size:13px;padding:6px 0;">${dateStr}</td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+  });
+}
+
 const SUJET_LABELS: Record<string, string> = {
   reservation: 'Réservation de groupe',
   annulation: 'Annulation / Remboursement',
