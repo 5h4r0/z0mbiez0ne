@@ -26,6 +26,23 @@ Enums : `OrderStatus` (Pending/Confirmed/Cancelled/Refunded) · `SessionStatus` 
 
 ---
 
+## Ports
+
+| | Local | Conteneur de prod |
+|---|---|---|
+| Backend Express | **4000** (`PORT` dans `backend/.env`) | 3000, derrière nginx (`docker/nginx.conf`) |
+| Front Vite | 5173, proxifie `/api` vers 4000 | servi par nginx sur le port 80 |
+
+Le backend est passé de 3000 à 4000 en local le 09/10/2026 : `next dev` de
+kadath.fr occupe le 3000. Le défaut `3000` de `src/config/config.ts` et le
+`proxy_pass backend:3000` de nginx restent inchangés — c'est ce couple qui
+fait tourner la prod.
+
+`npm run dev:back` exige `backend/.env` (le script passe `--env-file=.env`) :
+le copier depuis `backend/.env.example` avant le premier lancement.
+
+---
+
 ## Commandes essentielles
 
 ```bash
