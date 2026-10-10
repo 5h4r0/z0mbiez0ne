@@ -1,9 +1,11 @@
 # CLAUDE.md
 > Contexte CC — sharo.fr
 
-Branche active : `master`. `customer-account-dev` a été fusionnée (vérifié le
-09/10/2026 : zéro commit d'avance sur `master`). Pour un gros chantier, créer
-une branche dédiée plutôt que travailler directement sur `master`.
+Branche active : `main` (`master` supprimée le 10/10/2026 ; sa protection GitHub
+gênait plus qu'elle ne protégeait). Tout push sur `main` déploie en production.
+Pour un gros chantier, créer une branche dédiée plutôt que travailler
+directement sur `main`. Accès au VPS et renouvellement du certificat :
+`DEPLOY.md`.
 
 Les conventions communes à tous les projets Node/TypeScript — interdiction de
 `any` et de `SELECT *`, Zod sur tous les entrants, guard clauses, suppression

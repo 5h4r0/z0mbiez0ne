@@ -13,6 +13,26 @@ Procédure de déploiement complète et pièges connus. Rédigée après déploi
 
 **Hébergement** : VPS Ionos — Ubuntu 24.04 — 2 vCPU / 2 GB RAM / 80 GB NVMe — IP : 82.165.180.54
 
+**Branche de production** : `main` (`master` supprimée le 10/10/2026). Tout push sur
+`main` déclenche lint, tests, build puis déploiement (`.github/workflows/ci.yml`).
+
+---
+
+## Accès au VPS
+
+- **SSH par clé uniquement**, utilisateur `steph` (sudo). `root` et les mots de passe
+  sont refusés par sshd (`PermitRootLogin no`, `PasswordAuthentication no`).
+- Depuis WSL : `ssh vps` (alias de `~/.ssh/config` → `steph@82.165.180.54`,
+  clé `~/.ssh/id_ed25519`).
+- **Mot de passe de `steph`** (pour `sudo` et la console du panneau Ionos) :
+  **dans Bitwarden uniquement**, jamais dans un fichier texte. Celui de juin était
+  noté sur la machine volée : changé le 10/10/2026.
+- Clés autorisées (`~/.ssh/authorized_keys` de `steph`) : le poste actuel
+  (`github@sharo.fr`) et le déploiement (`github-actions-zombiezone`, secrets
+  `VPS_HOST`, `VPS_USER`, `SSH_PRIVATE_KEY` du dépôt). Toute autre clé est suspecte.
+- Le serveur clone le dépôt **public** en HTTPS, sans identifiant : il peut lire,
+  jamais pousser.
+
 ---
 
 ## Architecture Docker
@@ -177,6 +197,29 @@ sudo certbot certonly --standalone -d sharo.fr
 # Certificats dans /etc/letsencrypt/live/sharo.fr/
 ```
 
+**Renouvellement — piège rencontré.** En mode `standalone`, certbot a besoin du port
+80 pour prouver qu'il contrôle le domaine ; or le conteneur `frontend` l'occupe en
+permanence. Résultat : aucun renouvellement n'a réussi, certificat expiré le
+25/08/2026, découvert le 09/10. Correctif : certbot arrête le conteneur le temps du
+renouvellement (~30 s de coupure tous les ~60 jours) :
+
+```bash
+sudo certbot renew --cert-name sharo.fr \
+  --pre-hook "docker stop zombiezone-frontend-1" \
+  --post-hook "docker start zombiezone-frontend-1"
+```
+
+Les deux hooks sont alors enregistrés dans `/etc/letsencrypt/renewal/sharo.fr.conf` et
+le timer `certbot.timer` (2 fois par jour) s'en sert seul. Vérifier de temps en temps :
+
+```bash
+sudo certbot renew --dry-run
+echo | openssl s_client -connect sharo.fr:443 -servername sharo.fr 2>/dev/null | openssl x509 -noout -enddate
+```
+
+Évolution possible sans coupure : mode `webroot` (servir `/.well-known/acme-challenge/`
+depuis nginx avant la redirection HTTPS).
+
 ⚠️ Ne pas inclure `www.sharo.fr` si l'enregistrement DNS n'existe pas.
 
 ### 6. Build et démarrage
@@ -228,7 +271,7 @@ docker compose -f docker-compose.prod.yaml restart backend
 ## Pull, build tout
 
 ```bash
-steph@ubuntu:/srv/zombiezone$ git pull origin master && docker compose -f docker-compose.prod.yaml up -d --build
+steph@ubuntu:/srv/zombiezone$ git pull origin main && docker compose -f docker-compose.prod.yaml up -d --build
 
 # -f — flag (ou option) pour spécifier le fichier Compose à utiliser (au lieu du docker-compose.yml par défaut)
 # -d — mode detached : les containers tournent en arrière-plan, le terminal est libéré
